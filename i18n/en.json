@@ -1,0 +1,9 @@
+{
+  "title": "Settings Example",
+  "theme": "Theme",
+  "language": "Language",
+  "apply": "Apply",
+  "light": "Light",
+  "dark": "Dark",
+  "system": "System"
+}
