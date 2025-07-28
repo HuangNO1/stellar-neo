@@ -4,12 +4,11 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="e1217e66-f6df-4928-bc5a-398e629a83e8" name="Changes" comment="圖片可拖拽加載">
-      <change afterPath="$PROJECT_DIR$/ui/__init__.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/ui/customs/__init__.py" afterDir="false" />
+    <list default="true" id="e1217e66-f6df-4928-bc5a-398e629a83e8" name="Changes" comment="調整圖片預覽布局">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/ui/components/gallery.ui" beforeDir="false" afterPath="$PROJECT_DIR$/ui/components/gallery.ui" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/ui/pages/view_gallery.py" beforeDir="false" afterPath="$PROJECT_DIR$/ui/pages/view_gallery.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/ui/components/test.ui" beforeDir="false" afterPath="$PROJECT_DIR$/ui/components/settings.ui" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/ui/pages/view_settings.py" beforeDir="false" afterPath="$PROJECT_DIR$/ui/pages/view_settings.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/users_data/settings.json" beforeDir="false" afterPath="$PROJECT_DIR$/users_data/settings.json" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -129,7 +128,7 @@
       <workItem from="1753688893268" duration="2775000" />
       <workItem from="1753692305183" duration="16917000" />
       <workItem from="1753713747778" duration="194000" />
-      <workItem from="1753713947283" duration="5786000" />
+      <workItem from="1753713947283" duration="6448000" />
     </task>
     <task id="LOCAL-00001" summary="完成 1. 主題切換 2. 國際化 3. 設定存儲與讀取 4. 完成窗口啟動畫面">
       <option name="closed" value="true" />
@@ -163,11 +162,30 @@
       <option name="project" value="LOCAL" />
       <updated>1753717188904</updated>
     </task>
-    <option name="localTasksCounter" value="5" />
+    <task id="LOCAL-00005" summary="調整圖片預覽布局">
+      <option name="closed" value="true" />
+      <created>1753719958583</created>
+      <option name="number" value="00005" />
+      <option name="presentableId" value="LOCAL-00005" />
+      <option name="project" value="LOCAL" />
+      <updated>1753719958583</updated>
+    </task>
+    <option name="localTasksCounter" value="6" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
     <option name="version" value="3" />
+  </component>
+  <component name="Vcs.Log.Tabs.Properties">
+    <option name="TAB_STATES">
+      <map>
+        <entry key="MAIN">
+          <value>
+            <State />
+          </value>
+        </entry>
+      </map>
+    </option>
   </component>
   <component name="VcsManagerConfiguration">
     <option name="ADD_EXTERNAL_FILES_SILENTLY" value="true" />
@@ -175,10 +193,11 @@
     <MESSAGE value="完成 子頁面切換與側邊欄國際化，修改語言需要重啟應用" />
     <MESSAGE value="圖片列表頁面的 ui 與布局完成" />
     <MESSAGE value="圖片可拖拽加載" />
-    <option name="LAST_COMMIT_MESSAGE" value="圖片可拖拽加載" />
+    <MESSAGE value="調整圖片預覽布局" />
+    <option name="LAST_COMMIT_MESSAGE" value="調整圖片預覽布局" />
   </component>
   <component name="com.intellij.coverage.CoverageDataManagerImpl">
-    <SUITE FILE_PATH="coverage/stellar_neo$main.coverage" NAME="main Coverage Results" MODIFIED="1753719827434" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/stellar_neo$main.coverage" NAME="main Coverage Results" MODIFIED="1753720242016" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/stellar_neo$app.coverage" NAME="app Coverage Results" MODIFIED="1753689525523" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
   </component>
 </project>
