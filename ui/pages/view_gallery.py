@@ -1,11 +1,11 @@
-# ui/pages/view_gallery.py (純 PyQt6 版本)
+# ui/pages/view_gallery.py (功能完整版)
 import os
 from PyQt6 import uic
 from PyQt6.QtCore import Qt, QSize, QRect, QPoint
 from PyQt6.QtGui import QPixmap, QPainter, QColor, QFont
 from PyQt6.QtWidgets import QWidget, QFileDialog, QListWidgetItem
 
-# 匯入我們新建立的、純 PyQt6 的 EXIF 讀取器
+# 修正 import，使用新的 exif_reader
 from core.exif_reader import get_exif_data
 from core.settings_manager import SettingsManager
 
@@ -14,20 +14,29 @@ class GalleryView(QWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
 
+        # 修正 uic 載入路徑
         uic.loadUi("ui/components/gallery.ui", self)
 
         self.settings_manager = SettingsManager()
         self.image_items = {}
         self.current_image_path = None
-        self.original_pixmap = None  # 儲存未經處理的原始 QPixmap
+        self.original_pixmap = None
 
-        # 啟用拖拽功能
         self.image_preview_label.setAcceptDrops(True)
         self.image_preview_label.dragEnterEvent = self.dragEnterEvent
         self.image_preview_label.dropEvent = self.dropEvent
 
         self._connect_signals()
         self._load_settings()
+
+    def resizeEvent(self, event):
+        """
+        關鍵修復：重寫 resizeEvent。
+        每當視窗或 splitter 大小改變時，此函數會被呼叫。
+        """
+        super().resizeEvent(event)
+        # 重新計算並更新預覽圖，以適應新的標籤大小
+        self._update_preview()
 
     def _connect_signals(self):
         self.import_button.clicked.connect(self._open_image_dialog)
@@ -102,7 +111,7 @@ class GalleryView(QWidget):
 
     def _update_preview(self):
         """
-        使用 QPainter 即時繪製預覽圖，完全取代 Pillow 和 image_processor。
+        功能完整的預覽更新函數，使用 QPainter 繪製所有效果。
         """
         if not self.original_pixmap:
             self.image_preview_label.setText("請選擇或拖入圖片")
@@ -150,12 +159,10 @@ class GalleryView(QWidget):
         # 7. 結束繪圖
         painter.end()
 
-        # 8. 將最終繪製好的 Pixmap 縮放並顯示在 QLabel 中
-        self.image_preview_label.setPixmap(final_pixmap.scaled(
-            self.image_preview_label.size(),
-            Qt.AspectRatioMode.KeepAspectRatio,
-            Qt.TransformationMode.SmoothTransformation
-        ))
+        # 關鍵修復：在設定 pixmap 之前，先清除舊的，並設定 scaledContents
+        self.image_preview_label.setPixmap(QPixmap())  # 清除舊圖
+        self.image_preview_label.setScaledContents(True)  # 允許 QLabel 縮放其內容
+        self.image_preview_label.setPixmap(final_pixmap)
 
     def _get_current_settings(self) -> dict:
         return {

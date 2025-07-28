@@ -2,9 +2,9 @@
   "language": "zh_CN",
   "theme": "Dark",
   "gallery_settings": {
-    "watermark_enabled": false,
+    "watermark_enabled": true,
     "watermark_text": "",
     "frame_enabled": false,
-    "frame_width": 15
+    "frame_width": 66
   }
 }
