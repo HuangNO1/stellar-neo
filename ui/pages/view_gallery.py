@@ -4,6 +4,7 @@ from PyQt6 import uic
 from PyQt6.QtCore import Qt, QSize, QRect, QPoint
 from PyQt6.QtGui import QPixmap, QPainter, QColor, QFont
 from PyQt6.QtWidgets import QWidget, QFileDialog, QListWidgetItem
+from qfluentwidgets import InfoBarPosition, InfoBar
 
 # 修正 import，使用新的 exif_reader
 from core.exif_reader import get_exif_data
@@ -80,7 +81,17 @@ class GalleryView(QWidget):
                     print(f"無法載入圖片: {path}")
                     self.current_image_path = None
                     self.original_pixmap = None
-                    self.image_preview_label.setText(f"無法載入:\n{os.path.basename(path)}")
+                    # self.image_preview_label.setText(f"無法載入:\n{os.path.basename(path)}")
+                    # TODO 目前如果無法載入的話還是會加入到列表中
+                    InfoBar.error(
+                        title='載入錯誤',
+                        content=f"無法載入: {os.path.basename(path)}",
+                        orient=Qt.Orientation.Vertical,  # 内容太长时可使用垂直布局
+                        isClosable=True,
+                        position=InfoBarPosition.TOP,
+                        duration=1500,
+                        parent=self.window()
+                    )
                     return
                 self._update_preview()
 
