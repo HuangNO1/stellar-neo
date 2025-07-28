@@ -5,5 +5,9 @@
   "apply": "Apply",
   "light": "Light",
   "dark": "Dark",
-  "system": "System"
+  "system": "System",
+  "settings": "Settings",
+  "gallery": "gallery1",
+  "language_changed_title": "Restart Required",
+  "language_changed_body": "The language has been changed. Please restart the application for the new language to take full effect."
 }

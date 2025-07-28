@@ -15,3 +15,7 @@ THEMES = {
     "Dark": Theme.DARK,
     "System": Theme.AUTO
 }
+
+NAVIGATIONS = {
+    "photo": "photo"
+}

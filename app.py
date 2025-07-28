@@ -1,157 +1,142 @@
+# app.py (重構後的主框架)
 import os
-import sys
-
-# 匯入 uic 模組
-from PyQt6 import uic
-from PyQt6.QtCore import QTimer, QSize, QEventLoop
+from PyQt6.QtCore import QSize, QEventLoop, QTimer, Qt
 from PyQt6.QtGui import QIcon
-from PyQt6.QtWidgets import QWidget
-from qfluentwidgets import setTheme, FluentWindow, isDarkTheme, SystemThemeListener, SplashScreen
+from PyQt6.QtWidgets import QFrame, QHBoxLayout
+from qfluentwidgets import (FluentWindow, NavigationInterface, FluentIcon,
+                            setTheme, SystemThemeListener, SplashScreen,
+                            NavigationItemPosition, SubtitleLabel, setFont, MessageBox)
 
-# 匯入設定檔，這部分和之前一樣
-from core.config import LANGUAGES, THEMES
+# 匯入核心元件和新建立的頁面
+from core.config import THEMES
 from core.settings_manager import SettingsManager
 from core.translator import Translator
+from ui.pages.view_settings import SettingsView
+from ui.pages.view_gallery import GalleryView  # 確保您已建立此佔位檔案
+
+
+# 像範例中一樣，建立一個簡單的佔位符 Widget 用於子頁面
+class SimpleWidget(QFrame):
+    def __init__(self, text: str, parent=None):
+        super().__init__(parent=parent)
+        self.setObjectName(text.replace(' ', '-'))
+        self.label = SubtitleLabel(text, self)
+        self.hBoxLayout = QHBoxLayout(self)
+        setFont(self.label, 24)
+        self.label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.hBoxLayout.addWidget(self.label, 1, Qt.AlignmentFlag.AlignCenter)
 
 
 class MainWindow(FluentWindow):
     def __init__(self):
         super().__init__()
 
-        self.splashScreen = SplashScreen(QIcon('assets/logos/canon.png'), self)
-        self.splashScreen.setIconSize(QSize(102, 102))
-
-
-        # 使用 uic.loadUi 載入 UI 檔案，並將其元件附加到 self
-        uic.loadUi("ui/components/test.ui", self)
-
+        # --- 1. 核心元件初始化 ---
         self.settings = SettingsManager()
         self.translator = Translator()
-
-        # 反向對應字典，方便從設定值找到顯示名稱
-        self.reverse_lang_map = {v: k for k, v in LANGUAGES.items()}
-
         self.themeListener = SystemThemeListener(self)
 
-        self._init_ui()
-        self._connect_signals()
-
-        # 2. 在创建其他子页面前先显示主界面
+        # --- 2. 啟動介面邏輯 ---
+        self.splashScreen = SplashScreen(QIcon('assets/logos/canon.png'), self)
+        self.splashScreen.setIconSize(QSize(102, 102))
         self.show()
 
-        # 3. 创建子界面
+        # --- 3. 載入初始設定 ---
+        self._load_initial_settings()
+
+        # --- 4. 初始化主視窗和導覽 ---
+        self.init_window()
+        # 注意：FluentWindow 會自動建立 self.navigationInterface
+        self.init_navigation()
+        # self.retranslate_ui()
+
+        # --- 5. 模擬載入並關閉啟動介面 ---
         self.createSubInterface()
+        self.splashScreen.finish()
 
-        # 4. 隐藏启动页面
-        self.splashScreen.close()
-
-    def _init_ui(self):
-        """初始化 UI 狀態，包括載入設定和填充元件"""
-        # 1. 動態填充下拉框 (注意：現在直接用 self.languageComboBox)
-        self.languageComboBox.addItems(LANGUAGES.keys())
-        self.themeComboBox.addItems(THEMES.keys())
-
-        # 2. 載入並套用語言設定
+    def _load_initial_settings(self):
+        """在建立任何UI之前載入設定"""
         lang_code = self.settings.get("language", "en")
-        lang_name = self.reverse_lang_map.get(lang_code, "English")
-        self.languageComboBox.setCurrentText(lang_name)
-        # 初始載入一次翻譯
         self.translator.load(lang_code, os.path.abspath("i18n"))
-        self._update_ui_texts()  # 使用載入的翻譯更新介面
 
-        # 3. 載入並套用主題設定
         theme_name = self.settings.get("theme", "System")
-        self.themeComboBox.setCurrentText(theme_name)
         setTheme(THEMES.get(theme_name, THEMES["System"]))
-
-    def _connect_signals(self):
-        """連接所有元件的訊號與槽"""
-        self.languageComboBox.currentTextChanged.connect(self._on_language_changed)
-        self.themeComboBox.currentTextChanged.connect(self._on_theme_changed)
-        # self.applyButton.clicked.connect(self._on_apply_clicked)
-
-    def _on_language_changed(self, lang_name: str):
-        """當語言下拉框變化時，即時載入新語言並更新 UI 文字"""
-        lang_code = LANGUAGES.get(lang_name, "en")
-        self.translator.load(lang_code, os.path.abspath("i18n"))
-        self._update_ui_texts()
-        # **自動儲存語言設定**
-        self.settings.set("language", lang_code)
-        print(f"Language setting automatically saved: {lang_code}")
-
-    def _on_theme_changed(self, theme_name: str):
-        """當主題下拉框變化時，即時套用新主題"""
-        theme = THEMES.get(theme_name, THEMES["System"])
-        setTheme(theme)
-        if theme == "System":
-            # 创建主题监听器
+        if theme_name == "System":
             self.themeListener.start()
-        else:
-            self.themeListener.terminate()
 
-        # **自動儲存主題設定**
-        self.settings.set("theme", theme_name)
-        print(f"Theme setting automatically saved: {theme_name}")
+    def init_window(self):
+        """設定主視窗屬性"""
+        # self.resize(900, 700)
+        self.setWindowIcon(QIcon("assets/logos/canon.png"))
+        self.setWindowTitle("My Application")
 
-    # def _on_apply_clicked(self):
-    #     """當點擊套用按鈕時，儲存目前選擇的設定"""
-    #     lang_name = self.languageComboBox.currentText()
-    #     theme_name = self.themeComboBox.currentText()
-    #
-    #     self.settings.set("language", LANGUAGES.get(lang_name, "en"))
-    #     self.settings.set("theme", theme_name)
-    #
-    #     print("Settings saved!")
-
-    def _update_ui_texts(self):
-        """使用目前載入的翻譯器更新介面所有文字"""
+    def init_navigation(self):
         tr = self.translator.get
-        # 更新視窗標題
-        self.setWindowTitle(tr("title", "Settings Example"))
+        """建立並新增所有子頁面到導覽列"""
+        # 實例化子頁面
+        self.gallery_view = GalleryView(self)
+        # self.sub_gallery_view = SimpleWidget("Sub Gallery Page", self)
+        self.settings_view = SettingsView(self.translator, self.settings, self.themeListener, self)
 
-        # 更新標籤文字
-        self.languageLabel.setText(tr("language", "Language"))
-        self.themeLabel.setText(tr("theme", "Theme"))
+        # 將每個介面與其翻譯 key 一起記錄
+        # self._nav_items = {
+        #     "gallery": (self.gallery_view, FluentIcon.PHOTO, "gallery", NavigationItemPosition.TOP),
+        #     "hello": (self.gallery_view, FluentIcon.PHOTO, "gallery", NavigationItemPosition.TOP),
+        #     "settings": (self.settings_view, FluentIcon.SETTING, "settings", NavigationItemPosition.BOTTOM),
+        # }
 
-        # 更新按鈕文字
-        self.applyButton.setText(tr("apply", "Apply"))
+        # 使用 self.addSubInterface 直接新增導覽項
+        self.addSubInterface(
+            self.gallery_view,
+            FluentIcon.PHOTO,
+            tr("gallery", "Gallery")
+        )
+        # 新增巢狀子項目到 "Gallery" 頁面下
+        # self.addSubInterface(
+        #     self.sub_gallery_view,
+        #     FluentIcon.FOLDER,
+        #     self.translator.get("gallery", "Gallery"),
+        #     parent=self.gallery_view,
+        # )
 
-        # 更新主題下拉框中的選項文字
-        self.themeComboBox.blockSignals(True)
-        current_text = self.themeComboBox.currentText()
-        self.themeComboBox.clear()
+        # if self.init_nav_times <= 1:
+        self.navigationInterface.addSeparator()
 
-        # 建立一個暫存的對應，用於找到更新後的選項
-        translated_map = {}
-        for key in THEMES.keys():
-            translated_text = tr(key.lower(), key)
-            self.themeComboBox.addItem(translated_text)
-            translated_map[key] = translated_text
+        # 使用 NavigationItemPosition 枚舉來設定位置
+        self.addSubInterface(
+            self.settings_view,
+            FluentIcon.SETTING,
+            tr("settings", "Settings"),
+            position=NavigationItemPosition.BOTTOM
+        )
 
-        # 嘗試恢復之前的選項
-        # 我們需要從原始的英文 key (如 "Light") 找到翻譯後的文字 (如 "淺色")
-        current_key = next((k for k, v in THEMES.items() if v == THEMES.get(current_text)), None)
-        if not current_key:  # 如果找不到，就用設定檔中的
-            current_key = self.settings.get("theme", "System")
+        # 連接設定頁面發出的信號，以便更新全域UI
+        self.settings_view.languageChanged.connect(self._show_restart_dialog)
 
-        self.themeComboBox.setCurrentText(translated_map.get(current_key, translated_map["System"]))
+    def _show_restart_dialog(self):
+        """顯示一個提示框，告知使用者需要重啟"""
+        tr = self.translator.get
+        title = tr("language_changed_title", "Language Changed")
+        content = tr("language_changed_body",
+                     "The language setting has been saved. Please restart the application for the changes to take "
+                     "full effect.")
 
-        self.themeComboBox.blockSignals(False)
+        # 創建一個模態對話方塊
+        w = MessageBox(title, content, self)
 
-    def closeEvent(self, e):
-        # 停止监听器线程
-        self.themeListener.terminate()
-        self.themeListener.deleteLater()
-        super().closeEvent(e)
-
-    def _onThemeChangedFinished(self):
-        super()._onThemeChangedFinished()
-
-        # 云母特效启用时需要增加重试机制
-        if self.isMicaEffectEnabled():
-            QTimer.singleShot(100, lambda: self.windowEffect.setMicaEffect(self.winId(), isDarkTheme()))
+        # 當對話方塊被接受 (使用者點擊 "OK") 時，關閉應用程式
+        if w.exec():
+            self.close()
 
     def createSubInterface(self):
+        """模擬耗時的初始化操作"""
         loop = QEventLoop(self)
         QTimer.singleShot(1000, loop.quit)
         loop.exec()
+
+    def closeEvent(self, e):
+        """關閉應用程式時，確保監聽器執行緒被終止"""
+        if self.themeListener.isRunning():
+            self.themeListener.quit()
+            self.themeListener.wait()
+        super().closeEvent(e)

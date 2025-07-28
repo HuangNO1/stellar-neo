@@ -5,5 +5,9 @@
   "apply": "套用",
   "light": "淺色",
   "dark": "深色",
-  "system": "系統"
+  "system": "系統",
+  "settings": "設定",
+  "gallery": "gallery3",
+  "language_changed_title": "需要重啟2",
+  "language_changed_body": "2222"
 }
