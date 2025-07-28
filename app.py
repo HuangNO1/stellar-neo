@@ -78,13 +78,6 @@ class MainWindow(FluentWindow):
         # self.sub_gallery_view = SimpleWidget("Sub Gallery Page", self)
         self.settings_view = SettingsView(self.translator, self.settings, self.themeListener, self)
 
-        # 將每個介面與其翻譯 key 一起記錄
-        # self._nav_items = {
-        #     "gallery": (self.gallery_view, FluentIcon.PHOTO, "gallery", NavigationItemPosition.TOP),
-        #     "hello": (self.gallery_view, FluentIcon.PHOTO, "gallery", NavigationItemPosition.TOP),
-        #     "settings": (self.settings_view, FluentIcon.SETTING, "settings", NavigationItemPosition.BOTTOM),
-        # }
-
         # 使用 self.addSubInterface 直接新增導覽項
         self.addSubInterface(
             self.gallery_view,
