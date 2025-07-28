@@ -12,7 +12,6 @@ from core.translator import Translator
 
 
 class SettingsView(QWidget):
-    # 這個信號現在的意義是: "語言已變更，需要重啟"
     languageChanged = pyqtSignal()
 
     def __init__(self, translator: Translator, settings: SettingsManager, theme_listener: SystemThemeListener,
@@ -26,18 +25,24 @@ class SettingsView(QWidget):
         uic.loadUi("ui/components/settings.ui", self)
 
         self.reverse_lang_map = {v: k for k, v in LANGUAGES.items()}
+        # --- 新增 ---
+        # 建立一個空的字典，用於儲存翻譯後的主題名稱與原始英文鍵的對應關係
+        self.reverse_theme_map = {}
+
         self._init_ui()
         self._connect_signals()
 
     def _init_ui(self):
         """初始化此頁面的 UI 狀態"""
         self.languageComboBox.addItems(LANGUAGES.keys())
-        self.themeComboBox.addItems(THEMES.keys())
+        # 注意：我們不再在這裡新增 themeComboBox 的項目，
+        # 因為 _update_ui_texts 會處理這項工作，避免重複。
 
         lang_code = self.settings.get("language", "en")
         lang_name = self.reverse_lang_map.get(lang_code, "English")
         self.languageComboBox.setCurrentText(lang_name)
 
+        # 這裡僅設定初始值，下拉框的內容會在 _update_ui_texts 中填充
         theme_name = self.settings.get("theme", "System")
         self.themeComboBox.setCurrentText(theme_name)
 
@@ -54,41 +59,57 @@ class SettingsView(QWidget):
         """語言改變時，僅儲存設定並發射信號"""
         lang_code = LANGUAGES.get(lang_name, "en")
 
-        # 檢查語言是否真的改變了，避免不必要的儲存和提示
         if self.settings.get("language") == lang_code:
             return
 
         self.settings.set("language", lang_code)
         print(f"Language setting saved: {lang_code}. Restart required.")
-
-        # 發射信號，通知主視窗處理重啟提示
         self.languageChanged.emit()
 
-    def _on_theme_changed(self, theme_name: str):
+    def _on_theme_changed(self, theme_display_name: str):
         """主題改變時，套用主題、儲存設定並管理監聽器"""
-        theme = THEMES.get(theme_name, THEMES["System"])
+        # --- 核心修正 ---
+        # 1. 使用反向對應字典，從顯示名稱(如"淺色")找到原始英文鍵(如"Light")
+        original_theme_key = self.reverse_theme_map.get(theme_display_name, "System")
+
+        # 2. 使用原始英文鍵從 THEMES 字典中獲取正確的主題物件
+        theme = THEMES.get(original_theme_key, THEMES["System"])
         setTheme(theme)
 
-        if theme_name == "System":
+        if original_theme_key == "System":
             self.themeListener.start()
         else:
             if self.themeListener.isRunning():
                 self.themeListener.quit()
 
-        self.settings.set("theme", theme_name)
-        print(f"Theme setting automatically saved: {theme_name}")
+        # 3. 儲存設定時，也應該儲存原始英文鍵
+        self.settings.set("theme", original_theme_key)
+        print(f"Theme setting automatically saved: {original_theme_key}")
 
     def _update_ui_texts(self):
-        """僅更新此頁面內的 UI 文字（在初始載入時呼叫）"""
+        """更新此頁面內的 UI 文字，並建立主題的反向對應"""
         tr = self.translator.get
         self.languageLabel.setText(tr("language", "Language"))
         self.themeLabel.setText(tr("theme", "Theme"))
 
-        self.themeComboBox.blockSignals(True)
+        # --- 邏輯強化 ---
+        self.themeComboBox.blockSignals(True)  # 更新UI時，暫時阻擋信號避免觸發 _on_theme_changed
+
         current_theme_setting = self.settings.get("theme", "System")
         self.themeComboBox.clear()
-        translated_map = {key: tr(key.lower(), key) for key in THEMES.keys()}
-        self.themeComboBox.addItems(translated_map.values())
-        self.themeComboBox.setCurrentText(translated_map.get(current_theme_setting, translated_map["System"]))
-        self.themeComboBox.blockSignals(False)
 
+        # 建立翻譯後的字典，同時更新反向對應字典
+        translated_map = {}
+        for key in THEMES.keys():
+            translated_text = tr(key.lower(), key)
+            translated_map[key] = translated_text
+            # 建立 "淺色": "Light" 這樣的反向對應
+            self.reverse_theme_map[translated_text] = key
+
+        self.themeComboBox.addItems(translated_map.values())
+
+        # 根據設定檔中的原始鍵(如"System")，從翻譯後的地圖中找到對應的顯示文字(如"跟隨系統")
+        current_display_text = translated_map.get(current_theme_setting, translated_map["System"])
+        self.themeComboBox.setCurrentText(current_display_text)
+
+        self.themeComboBox.blockSignals(False)  # 恢復信號
