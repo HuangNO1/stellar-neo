@@ -35,9 +35,6 @@
       <number>2</number>
      </property>
      <widget class="QFrame" name="left_panel">
-      <property name="enabled">
-       <bool>true</bool>
-      </property>
       <property name="frameShape">
        <enum>QFrame::Shape::StyledPanel</enum>
       </property>
@@ -112,32 +109,13 @@
          <number>0</number>
         </property>
         <item>
-         <widget class="QScrollArea" name="preview_scroll_area">
-          <property name="widgetResizable">
-           <bool>true</bool>
+         <widget class="QLabel" name="image_preview_label">
+          <property name="text">
+           <string>拖拽圖片到此處或點擊左側按鈕導入</string>
           </property>
-          <widget class="QWidget" name="scrollAreaWidgetContents">
-           <property name="geometry">
-            <rect>
-             <x>0</x>
-             <y>0</y>
-             <width>400</width>
-             <height>768</height>
-            </rect>
-           </property>
-           <layout class="QVBoxLayout" name="scroll_area_layout">
-            <item>
-             <widget class="QLabel" name="image_preview_label">
-              <property name="text">
-               <string>Image Preview</string>
-              </property>
-              <property name="alignment">
-               <set>Qt::AlignmentFlag::AlignCenter</set>
-              </property>
-             </widget>
-            </item>
-           </layout>
-          </widget>
+          <property name="alignment">
+           <set>Qt::AlignmentFlag::AlignCenter</set>
+          </property>
          </widget>
         </item>
        </layout>
@@ -150,37 +128,94 @@
         <enum>QFrame::Shadow::Raised</enum>
        </property>
        <layout class="QVBoxLayout" name="right_layout">
-        <property name="leftMargin">
-         <number>4</number>
-        </property>
-        <property name="topMargin">
-         <number>4</number>
-        </property>
-        <property name="rightMargin">
-         <number>4</number>
-        </property>
-        <property name="bottomMargin">
-         <number>4</number>
-        </property>
         <item>
          <widget class="QTabWidget" name="settings_tabs">
           <property name="currentIndex">
            <number>0</number>
           </property>
-          <widget class="QWidget" name="tab_1">
+          <widget class="QWidget" name="watermark_tab">
            <attribute name="title">
-            <string>效果</string>
+            <string>浮水印</string>
            </attribute>
+           <layout class="QVBoxLayout" name="verticalLayout">
+            <item>
+             <widget class="QCheckBox" name="watermark_enabled_checkbox">
+              <property name="text">
+               <string>啟用浮水印</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QLabel" name="watermark_text_label">
+              <property name="text">
+               <string>浮水印文字:</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QLineEdit" name="watermark_text_input"/>
+            </item>
+            <item>
+             <spacer name="verticalSpacer">
+              <property name="orientation">
+               <enum>Qt::Orientation::Vertical</enum>
+              </property>
+              <property name="sizeHint" stdset="0">
+               <size>
+                <width>20</width>
+                <height>40</height>
+               </size>
+              </property>
+             </spacer>
+            </item>
+           </layout>
           </widget>
-          <widget class="QWidget" name="tab_2">
+          <widget class="QWidget" name="frame_tab">
            <attribute name="title">
-            <string>濾鏡</string>
+            <string>相框</string>
            </attribute>
-          </widget>
-          <widget class="QWidget" name="tab_3">
-           <attribute name="title">
-            <string>資訊</string>
-           </attribute>
+           <layout class="QVBoxLayout" name="verticalLayout_2">
+            <item>
+             <widget class="QCheckBox" name="frame_enabled_checkbox">
+              <property name="text">
+               <string>啟用相框</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QLabel" name="frame_width_label">
+              <property name="text">
+               <string>邊框寬度:</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QSlider" name="frame_width_slider">
+              <property name="minimum">
+               <number>1</number>
+              </property>
+              <property name="maximum">
+               <number>100</number>
+              </property>
+              <property name="orientation">
+               <enum>Qt::Orientation::Horizontal</enum>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <spacer name="verticalSpacer_2">
+              <property name="orientation">
+               <enum>Qt::Orientation::Vertical</enum>
+              </property>
+              <property name="sizeHint" stdset="0">
+               <size>
+                <width>20</width>
+                <height>40</height>
+               </size>
+              </property>
+             </spacer>
+            </item>
+           </layout>
           </widget>
          </widget>
         </item>

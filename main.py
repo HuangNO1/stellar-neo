@@ -8,6 +8,7 @@ from app import MainWindow
 from qfluentwidgets import SplashScreen
 from qframelesswindow import FramelessWindow, StandardTitleBar
 
+
 def main():
     app = QApplication(sys.argv)
     # 實例化 MainWindow

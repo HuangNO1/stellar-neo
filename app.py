@@ -48,7 +48,6 @@ class MainWindow(FluentWindow):
         self.init_window()
         # 注意：FluentWindow 會自動建立 self.navigationInterface
         self.init_navigation()
-        # self.retranslate_ui()
 
         # --- 5. 模擬載入並關閉啟動介面 ---
         self.createSubInterface()
@@ -66,7 +65,7 @@ class MainWindow(FluentWindow):
 
     def init_window(self):
         """設定主視窗屬性"""
-        # self.resize(900, 700)
+        self.resize(1500, 1000)
         self.setWindowIcon(QIcon("assets/logos/canon.png"))
         self.setWindowTitle("My Application")
 
