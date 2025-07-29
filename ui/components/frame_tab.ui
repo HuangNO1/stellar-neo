@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>249</width>
-    <height>680</height>
+    <height>755</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -116,7 +116,21 @@
     </widget>
    </item>
    <item>
-    <widget class="QLabel" name="label_7">
+    <widget class="BodyLabel" name="label_8">
+     <property name="text">
+      <string>相框模糊程度</string>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="Slider" name="horizontalSlider_5">
+     <property name="orientation">
+      <enum>Qt::Orientation::Horizontal</enum>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="BodyLabel" name="label_7">
      <property name="text">
       <string>相框顏色</string>
      </property>

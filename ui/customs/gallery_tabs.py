@@ -89,7 +89,7 @@ class GalleryTabs(QWidget):
 
     def _connect_signals(self):
         # 連接右側控制項
-        self.watermarkInterface.watermark_enabled_checkbox.stateChanged.connect(self._on_settings_changed)
+        self.watermarkInterface.watermark_enabled_checkbox.checkedChanged.connect(self._on_settings_changed)
         self.watermarkInterface.watermark_text_input.textChanged.connect(self._on_settings_changed)
         self.frameInterface.frame_enabled_checkbox.checkedChanged.connect(self._on_settings_changed)
         self.frameInterface.frame_width_slider.valueChanged.connect(self._on_settings_changed)

@@ -4,14 +4,12 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="e1217e66-f6df-4928-bc5a-398e629a83e8" name="Changes" comment="修改QSplitter樣式">
-      <change afterPath="$PROJECT_DIR$/.idea/inspectionProfiles/Project_Default.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/ui/customs/pick_color_button.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/modules.xml" beforeDir="false" />
+    <list default="true" id="e1217e66-f6df-4928-bc5a-398e629a83e8" name="Changes" comment="添加依賴文件">
       <change beforePath="$PROJECT_DIR$/.idea/stellar-neo.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/stellar-neo.iml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/ui/components/frame_tab.ui" beforeDir="false" afterPath="$PROJECT_DIR$/ui/components/frame_tab.ui" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/ui/customs/gallery_tabs.py" beforeDir="false" afterPath="$PROJECT_DIR$/ui/customs/gallery_tabs.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/ui/components/watermark_tab.ui" beforeDir="false" afterPath="$PROJECT_DIR$/ui/components/watermark_tab.ui" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/ui/customs/pick_color_button.py" beforeDir="false" afterPath="$PROJECT_DIR$/ui/customs/pick_color_button.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -33,32 +31,33 @@
   &quot;associatedIndex&quot;: 1
 }</component>
   <component name="ProjectId" id="30UeTV8j9KVkUzzpI9rQhHYC3eL" />
-  <component name="ProjectLevelVcsManager" settingsEditedManually="true">
+  <component name="ProjectLevelVcsManager">
     <ConfirmationsSetting value="2" id="Add" />
   </component>
   <component name="ProjectViewState">
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent">{
-  &quot;keyToString&quot;: {
-    &quot;ASKED_ADD_EXTERNAL_FILES&quot;: &quot;true&quot;,
-    &quot;Python.app.executor&quot;: &quot;Run&quot;,
-    &quot;Python.main.executor&quot;: &quot;Run&quot;,
-    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
-    &quot;SHARE_PROJECT_CONFIGURATION_FILES&quot;: &quot;true&quot;,
-    &quot;git-widget-placeholder&quot;: &quot;main&quot;,
-    &quot;last_opened_file_path&quot;: &quot;/home/rem/Documents/Study/Code/stellar-neo/ui/components&quot;,
-    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
-    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
-    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
-    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
-    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
-    &quot;run.code.analysis.last.selected.profile&quot;: &quot;aDefault&quot;,
-    &quot;settings.editor.selected.configurable&quot;: &quot;editor.preferences.import&quot;,
-    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "ASKED_ADD_EXTERNAL_FILES": "true",
+    "Python.app.executor": "Run",
+    "Python.main.executor": "Run",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "RunOnceActivity.git.unshallow": "true",
+    "SHARE_PROJECT_CONFIGURATION_FILES": "true",
+    "git-widget-placeholder": "main",
+    "last_opened_file_path": "/home/rem/Documents/Study/Code/stellar-neo/ui/components",
+    "node.js.detected.package.eslint": "true",
+    "node.js.detected.package.tslint": "true",
+    "node.js.selected.package.eslint": "(autodetect)",
+    "node.js.selected.package.tslint": "(autodetect)",
+    "nodejs_package_manager_path": "npm",
+    "run.code.analysis.last.selected.profile": "aDefault",
+    "settings.editor.selected.configurable": "com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable",
+    "vue.rearranger.settings.migration": "true"
   }
-}</component>
+}]]></component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
       <recent name="$PROJECT_DIR$/ui/components" />
@@ -125,8 +124,8 @@
   <component name="SharedIndexes">
     <attachedChunks>
       <set>
-        <option value="bundled-js-predefined-1d06a55b98c1-0b3e54e931b4-JavaScript-PY-241.17011.127" />
-        <option value="bundled-python-sdk-48aec45f0201-7e9c3bbb6e34-com.jetbrains.pycharm.pro.sharedIndexes.bundled-PY-241.17011.127" />
+        <option value="bundled-js-predefined-d6986cc7102b-09060db00ec0-JavaScript-PY-251.26927.90" />
+        <option value="bundled-python-sdk-41e8cd69c857-64d779b69b7a-com.jetbrains.pycharm.pro.sharedIndexes.bundled-PY-251.26927.90" />
       </set>
     </attachedChunks>
   </component>
@@ -162,7 +161,9 @@
       <workItem from="1753781021927" duration="23000" />
       <workItem from="1753781051524" duration="1566000" />
       <workItem from="1753783408857" duration="619000" />
-      <workItem from="1753784034890" duration="1242000" />
+      <workItem from="1753784034890" duration="1500000" />
+      <workItem from="1753785895311" duration="15000" />
+      <workItem from="1753785917518" duration="2958000" />
     </task>
     <task id="LOCAL-00001" summary="完成 1. 主題切換 2. 國際化 3. 設定存儲與讀取 4. 完成窗口啟動畫面">
       <option name="closed" value="true" />
@@ -268,7 +269,23 @@
       <option name="project" value="LOCAL" />
       <updated>1753778799201</updated>
     </task>
-    <option name="localTasksCounter" value="14" />
+    <task id="LOCAL-00014" summary="新增自定義顏色選擇按鈕">
+      <option name="closed" value="true" />
+      <created>1753785379639</created>
+      <option name="number" value="00014" />
+      <option name="presentableId" value="LOCAL-00014" />
+      <option name="project" value="LOCAL" />
+      <updated>1753785379639</updated>
+    </task>
+    <task id="LOCAL-00015" summary="添加依賴文件">
+      <option name="closed" value="true" />
+      <created>1753785490111</created>
+      <option name="number" value="00015" />
+      <option name="presentableId" value="LOCAL-00015" />
+      <option name="project" value="LOCAL" />
+      <updated>1753785490111</updated>
+    </task>
+    <option name="localTasksCounter" value="16" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -300,10 +317,12 @@
     <MESSAGE value="升級相框控鍵" />
     <MESSAGE value="實現將tabs 組件拆分，並使用 qfluentwidgets 中的 tabBar避免主題切換的UX割裂感" />
     <MESSAGE value="修改QSplitter樣式" />
-    <option name="LAST_COMMIT_MESSAGE" value="修改QSplitter樣式" />
+    <MESSAGE value="新增自定義顏色選擇按鈕" />
+    <MESSAGE value="添加依賴文件" />
+    <option name="LAST_COMMIT_MESSAGE" value="添加依賴文件" />
   </component>
   <component name="com.intellij.coverage.CoverageDataManagerImpl">
-    <SUITE FILE_PATH="coverage/stellar_neo$main.coverage" NAME="main Coverage Results" MODIFIED="1753785276197" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/stellar_neo$main.coverage" NAME="main Coverage Results" MODIFIED="1753786704426" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/stellar_neo$app.coverage" NAME="app Coverage Results" MODIFIED="1753689525523" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
   </component>
 </project>

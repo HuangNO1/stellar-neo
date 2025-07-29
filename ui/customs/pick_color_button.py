@@ -10,6 +10,7 @@ class ColorButton(PushButton):
 
     def __init__(self, *args, color=None, **kwargs):
         super().__init__(*args, **kwargs)
+        self.colorDialog = None
         self._color = None
         self._default = color if color is not None else '#FFFFFF'
         self.setText('')

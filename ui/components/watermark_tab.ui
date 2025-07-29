@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>249</width>
-    <height>542</height>
+    <height>837</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -18,26 +18,157 @@
     <enum>QLayout::SizeConstraint::SetDefaultConstraint</enum>
    </property>
    <item>
-    <widget class="QCheckBox" name="watermark_enabled_checkbox">
+    <widget class="SwitchButton" name="watermark_enabled_checkbox">
      <property name="text">
       <string>啟用浮水印</string>
      </property>
     </widget>
    </item>
    <item>
-    <widget class="QLabel" name="label_2">
+    <widget class="SwitchButton" name="pushButton">
+     <property name="text">
+      <string>顯示文字</string>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="ComboBox" name="pushButton_2">
+     <property name="text">
+      <string>下拉選擇文字內容</string>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="BodyLabel" name="label_2">
      <property name="text">
       <string>浮水印文字:</string>
      </property>
     </widget>
    </item>
    <item>
-    <widget class="QLineEdit" name="watermark_text_input"/>
+    <widget class="LineEdit" name="watermark_text_input"/>
    </item>
    <item>
-    <widget class="QLabel" name="label_4">
+    <layout class="QHBoxLayout" name="horizontalLayout_1">
+     <item>
+      <widget class="CheckBox" name="checkBox_2">
+       <property name="text">
+        <string>相機型號</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="CheckBox" name="checkBox_3">
+       <property name="text">
+        <string>快門</string>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </item>
+   <item>
+    <layout class="QHBoxLayout" name="horizontalLayout_2">
+     <item>
+      <widget class="CheckBox" name="checkBox_4">
+       <property name="text">
+        <string>焦距</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="CheckBox" name="checkBox_5">
+       <property name="text">
+        <string>ISO</string>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </item>
+   <item>
+    <layout class="QHBoxLayout" name="horizontalLayout_3">
+     <item>
+      <widget class="CheckBox" name="checkBox_6">
+       <property name="text">
+        <string>光圈</string>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </item>
+   <item>
+    <widget class="SwitchButton" name="pushButton_3">
      <property name="text">
-      <string>TextLabel</string>
+      <string>顯示LOGO</string>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="ComboBox" name="pushButton_4">
+     <property name="text">
+      <string>下拉選擇LOGO</string>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="BodyLabel" name="label_3">
+     <property name="text">
+      <string>logo大小</string>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="Slider" name="horizontalSlider_2">
+     <property name="orientation">
+      <enum>Qt::Orientation::Horizontal</enum>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="ComboBox" name="pushButton_5">
+     <property name="text">
+      <string>文字字體</string>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="ColorButton" name="pushButton_6">
+     <property name="text">
+      <string>字體顏色</string>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="BodyLabel" name="label">
+     <property name="text">
+      <string>文字大小</string>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="Slider" name="horizontalSlider">
+     <property name="orientation">
+      <enum>Qt::Orientation::Horizontal</enum>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="ComboBox" name="pushButton_7">
+     <property name="text">
+      <string>下拉選擇文字LOGO排版</string>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="ComboBox" name="pushButton_8">
+     <property name="text">
+      <string>浮水印相框或照片</string>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="ComboBox" name="pushButton_9">
+     <property name="text">
+      <string>浮水印九宮格</string>
      </property>
     </widget>
    </item>
@@ -56,6 +187,43 @@
    </item>
   </layout>
  </widget>
+ <customwidgets>
+  <customwidget>
+   <class>SwitchButton</class>
+   <extends>QPushButton</extends>
+   <header>qfluentwidgets</header>
+  </customwidget>
+  <customwidget>
+   <class>BodyLabel</class>
+   <extends>QLabel</extends>
+   <header>qfluentwidgets</header>
+  </customwidget>
+  <customwidget>
+   <class>ComboBox</class>
+   <extends>QPushButton</extends>
+   <header>qfluentwidgets</header>
+  </customwidget>
+  <customwidget>
+   <class>LineEdit</class>
+   <extends>QLineEdit</extends>
+   <header>qfluentwidgets</header>
+  </customwidget>
+  <customwidget>
+   <class>Slider</class>
+   <extends>QSlider</extends>
+   <header>qfluentwidgets</header>
+  </customwidget>
+  <customwidget>
+   <class>ColorButton</class>
+   <extends>QPushButton</extends>
+   <header>ui.customs.pick_color_button</header>
+  </customwidget>
+  <customwidget>
+   <class>CheckBox</class>
+   <extends>QCheckBox</extends>
+   <header>qfluentwidgets</header>
+  </customwidget>
+ </customwidgets>
  <resources/>
  <connections/>
 </ui>
