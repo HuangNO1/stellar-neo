@@ -162,75 +162,83 @@ class GalleryView(QWidget):
 
     def _update_preview(self):
         """
-        修正版：以父層容器(middle_panel)為基準進行等比例縮放。
-        這樣可以確保圖片在保持長寬比的前提下，最大化地顯示在可用區域中。
+        在縮放前預先計算相框空間，確保相框和圖片都能完整顯示。
         """
         if not self.original_pixmap or self.original_pixmap.isNull():
             self.image_preview_label.clear()
             self.image_preview_label.setText("請選擇或拖入圖片")
             return
 
-        # --- 關鍵修正：使用 middle_panel 的大小作為縮放目標 ---
-        # 這能準確反映 QSplitter 分割後，中間佈局的實際可用大小 [cite: 2, 6]。
+        # 1. 獲取佈局的總可用空間
         container_size = self.middle_panel.size()
-
-        # 避免在視窗尚未顯示時 (size為0) 進行無效計算
         if container_size.width() <= 1 or container_size.height() <= 1:
             return
-
-        # 1. 根據容器大小，保持長寬比來縮放原始圖片
-        scaled_pixmap = self.original_pixmap.scaled(
-            container_size,
-            Qt.AspectRatioMode.KeepAspectRatio,
-            Qt.TransformationMode.SmoothTransformation
-        )
 
         settings = self._get_current_settings()
         frame_enabled = settings.get('frame_enabled', False)
 
-        # 2. 根據縮放後的圖片大小，計算相框寬度
-        # 相框寬度基於滑塊的值(1-100) [cite: 18] 和圖片的短邊計算，視覺效果更一致
-        base_size = min(scaled_pixmap.width(), scaled_pixmap.height())
-        # 將滑塊值 (e.g., 1-100) 轉換為一個合理的比例
-        frame_ratio = settings.get('frame_width', 10) / 250.0
-        frame_width = int(base_size * frame_ratio) if frame_enabled else 0
+        # 2. **核心修正：先計算相框的像素寬度**
+        frame_width = 0
+        if frame_enabled:
+            # 將滑塊的值(1-100)映射為一個基於容器短邊的比例，讓邊框視覺上更穩定
+            base_size = min(container_size.width(), container_size.height())
+            frame_ratio = settings.get('frame_width', 10) / 250.0  # e.g., max 4% of short side
+            frame_width = int(base_size * frame_ratio)
 
-        # 3. 建立最終畫布，大小為 "縮放後的圖片" + "相框"
-        canvas_size = scaled_pixmap.size() + QSize(frame_width * 2, frame_width * 2)
-        final_pixmap = QPixmap(canvas_size)
+        # 3. **計算真正留給圖片的空間**
+        # 從總可用空間中，減去上下左右的相框寬度
+        image_area_width = container_size.width() - (frame_width * 2)
+        image_area_height = container_size.height() - (frame_width * 2)
+
+        # 如果相框設定過大，可能導致計算出的圖片空間為負，需保護
+        if image_area_width <= 0 or image_area_height <= 0:
+            # 這種情況下，不顯示圖片，或者可以選擇只顯示圖片而不顯示相框
+            self.image_preview_label.clear()
+            return
+
+        image_area_size = QSize(image_area_width, image_area_height)
+
+        # 4. **將原始圖片，等比例縮放到這個預留好的小空間內**
+        scaled_pixmap = self.original_pixmap.scaled(
+            image_area_size,
+            Qt.AspectRatioMode.KeepAspectRatio,
+            Qt.TransformationMode.SmoothTransformation
+        )
+
+        # 5. 建立最終畫布，其大小剛好等於 "縮放後的圖片 + 相框"
+        # 因為 scaled_pixmap 是在預留空間裡縮放的，所以這個總大小不會超過 container_size
+        final_canvas_size = scaled_pixmap.size() + QSize(frame_width * 2, frame_width * 2)
+        final_pixmap = QPixmap(final_canvas_size)
         final_pixmap.fill(Qt.GlobalColor.transparent)
 
-        # 4. 使用 QPainter 開始繪製
+        # 6. 開始繪製
         painter = QPainter(final_pixmap)
         painter.setRenderHint(QPainter.RenderHint.Antialiasing)
 
-        # 5. 如果啟用相框，先繪製白色背景
+        # 繪製相框背景
         if frame_enabled and frame_width > 0:
             painter.setBrush(QColor("white"))
             painter.setPen(Qt.PenStyle.NoPen)
             painter.drawRect(final_pixmap.rect())
 
-        # 6. 將保持了正確比例的 scaled_pixmap 繪製到畫布中心
+        # 將縮放好的圖片繪製到相框中間
         image_rect = QRect(QPoint(frame_width, frame_width), scaled_pixmap.size())
         painter.drawPixmap(image_rect, scaled_pixmap)
 
-        # 7. 如果啟用浮水印，在圖片上繪製文字
+        # 繪製浮水印 (邏輯不變)
         if settings.get('watermark_enabled', False):
             text = settings.get('watermark_text', 'Sample Watermark')
-            # 字體大小也基於縮放後的圖片尺寸，確保視覺上大小合適
             font_size = max(10, int(scaled_pixmap.height() / 30))
             font = QFont("Arial", font_size)
             painter.setFont(font)
             painter.setPen(QColor(255, 255, 255, 128))
-
-            padding = int(base_size * 0.02)
+            padding = int(min(scaled_pixmap.width(), scaled_pixmap.height()) * 0.02)
             watermark_rect = image_rect.adjusted(0, 0, -padding, -padding)
             painter.drawText(watermark_rect, Qt.AlignmentFlag.AlignBottom | Qt.AlignmentFlag.AlignRight, text)
 
         painter.end()
 
-        # 8. 將最終繪製好的、尺寸正確的 Pixmap 設置給 QLabel
-        # 因為 setScaledContents 已被設為 False，圖片將以原始尺寸居中顯示，不會再被拉伸
+        # 7. 顯示最終成品
         self.image_preview_label.setPixmap(final_pixmap)
 
     def _get_current_settings(self) -> dict:
