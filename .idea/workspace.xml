@@ -4,8 +4,11 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="e1217e66-f6df-4928-bc5a-398e629a83e8" name="Changes" comment="預覽的圖片按照main_splitter拖動進行縮放">
+    <list default="true" id="e1217e66-f6df-4928-bc5a-398e629a83e8" name="Changes" comment="修復預覽圖片的相框縮放">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/ui/components/gallery.ui" beforeDir="false" afterPath="$PROJECT_DIR$/ui/components/gallery.ui" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/ui/pages/view_gallery.py" beforeDir="false" afterPath="$PROJECT_DIR$/ui/pages/view_gallery.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/users_data/settings.json" beforeDir="false" afterPath="$PROJECT_DIR$/users_data/settings.json" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -126,7 +129,7 @@
       <workItem from="1753692305183" duration="16917000" />
       <workItem from="1753713747778" duration="194000" />
       <workItem from="1753713947283" duration="6448000" />
-      <workItem from="1753755168068" duration="2919000" />
+      <workItem from="1753755168068" duration="6359000" />
     </task>
     <task id="LOCAL-00001" summary="完成 1. 主題切換 2. 國際化 3. 設定存儲與讀取 4. 完成窗口啟動畫面">
       <option name="closed" value="true" />
@@ -200,7 +203,15 @@
       <option name="project" value="LOCAL" />
       <updated>1753757911808</updated>
     </task>
-    <option name="localTasksCounter" value="10" />
+    <task id="LOCAL-00010" summary="修復預覽圖片的相框縮放">
+      <option name="closed" value="true" />
+      <created>1753758424424</created>
+      <option name="number" value="00010" />
+      <option name="presentableId" value="LOCAL-00010" />
+      <option name="project" value="LOCAL" />
+      <updated>1753758424424</updated>
+    </task>
+    <option name="localTasksCounter" value="11" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -228,10 +239,11 @@
     <MESSAGE value="添加如果載入圖片失敗的彈窗" />
     <MESSAGE value="如果無法加載圖片就從圖片列表中刪除，也重新設定預覽的圖片" />
     <MESSAGE value="預覽的圖片按照main_splitter拖動進行縮放" />
-    <option name="LAST_COMMIT_MESSAGE" value="預覽的圖片按照main_splitter拖動進行縮放" />
+    <MESSAGE value="修復預覽圖片的相框縮放" />
+    <option name="LAST_COMMIT_MESSAGE" value="修復預覽圖片的相框縮放" />
   </component>
   <component name="com.intellij.coverage.CoverageDataManagerImpl">
-    <SUITE FILE_PATH="coverage/stellar_neo$main.coverage" NAME="main Coverage Results" MODIFIED="1753758086859" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/stellar_neo$main.coverage" NAME="main Coverage Results" MODIFIED="1753761392092" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/stellar_neo$app.coverage" NAME="app Coverage Results" MODIFIED="1753689525523" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
   </component>
 </project>

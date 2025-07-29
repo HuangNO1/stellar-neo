@@ -1,10 +1,10 @@
 {
   "language": "zh_TW",
-  "theme": "Dark",
+  "theme": "Light",
   "gallery_settings": {
     "watermark_enabled": false,
     "watermark_text": "111",
     "frame_enabled": true,
-    "frame_width": 36
+    "frame_width": 7
   }
 }

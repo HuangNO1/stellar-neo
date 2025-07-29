@@ -139,7 +139,7 @@
        <item>
         <widget class="QTabWidget" name="settings_tabs">
          <property name="currentIndex">
-          <number>0</number>
+          <number>1</number>
          </property>
          <widget class="QWidget" name="watermark_tab">
           <attribute name="title">
@@ -178,27 +178,41 @@
            </item>
           </layout>
          </widget>
-         <widget class="QWidget" name="frame_tab">
+         <widget class="CardWidget" name="frame_tab">
           <attribute name="title">
            <string>相框</string>
           </attribute>
           <layout class="QVBoxLayout" name="verticalLayout_2">
            <item>
-            <widget class="QCheckBox" name="frame_enabled_checkbox">
+            <widget class="SwitchButton" name="frame_enabled_checkbox">
              <property name="text">
-              <string>啟用相框</string>
+              <string>PushButton</string>
              </property>
             </widget>
            </item>
            <item>
-            <widget class="QLabel" name="frame_width_label">
+            <widget class="BodyLabel" name="label">
              <property name="text">
-              <string>邊框寬度:</string>
+              <string>相框圓角:</string>
              </property>
             </widget>
            </item>
            <item>
-            <widget class="QSlider" name="frame_width_slider">
+            <widget class="Slider" name="horizontalSlider">
+             <property name="orientation">
+              <enum>Qt::Orientation::Horizontal</enum>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="BodyLabel" name="frame_width_label">
+             <property name="text">
+              <string>邊框上邊距:</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="Slider" name="frame_width_slider">
              <property name="minimum">
               <number>1</number>
              </property>
@@ -207,6 +221,48 @@
              </property>
              <property name="orientation">
               <enum>Qt::Orientation::Horizontal</enum>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="BodyLabel" name="label_2">
+             <property name="text">
+              <string>邊框中邊距:</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="Slider" name="horizontalSlider_2">
+             <property name="orientation">
+              <enum>Qt::Orientation::Horizontal</enum>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="BodyLabel" name="label_3">
+             <property name="text">
+              <string>邊框下邊距:</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="Slider" name="horizontalSlider_3">
+             <property name="orientation">
+              <enum>Qt::Orientation::Horizontal</enum>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="BodyLabel" name="label_4">
+             <property name="text">
+              <string>相框樣式</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="ComboBox" name="frame_style_comboBox">
+             <property name="text">
+              <string>PushButton</string>
              </property>
             </widget>
            </item>
@@ -243,6 +299,32 @@
    <class>ListWidget</class>
    <extends>QListWidget</extends>
    <header>qfluentwidgets</header>
+  </customwidget>
+  <customwidget>
+   <class>SwitchButton</class>
+   <extends>QPushButton</extends>
+   <header>qfluentwidgets</header>
+  </customwidget>
+  <customwidget>
+   <class>BodyLabel</class>
+   <extends>QLabel</extends>
+   <header>qfluentwidgets</header>
+  </customwidget>
+  <customwidget>
+   <class>Slider</class>
+   <extends>QSlider</extends>
+   <header>qfluentwidgets</header>
+  </customwidget>
+  <customwidget>
+   <class>ComboBox</class>
+   <extends>QPushButton</extends>
+   <header>qfluentwidgets</header>
+  </customwidget>
+  <customwidget>
+   <class>CardWidget</class>
+   <extends>QWidget</extends>
+   <header>qfluentwidgets</header>
+   <container>1</container>
   </customwidget>
  </customwidgets>
  <resources/>

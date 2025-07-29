@@ -33,8 +33,20 @@ class GalleryView(QWidget):
         # 2. 確保 .ui 檔案中的置中設定生效，讓手動縮放的圖片能居中顯示。
         self.image_preview_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
+        self.init_Text()
         self._connect_signals()
         self._load_settings()
+
+    def init_Text(self):
+        """
+        初始化一些控鍵的國際化文字
+        :return:
+        """
+        self.frame_enabled_checkbox.setOffText("关闭")
+        self.frame_enabled_checkbox.setOnText("开启")
+
+        items = ['shoko', '西宫硝子', '宝多六花', '小鸟游六花']
+        self.frame_style_comboBox.addItems(items)
 
     def resizeEvent(self, event):
         """
@@ -56,7 +68,7 @@ class GalleryView(QWidget):
         # 連接右側控制項
         self.watermark_enabled_checkbox.stateChanged.connect(self._on_settings_changed)
         self.watermark_text_input.textChanged.connect(self._on_settings_changed)
-        self.frame_enabled_checkbox.stateChanged.connect(self._on_settings_changed)
+        self.frame_enabled_checkbox.checkedChanged.connect(self._on_settings_changed)
         self.frame_width_slider.valueChanged.connect(self._on_settings_changed)
 
     # --- 事件處理 ---
@@ -92,7 +104,7 @@ class GalleryView(QWidget):
         path = current_item.data(Qt.ItemDataRole.UserRole)
         if path != self.current_image_path:
             self.current_image_path = path
-            self.original_pixmap = QPixmap(path) # 移除用於測試的 "+ 111"
+            self.original_pixmap = QPixmap(path)  # 移除用於測試的 "+ 111"
 
             if self.original_pixmap.isNull():
                 print(f"無法載入圖片: {path}")
@@ -128,9 +140,9 @@ class GalleryView(QWidget):
                     self.image_preview_label.setText("請選擇或拖入圖片")
                 # 否則，可以選擇選中下一個項目
                 elif row < self.image_list.count():
-                     self.image_list.setCurrentRow(row)
+                    self.image_list.setCurrentRow(row)
                 else:
-                     self.image_list.setCurrentRow(self.image_list.count() - 1)
+                    self.image_list.setCurrentRow(self.image_list.count() - 1)
                 return
 
             self._update_preview()
@@ -242,6 +254,7 @@ class GalleryView(QWidget):
         self.image_preview_label.setPixmap(final_pixmap)
 
     def _get_current_settings(self) -> dict:
+        print(f"frame_width_slider {self.frame_width_slider.value()}, type: {type(self.frame_width_slider.value())}")
         return {
             'watermark_enabled': self.watermark_enabled_checkbox.isChecked(),
             'watermark_text': self.watermark_text_input.text(),
@@ -255,4 +268,3 @@ class GalleryView(QWidget):
         self.watermark_text_input.setText(settings.get('watermark_text', ''))
         self.frame_enabled_checkbox.setChecked(settings.get('frame_enabled', False))
         self.frame_width_slider.setValue(settings.get('frame_width', 10))
-
