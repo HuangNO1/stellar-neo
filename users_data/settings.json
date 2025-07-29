@@ -3,7 +3,7 @@
   "theme": "Dark",
   "gallery_settings": {
     "watermark_enabled": true,
-    "watermark_text": "",
+    "watermark_text": "111",
     "frame_enabled": false,
     "frame_width": 66
   }

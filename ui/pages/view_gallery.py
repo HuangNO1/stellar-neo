@@ -71,29 +71,59 @@ class GalleryView(QWidget):
             self._add_images(image_files)
 
     def _on_list_item_selected(self, current_item: QListWidgetItem, previous_item: QListWidgetItem):
-        if current_item:
-            path = current_item.data(Qt.ItemDataRole.UserRole)
-            if path != self.current_image_path:
-                self.current_image_path = path
-                # 直接使用 QPixmap 載入圖片
-                self.original_pixmap = QPixmap(path)
-                if self.original_pixmap.isNull():
-                    print(f"無法載入圖片: {path}")
+        if not current_item:
+            # 如果沒有選中項 (例如列表被清空)，則清除預覽
+            self.current_image_path = None
+            self.original_pixmap = None
+            self.image_preview_label.clear()
+            self.image_preview_label.setText("請選擇或拖入圖片")
+            return
+
+        path = current_item.data(Qt.ItemDataRole.UserRole)
+        if path != self.current_image_path:
+            self.current_image_path = path
+            self.original_pixmap = QPixmap(path) # 移除用於測試的 "+ 111"
+
+            if self.original_pixmap.isNull():
+                print(f"無法載入圖片: {path}")
+
+                # 暫時阻斷信號，防止移除 item 時觸發不必要的重繪
+                self.image_list.currentItemChanged.disconnect(self._on_list_item_selected)
+
+                # 從 UI 列表和內部資料結構中移除
+                row = self.image_list.row(current_item)
+                self.image_list.takeItem(row)
+                if path in self.image_items:
+                    del self.image_items[path]
+
+                # 重新連接信號
+                self.image_list.currentItemChanged.connect(self._on_list_item_selected)
+
+                # 顯示錯誤訊息
+                InfoBar.error(
+                    title='載入錯誤',
+                    content=f"無法載入圖片: {os.path.basename(path)}",
+                    orient=Qt.Orientation.Horizontal,
+                    isClosable=True,
+                    position=InfoBarPosition.TOP,
+                    duration=2000,
+                    parent=self.window()
+                )
+
+                # 如果列表為空，則重設狀態
+                if self.image_list.count() == 0:
                     self.current_image_path = None
                     self.original_pixmap = None
-                    # self.image_preview_label.setText(f"無法載入:\n{os.path.basename(path)}")
-                    # TODO 目前如果無法載入的話還是會加入到列表中
-                    InfoBar.error(
-                        title='載入錯誤',
-                        content=f"無法載入: {os.path.basename(path)}",
-                        orient=Qt.Orientation.Vertical,  # 内容太长时可使用垂直布局
-                        isClosable=True,
-                        position=InfoBarPosition.TOP,
-                        duration=1500,
-                        parent=self.window()
-                    )
-                    return
-                self._update_preview()
+                    self.image_preview_label.clear()
+                    self.image_preview_label.setText("請選擇或拖入圖片")
+                # 否則，可以選擇選中下一個項目
+                elif row < self.image_list.count():
+                     self.image_list.setCurrentRow(row)
+                else:
+                     self.image_list.setCurrentRow(self.image_list.count() - 1)
+                return
+
+            self._update_preview()
 
     def _on_settings_changed(self):
         settings = self._get_current_settings()

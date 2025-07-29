@@ -65,7 +65,7 @@ class MainWindow(FluentWindow):
 
     def init_window(self):
         """設定主視窗屬性"""
-        self.resize(1500, 1000)
+        self.resize(1500, 800)
         self.setWindowIcon(QIcon("assets/logos/canon.png"))
         self.setWindowTitle("My Application")
 
