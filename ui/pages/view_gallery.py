@@ -3,12 +3,13 @@ import os
 from PyQt6 import uic
 from PyQt6.QtCore import Qt, QSize, QRect, QPoint
 from PyQt6.QtGui import QPixmap, QPainter, QColor, QFont
-from PyQt6.QtWidgets import QWidget, QFileDialog, QListWidgetItem
+from PyQt6.QtWidgets import QWidget, QFileDialog, QListWidgetItem, QVBoxLayout
 from qfluentwidgets import InfoBarPosition, InfoBar
 
 # 修正 import，使用新的 exif_reader
 from core.exif_reader import get_exif_data
 from core.settings_manager import SettingsManager
+from ui.customs.gallery_tabs import GalleryTabs
 
 
 class GalleryView(QWidget):
@@ -27,15 +28,18 @@ class GalleryView(QWidget):
         self.image_preview_label.dragEnterEvent = self.dragEnterEvent
         self.image_preview_label.dropEvent = self.dropEvent
 
+        # 加入 tabs
+        self.tabs = GalleryTabs(self)
+        self.right_layout.addWidget(self.tabs)
+
         # --- 關鍵修正 ---
         # 1. 關閉 QLabel 的自動縮放，防止圖片被拉伸變形。
         self.image_preview_label.setScaledContents(False)
         # 2. 確保 .ui 檔案中的置中設定生效，讓手動縮放的圖片能居中顯示。
         self.image_preview_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
-        self.init_Text()
+        # self.init_Text()
         self._connect_signals()
-        self._load_settings()
 
     def init_Text(self):
         """
@@ -66,10 +70,7 @@ class GalleryView(QWidget):
         self.main_splitter.splitterMoved.connect(self._update_preview)
 
         # 連接右側控制項
-        self.watermark_enabled_checkbox.stateChanged.connect(self._on_settings_changed)
-        self.watermark_text_input.textChanged.connect(self._on_settings_changed)
-        self.frame_enabled_checkbox.checkedChanged.connect(self._on_settings_changed)
-        self.frame_width_slider.valueChanged.connect(self._on_settings_changed)
+        self.tabs.settingsChanged.connect(self._update_preview)
 
     # --- 事件處理 ---
 
@@ -104,7 +105,7 @@ class GalleryView(QWidget):
         path = current_item.data(Qt.ItemDataRole.UserRole)
         if path != self.current_image_path:
             self.current_image_path = path
-            self.original_pixmap = QPixmap(path)  # 移除用於測試的 "+ 111"
+            self.original_pixmap = QPixmap(path)
 
             if self.original_pixmap.isNull():
                 print(f"無法載入圖片: {path}")
@@ -147,11 +148,6 @@ class GalleryView(QWidget):
 
             self._update_preview()
 
-    def _on_settings_changed(self):
-        settings = self._get_current_settings()
-        self.settings_manager.set("gallery_settings", settings)
-        self._update_preview()
-
     # --- 輔助方法 ---
 
     def _add_images(self, paths: list):
@@ -172,6 +168,7 @@ class GalleryView(QWidget):
         if new_images_added and self.image_list.count() > 0 and not self.current_image_path:
             self.image_list.setCurrentRow(0)
 
+
     def _update_preview(self):
         """
         在縮放前預先計算相框空間，確保相框和圖片都能完整顯示。
@@ -186,7 +183,8 @@ class GalleryView(QWidget):
         if container_size.width() <= 1 or container_size.height() <= 1:
             return
 
-        settings = self._get_current_settings()
+        settings = self.tabs._get_current_settings()
+        # print("新的settings: ", settings)
         frame_enabled = settings.get('frame_enabled', False)
 
         # 2. **核心修正：先計算相框的像素寬度**
@@ -252,19 +250,3 @@ class GalleryView(QWidget):
 
         # 7. 顯示最終成品
         self.image_preview_label.setPixmap(final_pixmap)
-
-    def _get_current_settings(self) -> dict:
-        print(f"frame_width_slider {self.frame_width_slider.value()}, type: {type(self.frame_width_slider.value())}")
-        return {
-            'watermark_enabled': self.watermark_enabled_checkbox.isChecked(),
-            'watermark_text': self.watermark_text_input.text(),
-            'frame_enabled': self.frame_enabled_checkbox.isChecked(),
-            'frame_width': self.frame_width_slider.value(),
-        }
-
-    def _load_settings(self):
-        settings = self.settings_manager.get("gallery_settings", {})
-        self.watermark_enabled_checkbox.setChecked(settings.get('watermark_enabled', False))
-        self.watermark_text_input.setText(settings.get('watermark_text', ''))
-        self.frame_enabled_checkbox.setChecked(settings.get('frame_enabled', False))
-        self.frame_width_slider.setValue(settings.get('frame_width', 10))
