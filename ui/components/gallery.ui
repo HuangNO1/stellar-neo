@@ -79,16 +79,17 @@
        <item>
         <layout class="QHBoxLayout" name="horizontalLayout">
          <item>
-          <widget class="CheckBox" name="checkBox">
+          <widget class="CheckBox" name="select_all_checkbox">
            <property name="text">
             <string>全選</string>
            </property>
           </widget>
          </item>
          <item>
-          <widget class="PushButton" name="pushButton">
+          <!-- 關鍵修改：更新 objectName 和 text -->
+          <widget class="PushButton" name="clear_selected_button">
            <property name="text">
-            <string>清除全部</string>
+            <string>清除選取</string>
            </property>
           </widget>
          </item>

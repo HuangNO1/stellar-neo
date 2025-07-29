@@ -1,60 +1,49 @@
-# ui/pages/view_gallery.py (功能完整版)
 import os
 from PyQt6 import uic
 from PyQt6.QtCore import Qt, QSize, QRect, QPoint
 from PyQt6.QtGui import QPixmap, QPainter, QColor, QFont
-from PyQt6.QtWidgets import QWidget, QFileDialog, QListWidgetItem, QVBoxLayout
-from qfluentwidgets import InfoBarPosition, InfoBar
+from PyQt6.QtWidgets import QWidget, QFileDialog, QListWidgetItem
+from qfluentwidgets import InfoBarPosition, InfoBar, MessageBox
 
-# 修正 import，使用新的 exif_reader
+# 修正 import，使用新的 exif_reader 和自訂元件
 from core.exif_reader import get_exif_data
 from core.settings_manager import SettingsManager
 from ui.customs.gallery_tabs import GalleryTabs
+from ui.customs.gallery_item_widget import GalleryItemWidget
 
 
 class GalleryView(QWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
-
         # 修正 uic 載入路徑
         uic.loadUi("ui/components/gallery.ui", self)
 
         self.settings_manager = SettingsManager()
-        self.image_items = {}
+        self.image_items = {}  # 用於存儲圖片路徑和對應的 list_item
         self.current_image_path = None
         self.original_pixmap = None
+        self._is_selecting_all = False  # 用於防止 '全選' 時信號循環觸發的標誌
 
+        # 設定拖拽事件
         self.image_preview_label.setAcceptDrops(True)
         self.image_preview_label.dragEnterEvent = self.dragEnterEvent
         self.image_preview_label.dropEvent = self.dropEvent
 
-        # 加入 tabs
+        # 加入右側的設定 Tabs
         self.tabs = GalleryTabs(self)
         self.right_layout.addWidget(self.tabs)
 
         # --- 關鍵修正 ---
-        # 1. 關閉 QLabel 的自動縮放，防止圖片被拉伸變形。
+        # 1. 關閉 QLabel 的自動縮放，防止圖片被拉伸變形。由我們手動控制縮放。
         self.image_preview_label.setScaledContents(False)
         # 2. 確保 .ui 檔案中的置中設定生效，讓手動縮放的圖片能居中顯示。
         self.image_preview_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
-        # self.init_Text()
         self._connect_signals()
-
-    def init_Text(self):
-        """
-        初始化一些控鍵的國際化文字
-        :return:
-        """
-        self.frame_enabled_checkbox.setOffText("关闭")
-        self.frame_enabled_checkbox.setOnText("开启")
-
-        items = ['shoko', '西宫硝子', '宝多六花', '小鸟游六花']
-        self.frame_style_comboBox.addItems(items)
 
     def resizeEvent(self, event):
         """
-        關鍵修復：重寫 resizeEvent。
+        重寫 resizeEvent。
         每當視窗或 splitter 大小改變時，此函數會被呼叫。
         """
         super().resizeEvent(event)
@@ -62,15 +51,204 @@ class GalleryView(QWidget):
         self._update_preview()
 
     def _connect_signals(self):
+        """連接所有元件的信號與槽函數。"""
         self.import_button.clicked.connect(self._open_image_dialog)
         self.image_list.currentItemChanged.connect(self._on_list_item_selected)
-
-        # --- 關鍵修正：連接 QSplitter 的移動信號 ---
-        # 當使用者拖動分隔條時，觸發 _update_preview 重新繪製圖片
         self.main_splitter.splitterMoved.connect(self._update_preview)
-
-        # 連接右側控制項
         self.tabs.settingsChanged.connect(self._update_preview)
+
+        # 連接新的控制按鈕信號
+        self.select_all_checkbox.stateChanged.connect(self._on_select_all_changed)
+        # self.clear_all_button.clicked.connect(self._on_clear_all_clicked)
+        self.clear_selected_button.clicked.connect(self._on_clear_selected_clicked)
+
+    # --- 核心功能方法 ---
+
+    def _add_images(self, paths: list):
+        """
+        將圖片路徑列表添加到 UI 列表和內部資料結構中。
+        對於每個圖片，都會創建一個自訂的 GalleryItemWidget。
+        """
+        new_images_added = False
+        for path in paths:
+            # 避免重複添加
+            if path not in self.image_items and os.path.exists(path):
+                exif = get_exif_data(path)
+                # 簡單判斷是否有關鍵的 EXIF 資訊，例如相機型號
+                has_exif = bool(exif.get('Model'))
+                # 創建自訂元件實例
+                item_widget = GalleryItemWidget(path, has_exif, self)
+                # 連接自訂元件發出的信號
+                item_widget.selection_changed.connect(self._update_select_all_checkbox_state)
+                item_widget.delete_requested.connect(self._on_delete_item_requested)
+
+                # 創建 QListWidgetItem 並將自訂元件放入其中
+                list_item = QListWidgetItem(self.image_list)
+                list_item.setData(Qt.ItemDataRole.UserRole, path)  # 將圖片路徑存儲在 item 中
+                list_item.setSizeHint(item_widget.sizeHint())  # 關鍵：設定 item 的建議大小
+                self.image_list.addItem(list_item)
+                self.image_list.setItemWidget(list_item, item_widget)  # 將 widget 設置為 item 的內容
+
+                # 將圖片資訊和對應的 list_item 存儲起來，方便後續操作
+                self.image_items[path] = {'exif': exif, 'list_item': list_item}
+                new_images_added = True
+
+        if new_images_added:
+            self._update_select_all_checkbox_state()
+            # 如果是首次添加，預設選中第一張圖片
+            if self.image_list.count() > 0 and not self.current_image_path:
+                self.image_list.setCurrentRow(0)
+
+    def _on_delete_item_requested(self, path: str):
+        """響應從 GalleryItemWidget 發出的刪除請求。"""
+        if path not in self.image_items:
+            return
+
+        # 彈出確認對話框，增加用戶體驗
+        title = '確認刪除'
+        content = f'您確定要從列表中移除圖片\n{os.path.basename(path)} 嗎？'
+        msg_box = MessageBox(title, content, self.window())
+
+        if msg_box.exec():
+            list_item = self.image_items[path]['list_item']
+            row = self.image_list.row(list_item)
+
+            # 從 QListWidget 中安全移除
+            self.image_list.takeItem(row)
+            # 從內部資料結構中移除
+            del self.image_items[path]
+
+            # 如果被刪除的是當前正在預覽的圖片，需要更新預覽
+            if path == self.current_image_path:
+                if self.image_list.count() > 0:
+                    # 選中下一個項目或最後一個項目
+                    new_row = min(row, self.image_list.count() - 1)
+                    self.image_list.setCurrentRow(new_row)
+                else:
+                    # 列表已空，清空預覽
+                    self._clear_preview()
+
+            self._update_select_all_checkbox_state()
+
+    def _on_select_all_changed(self, state):
+        """處理'全選'勾選框的狀態改變事件。"""
+        # 使用標誌位防止在遍歷設置時，子項的信號反過來觸發此函數，造成無限循環
+        if self._is_selecting_all:
+            return
+
+        self._is_selecting_all = True
+
+        # 關鍵邏輯修正：
+        # 只要點擊後不是「未選中」狀態，就一律視為「全選」操作。
+        is_checked = (state != Qt.CheckState.Unchecked.value)
+
+        for i in range(self.image_list.count()):
+            list_item = self.image_list.item(i)
+            item_widget = self.image_list.itemWidget(list_item)
+            if item_widget:
+                # 呼叫自訂元件的方法來設定勾選狀態
+                item_widget.set_checked(is_checked)
+
+        self._is_selecting_all = False
+
+        # 關鍵補充：
+        # 在操作完所有子項後，手動呼叫一次狀態更新函數。
+        # 這能確保主勾選框的狀態被正確地更新為 Checked 或 Unchecked，
+        # 而不是停留在 PartiallyChecked。
+        self._update_select_all_checkbox_state()
+
+        self._is_selecting_all = True
+        is_checked = (state == Qt.CheckState.Checked.value)
+        for i in range(self.image_list.count()):
+            list_item = self.image_list.item(i)
+            item_widget = self.image_list.itemWidget(list_item)
+            if item_widget:
+                # 呼叫自訂元件的方法來設定勾選狀態
+                item_widget.set_checked(is_checked)
+        self._is_selecting_all = False
+
+    def _update_select_all_checkbox_state(self):
+        """根據所有子項的勾選狀態，更新'全選'勾選框的狀態（未選/全選/部分選中）。"""
+        if self._is_selecting_all or self.image_list.count() == 0:
+            # 如果列表為空，確保勾選框是未選中狀態
+            if self.image_list.count() == 0:
+                self.select_all_checkbox.blockSignals(True)
+                self.select_all_checkbox.setCheckState(Qt.CheckState.Unchecked)
+                self.select_all_checkbox.blockSignals(False)
+            return
+
+        checked_count = 0
+        for i in range(self.image_list.count()):
+            list_item = self.image_list.item(i)
+            item_widget = self.image_list.itemWidget(list_item)
+            if item_widget and item_widget.is_checked():
+                checked_count += 1
+
+        # 暫時阻斷信號，防止設定狀態時再次觸發 _on_select_all_changed
+        self.select_all_checkbox.blockSignals(True)
+        if checked_count == 0:
+            self.select_all_checkbox.setCheckState(Qt.CheckState.Unchecked)
+        elif checked_count == self.image_list.count():
+            self.select_all_checkbox.setCheckState(Qt.CheckState.Checked)
+        else:
+            # 部分選中狀態
+            self.select_all_checkbox.setCheckState(Qt.CheckState.PartiallyChecked)
+        self.select_all_checkbox.blockSignals(False)  # 恢復信號
+
+    def _on_clear_selected_clicked(self):
+        """處理'清除選取'按鈕的點擊事件。"""
+        # 1. 找出所有被選中的項目
+        items_to_delete = []
+        for i in range(self.image_list.count()):
+            list_item = self.image_list.item(i)
+            item_widget = self.image_list.itemWidget(list_item)
+            if item_widget and item_widget.is_checked():
+                items_to_delete.append(list_item)
+
+        # 2. 如果沒有選中的項目，直接返回
+        if not items_to_delete:
+            return
+
+        # 3. 彈出確認對話框
+        title = '確認清除'
+        content = f'您確定要清除選中的 {len(items_to_delete)} 張圖片嗎？'
+        msg_box = MessageBox(title, content, self.window())
+
+        if msg_box.exec():
+            # 標記當前預覽是否需要更新
+            preview_needs_update = False
+
+            # 4. 遍歷並刪除所有選中的項目
+            for list_item in items_to_delete:
+                row = self.image_list.row(list_item)
+                path = list_item.data(Qt.ItemDataRole.UserRole)
+
+                # 如果被刪除的是當前預覽的圖片，做個標記
+                if path == self.current_image_path:
+                    preview_needs_update = True
+
+                # 從 QListWidget 中移除
+                self.image_list.takeItem(row)
+                # 從內部資料結構中移除
+                if path in self.image_items:
+                    del self.image_items[path]
+
+            # 5. 統一更新預覽和UI狀態
+            if preview_needs_update:
+                # 如果列表已空，清空預覽，否則選中第一項
+                if self.image_list.count() > 0:
+                    self.image_list.setCurrentRow(0)
+                else:
+                    self._clear_preview()
+
+            self._update_select_all_checkbox_state()
+
+    def _clear_preview(self):
+        """清空預覽區域並重設相關狀態變數。"""
+        self.current_image_path = None
+        self.original_pixmap = None
+        self.image_preview_label.clear()
+        self.image_preview_label.setText("請選擇或拖入圖片")
 
     # --- 事件處理 ---
 
@@ -94,12 +272,10 @@ class GalleryView(QWidget):
             self._add_images(image_files)
 
     def _on_list_item_selected(self, current_item: QListWidgetItem, previous_item: QListWidgetItem):
+        """當列表中的選中項改變時，更新圖片預覽。"""
         if not current_item:
             # 如果沒有選中項 (例如列表被清空)，則清除預覽
-            self.current_image_path = None
-            self.original_pixmap = None
-            self.image_preview_label.clear()
-            self.image_preview_label.setText("請選擇或拖入圖片")
+            self._clear_preview()
             return
 
         path = current_item.data(Qt.ItemDataRole.UserRole)
@@ -107,75 +283,24 @@ class GalleryView(QWidget):
             self.current_image_path = path
             self.original_pixmap = QPixmap(path)
 
+            # 處理圖片載入失敗的情況
             if self.original_pixmap.isNull():
                 print(f"無法載入圖片: {path}")
-
-                # 暫時阻斷信號，防止移除 item 時觸發不必要的重繪
-                self.image_list.currentItemChanged.disconnect(self._on_list_item_selected)
-
-                # 從 UI 列表和內部資料結構中移除
-                row = self.image_list.row(current_item)
-                self.image_list.takeItem(row)
-                if path in self.image_items:
-                    del self.image_items[path]
-
-                # 重新連接信號
-                self.image_list.currentItemChanged.connect(self._on_list_item_selected)
-
-                # 顯示錯誤訊息
-                InfoBar.error(
-                    title='載入錯誤',
-                    content=f"無法載入圖片: {os.path.basename(path)}",
-                    orient=Qt.Orientation.Horizontal,
-                    isClosable=True,
-                    position=InfoBarPosition.TOP,
-                    duration=2000,
-                    parent=self.window()
-                )
-
-                # 如果列表為空，則重設狀態
-                if self.image_list.count() == 0:
-                    self.current_image_path = None
-                    self.original_pixmap = None
-                    self.image_preview_label.clear()
-                    self.image_preview_label.setText("請選擇或拖入圖片")
-                # 否則，可以選擇選中下一個項目
-                elif row < self.image_list.count():
-                    self.image_list.setCurrentRow(row)
-                else:
-                    self.image_list.setCurrentRow(self.image_list.count() - 1)
+                # 直接調用刪除邏輯來處理損壞或不存在的圖片
+                self._on_delete_item_requested(path)
                 return
 
             self._update_preview()
 
-    # --- 輔助方法 ---
-
-    def _add_images(self, paths: list):
-        new_images_added = False
-        for path in paths:
-            if path not in self.image_items and os.path.exists(path):
-                # 使用新的基於 PyQt6 的 EXIF 讀取器
-                exif = get_exif_data(path)
-                print(f"導入圖片: {os.path.basename(path)}, EXIF: {exif}")
-
-                self.image_items[path] = {'exif': exif}
-
-                item = QListWidgetItem(os.path.basename(path))
-                item.setData(Qt.ItemDataRole.UserRole, path)
-                self.image_list.addItem(item)
-                new_images_added = True
-
-        if new_images_added and self.image_list.count() > 0 and not self.current_image_path:
-            self.image_list.setCurrentRow(0)
-
+    # --- 繪圖與更新 ---
 
     def _update_preview(self):
         """
-        在縮放前預先計算相框空間，確保相框和圖片都能完整顯示。
+        核心繪圖函數。
+        根據當前圖片、相框和浮水印設定，重新計算並繪製預覽圖。
         """
         if not self.original_pixmap or self.original_pixmap.isNull():
-            self.image_preview_label.clear()
-            self.image_preview_label.setText("請選擇或拖入圖片")
+            self._clear_preview()
             return
 
         # 1. 獲取佈局的總可用空間
@@ -184,31 +309,26 @@ class GalleryView(QWidget):
             return
 
         settings = self.tabs._get_current_settings()
-        # print("新的settings: ", settings)
         frame_enabled = settings.get('frame_enabled', False)
 
-        # 2. **核心修正：先計算相框的像素寬度**
+        # 2. 計算相框的像素寬度
         frame_width = 0
         if frame_enabled:
             # 將滑塊的值(1-100)映射為一個基於容器短邊的比例，讓邊框視覺上更穩定
             base_size = min(container_size.width(), container_size.height())
-            frame_ratio = settings.get('frame_width', 10) / 250.0  # e.g., max 4% of short side
+            frame_ratio = settings.get('frame_width', 10) / 250.0
             frame_width = int(base_size * frame_ratio)
 
-        # 3. **計算真正留給圖片的空間**
-        # 從總可用空間中，減去上下左右的相框寬度
+        # 3. 計算真正留給圖片的空間
         image_area_width = container_size.width() - (frame_width * 2)
         image_area_height = container_size.height() - (frame_width * 2)
 
-        # 如果相框設定過大，可能導致計算出的圖片空間為負，需保護
         if image_area_width <= 0 or image_area_height <= 0:
-            # 這種情況下，不顯示圖片，或者可以選擇只顯示圖片而不顯示相框
             self.image_preview_label.clear()
             return
 
+        # 4. 將原始圖片，等比例縮放到這個預留好的小空間內
         image_area_size = QSize(image_area_width, image_area_height)
-
-        # 4. **將原始圖片，等比例縮放到這個預留好的小空間內**
         scaled_pixmap = self.original_pixmap.scaled(
             image_area_size,
             Qt.AspectRatioMode.KeepAspectRatio,
@@ -216,7 +336,6 @@ class GalleryView(QWidget):
         )
 
         # 5. 建立最終畫布，其大小剛好等於 "縮放後的圖片 + 相框"
-        # 因為 scaled_pixmap 是在預留空間裡縮放的，所以這個總大小不會超過 container_size
         final_canvas_size = scaled_pixmap.size() + QSize(frame_width * 2, frame_width * 2)
         final_pixmap = QPixmap(final_canvas_size)
         final_pixmap.fill(Qt.GlobalColor.transparent)
