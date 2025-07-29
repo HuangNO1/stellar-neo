@@ -27,6 +27,12 @@ class GalleryView(QWidget):
         self.image_preview_label.dragEnterEvent = self.dragEnterEvent
         self.image_preview_label.dropEvent = self.dropEvent
 
+        # --- 關鍵修正 ---
+        # 1. 關閉 QLabel 的自動縮放，防止圖片被拉伸變形。
+        self.image_preview_label.setScaledContents(False)
+        # 2. 確保 .ui 檔案中的置中設定生效，讓手動縮放的圖片能居中顯示。
+        self.image_preview_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+
         self._connect_signals()
         self._load_settings()
 
@@ -42,6 +48,10 @@ class GalleryView(QWidget):
     def _connect_signals(self):
         self.import_button.clicked.connect(self._open_image_dialog)
         self.image_list.currentItemChanged.connect(self._on_list_item_selected)
+
+        # --- 關鍵修正：連接 QSplitter 的移動信號 ---
+        # 當使用者拖動分隔條時，觸發 _update_preview 重新繪製圖片
+        self.main_splitter.splitterMoved.connect(self._update_preview)
 
         # 連接右側控制項
         self.watermark_enabled_checkbox.stateChanged.connect(self._on_settings_changed)
@@ -152,57 +162,75 @@ class GalleryView(QWidget):
 
     def _update_preview(self):
         """
-        功能完整的預覽更新函數，使用 QPainter 繪製所有效果。
+        修正版：以父層容器(middle_panel)為基準進行等比例縮放。
+        這樣可以確保圖片在保持長寬比的前提下，最大化地顯示在可用區域中。
         """
-        if not self.original_pixmap:
+        if not self.original_pixmap or self.original_pixmap.isNull():
+            self.image_preview_label.clear()
             self.image_preview_label.setText("請選擇或拖入圖片")
             return
 
+        # --- 關鍵修正：使用 middle_panel 的大小作為縮放目標 ---
+        # 這能準確反映 QSplitter 分割後，中間佈局的實際可用大小 [cite: 2, 6]。
+        container_size = self.middle_panel.size()
+
+        # 避免在視窗尚未顯示時 (size為0) 進行無效計算
+        if container_size.width() <= 1 or container_size.height() <= 1:
+            return
+
+        # 1. 根據容器大小，保持長寬比來縮放原始圖片
+        scaled_pixmap = self.original_pixmap.scaled(
+            container_size,
+            Qt.AspectRatioMode.KeepAspectRatio,
+            Qt.TransformationMode.SmoothTransformation
+        )
+
         settings = self._get_current_settings()
         frame_enabled = settings.get('frame_enabled', False)
-        frame_width = settings.get('frame_width', 10) if frame_enabled else 0
 
-        # 1. 計算畫布大小（圖片 + 邊框）
-        canvas_size = self.original_pixmap.size() + QSize(frame_width * 2, frame_width * 2)
+        # 2. 根據縮放後的圖片大小，計算相框寬度
+        # 相框寬度基於滑塊的值(1-100) [cite: 18] 和圖片的短邊計算，視覺效果更一致
+        base_size = min(scaled_pixmap.width(), scaled_pixmap.height())
+        # 將滑塊值 (e.g., 1-100) 轉換為一個合理的比例
+        frame_ratio = settings.get('frame_width', 10) / 250.0
+        frame_width = int(base_size * frame_ratio) if frame_enabled else 0
 
-        # 2. 建立一個新的 QPixmap 作為畫布
+        # 3. 建立最終畫布，大小為 "縮放後的圖片" + "相框"
+        canvas_size = scaled_pixmap.size() + QSize(frame_width * 2, frame_width * 2)
         final_pixmap = QPixmap(canvas_size)
-        final_pixmap.fill(Qt.GlobalColor.transparent)  # 設定透明背景
+        final_pixmap.fill(Qt.GlobalColor.transparent)
 
-        # 3. 建立 QPainter 在畫布上繪圖
+        # 4. 使用 QPainter 開始繪製
         painter = QPainter(final_pixmap)
         painter.setRenderHint(QPainter.RenderHint.Antialiasing)
 
-        # 4. 繪製相框背景 (如果啟用)
-        if frame_enabled:
+        # 5. 如果啟用相框，先繪製白色背景
+        if frame_enabled and frame_width > 0:
             painter.setBrush(QColor("white"))
             painter.setPen(Qt.PenStyle.NoPen)
             painter.drawRect(final_pixmap.rect())
 
-        # 5. 將原始圖片繪製到相框中間
-        image_rect = QRect(QPoint(frame_width, frame_width), self.original_pixmap.size())
-        painter.drawPixmap(image_rect, self.original_pixmap)
+        # 6. 將保持了正確比例的 scaled_pixmap 繪製到畫布中心
+        image_rect = QRect(QPoint(frame_width, frame_width), scaled_pixmap.size())
+        painter.drawPixmap(image_rect, scaled_pixmap)
 
-        # 6. 繪製浮水印 (如果啟用)
+        # 7. 如果啟用浮水印，在圖片上繪製文字
         if settings.get('watermark_enabled', False):
             text = settings.get('watermark_text', 'Sample Watermark')
-            # 根據圖片大小動態設定字體大小
-            font_size = max(12, int(self.original_pixmap.height() / 40))
+            # 字體大小也基於縮放後的圖片尺寸，確保視覺上大小合適
+            font_size = max(10, int(scaled_pixmap.height() / 30))
             font = QFont("Arial", font_size)
             painter.setFont(font)
-            painter.setPen(QColor(255, 255, 255, 128))  # 半透明白色
+            painter.setPen(QColor(255, 255, 255, 128))
 
-            # 將浮水印繪製在圖片右下角
-            watermark_rect = QRect(image_rect)
-            watermark_rect.adjust(0, 0, -10, -10)  # 增加一些邊距
+            padding = int(base_size * 0.02)
+            watermark_rect = image_rect.adjusted(0, 0, -padding, -padding)
             painter.drawText(watermark_rect, Qt.AlignmentFlag.AlignBottom | Qt.AlignmentFlag.AlignRight, text)
 
-        # 7. 結束繪圖
         painter.end()
 
-        # 關鍵修復：在設定 pixmap 之前，先清除舊的，並設定 scaledContents
-        self.image_preview_label.setPixmap(QPixmap())  # 清除舊圖
-        self.image_preview_label.setScaledContents(True)  # 允許 QLabel 縮放其內容
+        # 8. 將最終繪製好的、尺寸正確的 Pixmap 設置給 QLabel
+        # 因為 setScaledContents 已被設為 False，圖片將以原始尺寸居中顯示，不會再被拉伸
         self.image_preview_label.setPixmap(final_pixmap)
 
     def _get_current_settings(self) -> dict:
