@@ -1,0 +1,28 @@
+QSplitter {
+    /* 使用 setHandleWidth(1) 來設定實際可拖拉寬度為 1px */
+}
+
+QSplitter::handle {
+    background-color: lightgray;  /* 單色淺灰線 */
+    margin: 0px;                   /* 無 margin 干擾 */
+    padding: 0px;
+}
+
+QSplitter::handle:horizontal {
+    width: 1px;                    /* 垂直方向中的 handle 寬度為 1px 線條 */
+    margin-left: 8px;              /* 線條前空白（可調） */
+    margin-right: 8px;             /* 線條後空白（可調） */
+    border: none;                  /* 無邊框 */
+}
+
+QSplitter::handle:vertical {
+    height: 1px;                   /* 水平方向中的 handle 線條高度為 1px */
+    margin-top: 8px;               /* 線條上方空白 */
+    margin-bottom: 8px;            /* 線條下方空白 */
+    border: none;
+}
+
+QSplitter::handle:hover,
+QSplitter::handle:pressed {
+    background-color: lightgray;   /* 懸停／按下狀態不改變顏色，保持乾淨一致 */
+}
