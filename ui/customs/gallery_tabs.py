@@ -1,11 +1,12 @@
 from PyQt6 import uic
 from PyQt6.QtCore import Qt, pyqtSignal
 from PyQt6.QtGui import QColor
-from PyQt6.QtWidgets import QWidget, QStackedWidget, QLabel, QVBoxLayout
+from PyQt6.QtWidgets import QWidget, QStackedWidget, QLabel, QVBoxLayout, QFrame
 from qfluentwidgets import TabBar, ColorDialog
 
 from core.settings_manager import SettingsManager
 from ui.customs.pick_color_button import ColorButton
+from qfluentwidgets.components.widgets.tab_view import TabCloseButtonDisplayMode
 
 
 class GalleryTabs(QWidget):
@@ -21,6 +22,9 @@ class GalleryTabs(QWidget):
         main_layout.setSpacing(0)  # 設置元件間距為0
 
         self.tabBar = TabBar(self)
+        # 不要tab右側有添加按鈕
+        self.tabBar.setAddButtonVisible(False)
+        # self.tabBar.setCloseButtonDisplayMode(TabBar.CloseButtonDisplayMode.NONE)
         self.stackedWidget = QStackedWidget(self)
         self.counter = 1
 
@@ -65,11 +69,15 @@ class GalleryTabs(QWidget):
         self.stackedWidget.addWidget(widget)
 
         # 使用全局唯一的 objectName 作为路由键
-        self.tabBar.addTab(
+        tab_item = self.tabBar.addTab(
             routeKey=objectName,
             text=text,
             onClick=lambda: self.stackedWidget.setCurrentWidget(widget)
         )
+        # 設定該 tab 不顯示關閉按鈕
+        tab_item.setCloseButtonDisplayMode(TabCloseButtonDisplayMode.NEVER)
+        # 讓 tab 不要太長
+        tab_item.setMaximumWidth(100)
 
     def onCurrentIndexChanged(self, index):
         widget = self.stackedWidget.widget(index)

@@ -4,14 +4,9 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="e1217e66-f6df-4928-bc5a-398e629a83e8" name="Changes" comment="圖片列表管理新增功能按鈕">
-      <change afterPath="$PROJECT_DIR$/assets/icons/base/warning.png" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/assets/icons/base/warning.svg" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/core/utils.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/ui/customs/gallery_item_widget.py" afterDir="false" />
+    <list default="true" id="e1217e66-f6df-4928-bc5a-398e629a83e8" name="Changes" comment="圖片列表管理實現列表管理功能（選取、刪除）">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/ui/components/gallery.ui" beforeDir="false" afterPath="$PROJECT_DIR$/ui/components/gallery.ui" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/ui/pages/view_gallery.py" beforeDir="false" afterPath="$PROJECT_DIR$/ui/pages/view_gallery.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/ui/customs/gallery_tabs.py" beforeDir="false" afterPath="$PROJECT_DIR$/ui/customs/gallery_tabs.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -165,7 +160,7 @@
       <workItem from="1753783408857" duration="619000" />
       <workItem from="1753784034890" duration="1500000" />
       <workItem from="1753785895311" duration="15000" />
-      <workItem from="1753785917518" duration="11531000" />
+      <workItem from="1753785917518" duration="12578000" />
     </task>
     <task id="LOCAL-00001" summary="完成 1. 主題切換 2. 國際化 3. 設定存儲與讀取 4. 完成窗口啟動畫面">
       <option name="closed" value="true" />
@@ -303,7 +298,15 @@
       <option name="project" value="LOCAL" />
       <updated>1753792406066</updated>
     </task>
-    <option name="localTasksCounter" value="18" />
+    <task id="LOCAL-00018" summary="圖片列表管理實現列表管理功能（選取、刪除）">
+      <option name="closed" value="true" />
+      <created>1753799727264</created>
+      <option name="number" value="00018" />
+      <option name="presentableId" value="LOCAL-00018" />
+      <option name="project" value="LOCAL" />
+      <updated>1753799727265</updated>
+    </task>
+    <option name="localTasksCounter" value="19" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -339,10 +342,11 @@
     <MESSAGE value="添加依賴文件" />
     <MESSAGE value="修正浮水印tab布局" />
     <MESSAGE value="圖片列表管理新增功能按鈕" />
-    <option name="LAST_COMMIT_MESSAGE" value="圖片列表管理新增功能按鈕" />
+    <MESSAGE value="圖片列表管理實現列表管理功能（選取、刪除）" />
+    <option name="LAST_COMMIT_MESSAGE" value="圖片列表管理實現列表管理功能（選取、刪除）" />
   </component>
   <component name="com.intellij.coverage.CoverageDataManagerImpl">
-    <SUITE FILE_PATH="coverage/stellar_neo$main.coverage" NAME="main Coverage Results" MODIFIED="1753799498583" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/stellar_neo$main.coverage" NAME="main Coverage Results" MODIFIED="1753800546081" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/stellar_neo$app.coverage" NAME="app Coverage Results" MODIFIED="1753689525523" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
   </component>
 </project>
