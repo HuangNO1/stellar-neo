@@ -8,6 +8,7 @@ from qfluentwidgets import InfoBarPosition, InfoBar, MessageBox
 # 修正 import，使用新的 exif_reader 和自訂元件
 from core.exif_reader import get_exif_data
 from core.settings_manager import SettingsManager
+from core.translator import Translator
 from ui.customs.gallery_tabs import GalleryTabs
 from ui.customs.gallery_item_widget import GalleryItemWidget
 
@@ -19,6 +20,15 @@ class GalleryView(QWidget):
         uic.loadUi("ui/components/gallery.ui", self)
 
         self.settings_manager = SettingsManager()
+        # --- 國際化核心 ---
+        self.translator = Translator()
+        # 假設您的語言檔都放在 i18n/ 資料夾下
+        # 且 settings.json 中的 "language" 鍵為 "en", "zh_TW" 等
+        language = self.settings_manager.get("language", "en")
+        self.translator.load(language, "./i18n")
+
+
+
         self.image_items = {}  # 用於存儲圖片路徑和對應的 list_item
         self.current_image_path = None
         self.original_pixmap = None
@@ -30,7 +40,8 @@ class GalleryView(QWidget):
         self.image_preview_label.dropEvent = self.dropEvent
 
         # 加入右側的設定 Tabs
-        self.tabs = GalleryTabs(self)
+        # 將 translator 傳遞給子元件
+        self.tabs = GalleryTabs(self.translator, self)
         self.right_layout.addWidget(self.tabs)
 
         # --- 關鍵修正 ---
@@ -39,7 +50,15 @@ class GalleryView(QWidget):
         # 2. 確保 .ui 檔案中的置中設定生效，讓手動縮放的圖片能居中顯示。
         self.image_preview_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
+        self._translate_ui()  # 翻譯此視圖的 UI
         self._connect_signals()
+
+    def _translate_ui(self):
+        """ 翻譯 gallery.ui 中的靜態文字 """
+        self.import_button.setText(self.translator.get("gallery_import_button", "Import"))
+        self.select_all_checkbox.setText(self.translator.get("gallery_select_all", "Select All"))
+        self.clear_selected_button.setText(self.translator.get("gallery_clear_selected", "Clear Selected"))
+        self._clear_preview()  # 清除時會設定預設文字
 
     def resizeEvent(self, event):
         """
@@ -77,7 +96,8 @@ class GalleryView(QWidget):
                 # 簡單判斷是否有關鍵的 EXIF 資訊，例如相機型號
                 has_exif = bool(exif.get('Model'))
                 # 創建自訂元件實例
-                item_widget = GalleryItemWidget(path, has_exif, self)
+                # 創建自訂元件實例時傳入 translator
+                item_widget = GalleryItemWidget(path, has_exif, self.translator, self)
                 # 連接自訂元件發出的信號
                 item_widget.selection_changed.connect(self._update_select_all_checkbox_state)
                 item_widget.delete_requested.connect(self._on_delete_item_requested)
@@ -105,9 +125,10 @@ class GalleryView(QWidget):
             return
 
         # 彈出確認對話框，增加用戶體驗
-        title = '確認刪除'
-        content = f'您確定要從列表中移除圖片\n{os.path.basename(path)} 嗎？'
-        msg_box = MessageBox(title, content, self.window())
+        title = self.translator.get("confirm_delete_title", "Confirm Deletion")
+        body = self.translator.get("confirm_delete_item_body", "Delete {filename}?").format(
+            filename=os.path.basename(path))
+        msg_box = MessageBox(title, body, self.window())
 
         if msg_box.exec():
             list_item = self.image_items[path]['list_item']
@@ -210,9 +231,10 @@ class GalleryView(QWidget):
             return
 
         # 3. 彈出確認對話框
-        title = '確認清除'
-        content = f'您確定要清除選中的 {len(items_to_delete)} 張圖片嗎？'
-        msg_box = MessageBox(title, content, self.window())
+        title = self.translator.get("confirm_delete_title", "Confirm Deletion")
+        body = self.translator.get("confirm_clear_selected_body", "Clear {count} items?").format(
+            count=len(items_to_delete))
+        msg_box = MessageBox(title, body, self.window())
 
         if msg_box.exec():
             # 標記當前預覽是否需要更新
@@ -248,7 +270,9 @@ class GalleryView(QWidget):
         self.current_image_path = None
         self.original_pixmap = None
         self.image_preview_label.clear()
-        self.image_preview_label.setText("請選擇或拖入圖片")
+        # 使用 translator 設定提示文字
+        prompt = self.translator.get("gallery_drop_prompt", "Drop image here")
+        self.image_preview_label.setText(prompt)
 
     # --- 事件處理 ---
 

@@ -1,147 +1,150 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>Form</class>
- <widget class="QWidget" name="Form">
+ <class>FrameTab</class>
+ <widget class="QWidget" name="FrameTab">
   <property name="geometry">
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>249</width>
+    <width>280</width>
     <height>755</height>
    </rect>
   </property>
   <property name="windowTitle">
-   <string>不限制大小的垂直佈局</string>
+   <string>Form</string>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <property name="sizeConstraint">
-    <enum>QLayout::SizeConstraint::SetDefaultConstraint</enum>
+    <enum>QLayout::SetDefaultConstraint</enum>
    </property>
    <item>
-    <widget class="SwitchButton" name="frame_enabled_checkbox">
+    <widget class="SwitchButton" name="frame_enabled_switch">
      <property name="text">
       <string>啟用相框</string>
      </property>
     </widget>
    </item>
    <item>
-    <widget class="SwitchButton" name="pushButton">
+    <widget class="SwitchButton" name="photo_shadow_switch">
      <property name="text">
-      <string>相框懸浮陰影</string>
+      <string>相片懸浮陰影</string>
      </property>
     </widget>
    </item>
    <item>
-    <widget class="BodyLabel" name="label">
+    <widget class="BodyLabel" name="frame_radius_label">
      <property name="text">
       <string>相框圓角</string>
      </property>
     </widget>
    </item>
    <item>
-    <widget class="Slider" name="frame_width_slider">
+    <widget class="Slider" name="frame_radius_slider">
      <property name="orientation">
       <enum>Qt::Orientation::Horizontal</enum>
      </property>
     </widget>
    </item>
    <item>
-    <widget class="BodyLabel" name="label_6">
+    <widget class="BodyLabel" name="photo_radius_label">
      <property name="text">
       <string>相片圓角</string>
      </property>
     </widget>
    </item>
    <item>
-    <widget class="Slider" name="horizontalSlider">
+    <widget class="Slider" name="photo_radius_slider">
      <property name="orientation">
       <enum>Qt::Orientation::Horizontal</enum>
      </property>
     </widget>
    </item>
    <item>
-    <widget class="BodyLabel" name="label_2">
+    <widget class="BodyLabel" name="padding_top_label">
      <property name="text">
       <string>相框上邊距</string>
      </property>
     </widget>
    </item>
    <item>
-    <widget class="Slider" name="horizontalSlider_2">
+    <widget class="Slider" name="padding_top_slider">
      <property name="orientation">
       <enum>Qt::Orientation::Horizontal</enum>
      </property>
     </widget>
    </item>
    <item>
-    <widget class="BodyLabel" name="label_3">
+    <widget class="BodyLabel" name="padding_sides_label">
      <property name="text">
-      <string>相框中邊距</string>
+      <string>相框左右邊距</string>
      </property>
     </widget>
    </item>
    <item>
-    <widget class="Slider" name="horizontalSlider_3">
+    <widget class="Slider" name="padding_sides_slider">
      <property name="orientation">
       <enum>Qt::Orientation::Horizontal</enum>
      </property>
     </widget>
    </item>
    <item>
-    <widget class="BodyLabel" name="label_4">
+    <widget class="BodyLabel" name="padding_bottom_label">
      <property name="text">
       <string>相框下邊距</string>
      </property>
     </widget>
    </item>
    <item>
-    <widget class="Slider" name="horizontalSlider_4">
+    <widget class="Slider" name="padding_bottom_slider">
      <property name="orientation">
       <enum>Qt::Orientation::Horizontal</enum>
      </property>
     </widget>
    </item>
    <item>
-    <widget class="BodyLabel" name="label_5">
+    <widget class="BodyLabel" name="frame_style_label">
      <property name="text">
       <string>相框樣式</string>
      </property>
     </widget>
    </item>
    <item>
-    <widget class="ComboBox" name="frame_style_comboBox">
-     <property name="text">
-      <string>PushButton</string>
-     </property>
+    <widget class="ComboBox" name="frame_style_combo">
+     <item>
+      <property name="text">
+       <string>純色背景</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>模糊延伸</string>
+      </property>
+     </item>
     </widget>
    </item>
    <item>
-    <widget class="BodyLabel" name="label_8">
+    <widget class="BodyLabel" name="frame_blur_label">
      <property name="text">
       <string>相框模糊程度</string>
      </property>
     </widget>
    </item>
    <item>
-    <widget class="Slider" name="horizontalSlider_5">
+    <widget class="Slider" name="frame_blur_slider">
      <property name="orientation">
       <enum>Qt::Orientation::Horizontal</enum>
      </property>
     </widget>
    </item>
    <item>
-    <widget class="BodyLabel" name="label_7">
+    <widget class="BodyLabel" name="frame_color_label">
      <property name="text">
       <string>相框顏色</string>
      </property>
     </widget>
    </item>
    <item>
-    <widget class="ColorButton" name="kcolorbutton">
-     <property name="text">
-      <string/>
-     </property>
-    </widget>
+    <widget class="ColorButton" name="frame_color_button"/>
    </item>
    <item>
     <spacer name="verticalSpacer">

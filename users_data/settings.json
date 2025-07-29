@@ -1,10 +1,39 @@
 {
-  "language": "zh_TW",
-  "theme": "Light",
+  "language": "zh_CN",
+  "theme": "Dark",
   "gallery_settings": {
-    "watermark_enabled": false,
-    "watermark_text": "",
-    "frame_enabled": false,
-    "frame_width": 0
+    "watermark": {
+      "logo_enabled": false,
+      "logo_source": "auto_detect",
+      "logo_text": "Logo",
+      "logo_size": 12,
+      "text_enabled": true,
+      "text_source": "exif",
+      "text_custom": "My Photo",
+      "exif_options": {
+        "model": true,
+        "iso": false,
+        "aperture": false,
+        "shutter": true
+      },
+      "font_family": "",
+      "font_color": "#FFFFFF",
+      "font_size": 76,
+      "layout": "logo_top_text_bottom",
+      "area": null,
+      "align": null
+    },
+    "frame": {
+      "enabled": true,
+      "photo_shadow": true,
+      "frame_radius": 5,
+      "photo_radius": 3,
+      "padding_top": 10,
+      "padding_sides": 10,
+      "padding_bottom": 10,
+      "style": "solid_color",
+      "blur_radius": 20,
+      "color": "#FFFFFF"
+    }
   }
 }

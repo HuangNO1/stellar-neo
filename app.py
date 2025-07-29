@@ -11,20 +11,13 @@ from qfluentwidgets import (FluentWindow, NavigationInterface, FluentIcon,
 from core.config import THEMES
 from core.settings_manager import SettingsManager
 from core.translator import Translator
+from core.asset_manager import AssetManager  # 導入資源管理器
+
+# 導入所有頁面
 from ui.pages.view_settings import SettingsView
-from ui.pages.view_gallery import GalleryView  # 確保您已建立此佔位檔案
-
-
-# 像範例中一樣，建立一個簡單的佔位符 Widget 用於子頁面
-class SimpleWidget(QFrame):
-    def __init__(self, text: str, parent=None):
-        super().__init__(parent=parent)
-        self.setObjectName(text.replace(' ', '-'))
-        self.label = SubtitleLabel(text, self)
-        self.hBoxLayout = QHBoxLayout(self)
-        setFont(self.label, 24)
-        self.label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self.hBoxLayout.addWidget(self.label, 1, Qt.AlignmentFlag.AlignCenter)
+from ui.pages.view_gallery import GalleryView
+from ui.pages.view_logo import LogoView  # 導入 Logo 頁面
+from ui.pages.view_font import FontView  # 導入字體頁面
 
 
 class MainWindow(FluentWindow):
@@ -34,6 +27,7 @@ class MainWindow(FluentWindow):
         # --- 1. 核心元件初始化 ---
         self.settings = SettingsManager()
         self.translator = Translator()
+        self.asset_manager = AssetManager()  # 實例化資源管理器
         self.themeListener = SystemThemeListener(self)
 
         # --- 2. 啟動介面邏輯 ---
@@ -67,34 +61,25 @@ class MainWindow(FluentWindow):
         """設定主視窗屬性"""
         self.resize(1500, 800)
         self.setWindowIcon(QIcon("assets/logos/canon.png"))
-        self.setWindowTitle("My Application")
+        self.setWindowTitle("Stellar NEO")
 
     def init_navigation(self):
         tr = self.translator.get
         """建立並新增所有子頁面到導覽列"""
-        # 實例化子頁面
+        # 實例化子頁面，並傳入需要的管理器
         self.gallery_view = GalleryView(self)
-        # self.sub_gallery_view = SimpleWidget("Sub Gallery Page", self)
+        self.logo_view = LogoView(self.asset_manager, self)
+        self.font_view = FontView(self.asset_manager, self)
         self.settings_view = SettingsView(self.translator, self.settings, self.themeListener, self)
 
-        # 使用 self.addSubInterface 直接新增導覽項
-        self.addSubInterface(
-            self.gallery_view,
-            FluentIcon.PHOTO,
-            tr("gallery", "Gallery")
-        )
-        # 新增巢狀子項目到 "Gallery" 頁面下
-        # self.addSubInterface(
-        #     self.sub_gallery_view,
-        #     FluentIcon.FOLDER,
-        #     self.translator.get("gallery", "Gallery"),
-        #     parent=self.gallery_view,
-        # )
+        # 新增主要頁面
+        self.addSubInterface(self.gallery_view, FluentIcon.PHOTO, tr("gallery", "圖片工坊"))
+        self.addSubInterface(self.logo_view, FluentIcon.BRUSH, tr("logo_management", "Logo 管理"))
+        self.addSubInterface(self.font_view, FluentIcon.FONT, tr("font_management", "字體管理"))
 
-        # if self.init_nav_times <= 1:
         self.navigationInterface.addSeparator()
 
-        # 使用 NavigationItemPosition 枚舉來設定位置
+        # 新增底部的設定頁面
         self.addSubInterface(
             self.settings_view,
             FluentIcon.SETTING,
@@ -102,7 +87,7 @@ class MainWindow(FluentWindow):
             position=NavigationItemPosition.BOTTOM
         )
 
-        # 連接設定頁面發出的信號，以便更新全域UI
+        # 連接設定頁面發出的信號
         self.settings_view.languageChanged.connect(self._show_restart_dialog)
 
     def _show_restart_dialog(self):
@@ -110,10 +95,7 @@ class MainWindow(FluentWindow):
         tr = self.translator.get
         title = tr("language_changed_title", "Language Changed")
         content = tr("language_changed_body",
-                     "The language setting has been saved. Please restart the application for the changes to take "
-                     "full effect.")
-
-        # 創建一個模態對話方塊
+                     "The language setting has been saved. Please restart the application for the changes to take full effect.")
         w = MessageBox(title, content, self)
 
         # 當對話方塊被接受 (使用者點擊 "OK") 時，關閉應用程式

@@ -1,64 +1,143 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>Form</class>
- <widget class="QWidget" name="Form">
+ <class>WatermarkTab</class>
+ <widget class="QWidget" name="WatermarkTab">
   <property name="geometry">
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>249</width>
-    <height>837</height>
+    <width>280</width>
+    <height>850</height>
    </rect>
   </property>
   <property name="windowTitle">
-   <string>不限制大小的垂直佈局</string>
+   <string>Form</string>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <property name="sizeConstraint">
-    <enum>QLayout::SizeConstraint::SetDefaultConstraint</enum>
+    <enum>QLayout::SetDefaultConstraint</enum>
    </property>
    <item>
-    <widget class="SwitchButton" name="watermark_enabled_checkbox">
+    <widget class="SubtitleLabel" name="title_label_1">
      <property name="text">
-      <string>啟用浮水印</string>
+      <string>Logo 設定</string>
      </property>
     </widget>
    </item>
    <item>
-    <widget class="SwitchButton" name="pushButton">
+    <widget class="SwitchButton" name="logo_enabled_switch">
+     <property name="text">
+      <string>顯示 Logo</string>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="ComboBox" name="logo_source_combo">
+     <item>
+      <property name="text">
+       <string>自動偵測品牌</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>從 Logo 庫選擇</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>自訂文字 Logo</string>
+      </property>
+     </item>
+    </widget>
+   </item>
+   <item>
+    <widget class="LineEdit" name="logo_text_input">
+     <property name="placeholderText">
+      <string>請輸入 Logo 文字</string>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="BodyLabel" name="logo_size_label">
+     <property name="text">
+      <string>Logo 大小</string>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="Slider" name="logo_size_slider">
+     <property name="orientation">
+      <enum>Qt::Orientation::Horizontal</enum>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="SubtitleLabel" name="title_label_2">
+     <property name="text">
+      <string>浮水印文字設定</string>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="SwitchButton" name="text_enabled_switch">
      <property name="text">
       <string>顯示文字</string>
      </property>
     </widget>
    </item>
    <item>
-    <widget class="ComboBox" name="pushButton_2">
-     <property name="text">
-      <string>下拉選擇文字內容</string>
-     </property>
-    </widget>
-   </item>
-   <item>
-    <widget class="BodyLabel" name="label_2">
-     <property name="text">
-      <string>浮水印文字:</string>
-     </property>
-    </widget>
-   </item>
-   <item>
-    <widget class="LineEdit" name="watermark_text_input"/>
-   </item>
-   <item>
-    <layout class="QHBoxLayout" name="horizontalLayout_1">
+    <widget class="ComboBox" name="text_source_combo">
      <item>
-      <widget class="CheckBox" name="checkBox_2">
+      <property name="text">
+       <string>自動偵測相機參數</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>自訂文字</string>
+      </property>
+     </item>
+    </widget>
+   </item>
+   <item>
+    <widget class="LineEdit" name="text_custom_input">
+     <property name="placeholderText">
+      <string>請輸入自訂文字</string>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="BodyLabel" name="exif_options_label">
+     <property name="text">
+      <string>選擇要顯示的參數：</string>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <layout class="QGridLayout" name="exif_grid_layout">
+     <item row="0" column="0">
+      <widget class="CheckBox" name="exif_model_check">
        <property name="text">
-        <string>相機型號</string>
+        <string>型號</string>
        </property>
       </widget>
      </item>
-     <item>
-      <widget class="CheckBox" name="checkBox_3">
+     <item row="0" column="1">
+      <widget class="CheckBox" name="exif_iso_check">
+       <property name="text">
+        <string>ISO</string>
+       </property>
+      </widget>
+     </item>
+     <item row="1" column="0">
+      <widget class="CheckBox" name="exif_aperture_check">
+       <property name="text">
+        <string>光圈</string>
+       </property>
+      </widget>
+     </item>
+     <item row="1" column="1">
+      <widget class="CheckBox" name="exif_shutter_check">
        <property name="text">
         <string>快門</string>
        </property>
@@ -67,108 +146,86 @@
     </layout>
    </item>
    <item>
-    <layout class="QHBoxLayout" name="horizontalLayout_2">
-     <item>
-      <widget class="CheckBox" name="checkBox_4">
-       <property name="text">
-        <string>焦距</string>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="CheckBox" name="checkBox_5">
-       <property name="text">
-        <string>ISO</string>
-       </property>
-      </widget>
-     </item>
-    </layout>
-   </item>
-   <item>
-    <layout class="QHBoxLayout" name="horizontalLayout_3">
-     <item>
-      <widget class="CheckBox" name="checkBox_6">
-       <property name="text">
-        <string>光圈</string>
-       </property>
-      </widget>
-     </item>
-    </layout>
-   </item>
-   <item>
-    <widget class="SwitchButton" name="pushButton_3">
+    <widget class="SubtitleLabel" name="title_label_3">
      <property name="text">
-      <string>顯示LOGO</string>
+      <string>通用樣式</string>
      </property>
     </widget>
    </item>
    <item>
-    <widget class="ComboBox" name="pushButton_4">
-     <property name="text">
-      <string>下拉選擇LOGO</string>
+    <widget class="ComboBox" name="font_combo">
+     <property name="toolTip">
+      <string>選擇字體</string>
      </property>
     </widget>
    </item>
    <item>
-    <widget class="BodyLabel" name="label_3">
-     <property name="text">
-      <string>logo大小</string>
-     </property>
-    </widget>
+    <widget class="ColorButton" name="font_color_button"/>
    </item>
    <item>
-    <widget class="Slider" name="horizontalSlider_2">
-     <property name="orientation">
-      <enum>Qt::Orientation::Horizontal</enum>
-     </property>
-    </widget>
-   </item>
-   <item>
-    <widget class="ComboBox" name="pushButton_5">
-     <property name="text">
-      <string>文字字體</string>
-     </property>
-    </widget>
-   </item>
-   <item>
-    <widget class="ColorButton" name="pushButton_6">
-     <property name="text">
-      <string>字體顏色</string>
-     </property>
-    </widget>
-   </item>
-   <item>
-    <widget class="BodyLabel" name="label">
+    <widget class="BodyLabel" name="font_size_label">
      <property name="text">
       <string>文字大小</string>
      </property>
     </widget>
    </item>
    <item>
-    <widget class="Slider" name="horizontalSlider">
+    <widget class="Slider" name="font_size_slider">
      <property name="orientation">
       <enum>Qt::Orientation::Horizontal</enum>
      </property>
     </widget>
    </item>
    <item>
-    <widget class="ComboBox" name="pushButton_7">
+    <widget class="SubtitleLabel" name="title_label_4">
      <property name="text">
-      <string>下拉選擇文字LOGO排版</string>
+      <string>整體佈局</string>
      </property>
     </widget>
    </item>
    <item>
-    <widget class="ComboBox" name="pushButton_8">
-     <property name="text">
-      <string>浮水印相框或照片</string>
+    <widget class="ComboBox" name="layout_combo">
+     <property name="toolTip">
+      <string>Logo與文字的排版</string>
      </property>
+     <item>
+      <property name="text">
+       <string>Logo 在上，文字在下</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>Logo 在下，文字在上</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>Logo 在左，文字在右</string>
+      </property>
+     </item>
     </widget>
    </item>
    <item>
-    <widget class="ComboBox" name="pushButton_9">
-     <property name="text">
-      <string>浮水印九宮格</string>
+    <widget class="ComboBox" name="position_area_combo">
+     <property name="toolTip">
+      <string>浮水印位置區域</string>
+     </property>
+     <item>
+      <property name="text">
+       <string>在相框內</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>在相片內</string>
+      </property>
+     </item>
+    </widget>
+   </item>
+   <item>
+    <widget class="ComboBox" name="position_align_combo">
+     <property name="toolTip">
+      <string>浮水印對齊方式</string>
      </property>
     </widget>
    </item>
@@ -221,6 +278,11 @@
   <customwidget>
    <class>CheckBox</class>
    <extends>QCheckBox</extends>
+   <header>qfluentwidgets</header>
+  </customwidget>
+  <customwidget>
+   <class>SubtitleLabel</class>
+   <extends>QLabel</extends>
    <header>qfluentwidgets</header>
   </customwidget>
  </customwidgets>

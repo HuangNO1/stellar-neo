@@ -29,6 +29,8 @@ class ColorButton(PushButton):
             self.setStyleSheet(f"background-color: {self._color};")
         else:
             self.setStyleSheet("")
+    def color(self):
+        return self._color
 
     def openColorPicker(self):
         # 使用按鈕當前的顏色作為顏色選擇器的初始顏色
