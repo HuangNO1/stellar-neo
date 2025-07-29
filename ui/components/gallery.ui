@@ -77,6 +77,24 @@
         </widget>
        </item>
        <item>
+        <layout class="QHBoxLayout" name="horizontalLayout">
+         <item>
+          <widget class="CheckBox" name="checkBox">
+           <property name="text">
+            <string>全選</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="PushButton" name="pushButton">
+           <property name="text">
+            <string>清除全部</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </item>
+       <item>
         <widget class="ListWidget" name="image_list"/>
        </item>
       </layout>
@@ -150,6 +168,16 @@
   <customwidget>
    <class>ListWidget</class>
    <extends>QListWidget</extends>
+   <header>qfluentwidgets</header>
+  </customwidget>
+  <customwidget>
+   <class>CheckBox</class>
+   <extends>QCheckBox</extends>
+   <header>qfluentwidgets</header>
+  </customwidget>
+  <customwidget>
+   <class>PushButton</class>
+   <extends>QPushButton</extends>
    <header>qfluentwidgets</header>
   </customwidget>
  </customwidgets>
