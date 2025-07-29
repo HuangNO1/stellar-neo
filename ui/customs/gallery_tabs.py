@@ -1,9 +1,11 @@
 from PyQt6 import uic
 from PyQt6.QtCore import Qt, pyqtSignal
+from PyQt6.QtGui import QColor
 from PyQt6.QtWidgets import QWidget, QStackedWidget, QLabel, QVBoxLayout
-from qfluentwidgets import TabBar
+from qfluentwidgets import TabBar, ColorDialog
 
 from core.settings_manager import SettingsManager
+from ui.customs.pick_color_button import ColorButton
 
 
 class GalleryTabs(QWidget):
@@ -48,6 +50,14 @@ class GalleryTabs(QWidget):
 
         items = ['shoko', '西宫硝子', '宝多六花', '小鸟游六花']
         self.frameInterface.frame_style_comboBox.addItems(items)
+
+        # self.frameInterface.kcolorbutton = ColorButton(parent=self.frameInterface)
+        # self.frameInterface.kcolorbutton.clicked.connect(self.on_select_color)
+
+    # def on_select_color(self):
+    #     self.colorDialog = ColorDialog(QColor(0, 255, 255), "Choose Background Color", self.window(), enableAlpha=False)
+    #     self.colorDialog.colorChanged.connect(lambda color: print(color.name()))
+    #     self.colorDialog.exec()
 
     def addSubInterface(self, widget: QLabel, objectName: str, text: str):
         widget.setObjectName(objectName)

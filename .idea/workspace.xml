@@ -4,11 +4,14 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="e1217e66-f6df-4928-bc5a-398e629a83e8" name="Changes" comment="實現將tabs 組件拆分，並使用 qfluentwidgets 中的 tabBar避免主題切換的UX割裂感">
-      <change afterPath="$PROJECT_DIR$/assets/style/splitter.qss" afterDir="false" />
+    <list default="true" id="e1217e66-f6df-4928-bc5a-398e629a83e8" name="Changes" comment="修改QSplitter樣式">
+      <change afterPath="$PROJECT_DIR$/.idea/inspectionProfiles/Project_Default.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/ui/customs/pick_color_button.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/modules.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/stellar-neo.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/stellar-neo.iml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/main.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/users_data/settings.json" beforeDir="false" afterPath="$PROJECT_DIR$/users_data/settings.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/ui/components/frame_tab.ui" beforeDir="false" afterPath="$PROJECT_DIR$/ui/components/frame_tab.ui" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/ui/customs/gallery_tabs.py" beforeDir="false" afterPath="$PROJECT_DIR$/ui/customs/gallery_tabs.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -43,6 +46,7 @@
     &quot;Python.app.executor&quot;: &quot;Run&quot;,
     &quot;Python.main.executor&quot;: &quot;Run&quot;,
     &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;SHARE_PROJECT_CONFIGURATION_FILES&quot;: &quot;true&quot;,
     &quot;git-widget-placeholder&quot;: &quot;main&quot;,
     &quot;last_opened_file_path&quot;: &quot;/home/rem/Documents/Study/Code/stellar-neo/ui/components&quot;,
     &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
@@ -51,7 +55,7 @@
     &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
     &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
     &quot;run.code.analysis.last.selected.profile&quot;: &quot;aDefault&quot;,
-    &quot;settings.editor.selected.configurable&quot;: &quot;preferences.pluginManager&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;editor.preferences.import&quot;,
     &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
   }
 }</component>
@@ -144,7 +148,21 @@
       <workItem from="1753713947283" duration="6448000" />
       <workItem from="1753755168068" duration="17413000" />
       <workItem from="1753777896101" duration="533000" />
-      <workItem from="1753778435379" duration="322000" />
+      <workItem from="1753778435379" duration="894000" />
+      <workItem from="1753779335791" duration="55000" />
+      <workItem from="1753779401915" duration="54000" />
+      <workItem from="1753779576794" duration="55000" />
+      <workItem from="1753779637359" duration="182000" />
+      <workItem from="1753779825515" duration="113000" />
+      <workItem from="1753779943160" duration="22000" />
+      <workItem from="1753779970288" duration="576000" />
+      <workItem from="1753780552594" duration="72000" />
+      <workItem from="1753780631395" duration="226000" />
+      <workItem from="1753780862315" duration="154000" />
+      <workItem from="1753781021927" duration="23000" />
+      <workItem from="1753781051524" duration="1566000" />
+      <workItem from="1753783408857" duration="619000" />
+      <workItem from="1753784034890" duration="1242000" />
     </task>
     <task id="LOCAL-00001" summary="完成 1. 主題切換 2. 國際化 3. 設定存儲與讀取 4. 完成窗口啟動畫面">
       <option name="closed" value="true" />
@@ -242,7 +260,15 @@
       <option name="project" value="LOCAL" />
       <updated>1753777681954</updated>
     </task>
-    <option name="localTasksCounter" value="13" />
+    <task id="LOCAL-00013" summary="修改QSplitter樣式">
+      <option name="closed" value="true" />
+      <created>1753778799201</created>
+      <option name="number" value="00013" />
+      <option name="presentableId" value="LOCAL-00013" />
+      <option name="project" value="LOCAL" />
+      <updated>1753778799201</updated>
+    </task>
+    <option name="localTasksCounter" value="14" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -273,10 +299,11 @@
     <MESSAGE value="修復預覽圖片的相框縮放" />
     <MESSAGE value="升級相框控鍵" />
     <MESSAGE value="實現將tabs 組件拆分，並使用 qfluentwidgets 中的 tabBar避免主題切換的UX割裂感" />
-    <option name="LAST_COMMIT_MESSAGE" value="實現將tabs 組件拆分，並使用 qfluentwidgets 中的 tabBar避免主題切換的UX割裂感" />
+    <MESSAGE value="修改QSplitter樣式" />
+    <option name="LAST_COMMIT_MESSAGE" value="修改QSplitter樣式" />
   </component>
   <component name="com.intellij.coverage.CoverageDataManagerImpl">
-    <SUITE FILE_PATH="coverage/stellar_neo$main.coverage" NAME="main Coverage Results" MODIFIED="1753778318027" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/stellar_neo$main.coverage" NAME="main Coverage Results" MODIFIED="1753785276197" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/stellar_neo$app.coverage" NAME="app Coverage Results" MODIFIED="1753689525523" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
   </component>
 </project>

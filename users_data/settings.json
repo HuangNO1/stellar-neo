@@ -4,7 +4,7 @@
   "gallery_settings": {
     "watermark_enabled": false,
     "watermark_text": "",
-    "frame_enabled": true,
-    "frame_width": 17
+    "frame_enabled": false,
+    "frame_width": 0
   }
 }

@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>249</width>
-    <height>542</height>
+    <height>680</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -20,7 +20,14 @@
    <item>
     <widget class="SwitchButton" name="frame_enabled_checkbox">
      <property name="text">
-      <string>PushButton</string>
+      <string>啟用相框</string>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="SwitchButton" name="pushButton">
+     <property name="text">
+      <string>相框懸浮陰影</string>
      </property>
     </widget>
    </item>
@@ -33,6 +40,20 @@
    </item>
    <item>
     <widget class="Slider" name="frame_width_slider">
+     <property name="orientation">
+      <enum>Qt::Orientation::Horizontal</enum>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="BodyLabel" name="label_6">
+     <property name="text">
+      <string>相片圓角</string>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="Slider" name="horizontalSlider">
      <property name="orientation">
       <enum>Qt::Orientation::Horizontal</enum>
      </property>
@@ -95,6 +116,20 @@
     </widget>
    </item>
    <item>
+    <widget class="QLabel" name="label_7">
+     <property name="text">
+      <string>相框顏色</string>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="ColorButton" name="kcolorbutton">
+     <property name="text">
+      <string/>
+     </property>
+    </widget>
+   </item>
+   <item>
     <spacer name="verticalSpacer">
      <property name="orientation">
       <enum>Qt::Orientation::Vertical</enum>
@@ -129,6 +164,11 @@
    <class>Slider</class>
    <extends>QSlider</extends>
    <header>qfluentwidgets</header>
+  </customwidget>
+  <customwidget>
+   <class>ColorButton</class>
+   <extends>QPushButton</extends>
+   <header>ui.customs.pick_color_button</header>
   </customwidget>
  </customwidgets>
  <resources/>
