@@ -146,65 +146,51 @@ class GalleryView(QWidget):
 
             self._update_select_all_checkbox_state()
 
-    def _on_select_all_changed(self, state):
-        """處理'全選'勾選框的狀態改變事件。"""
-        # 使用標誌位防止在遍歷設置時，子項的信號反過來觸發此函數，造成無限循環
+    def _on_select_all_changed(self, state: Qt.CheckState):
         if self._is_selecting_all:
             return
 
         self._is_selecting_all = True
 
-        # 關鍵邏輯修正：
-        # 只要點擊後不是「未選中」狀態，就一律視為「全選」操作。
-        is_checked = (state != Qt.CheckState.Unchecked.value)
+        total_count = self.image_list.count()
+        checked_count = sum(
+            self.image_list.itemWidget(self.image_list.item(i)).is_checked()
+            for i in range(total_count)
+        )
 
-        for i in range(self.image_list.count()):
-            list_item = self.image_list.item(i)
-            item_widget = self.image_list.itemWidget(list_item)
+        # 若已經全部選取 → 改為全取消；其餘狀況 → 全部選取
+        should_check = not (checked_count == total_count and total_count > 0)
+
+        for i in range(total_count):
+            item_widget = self.image_list.itemWidget(self.image_list.item(i))
             if item_widget:
-                # 呼叫自訂元件的方法來設定勾選狀態
-                item_widget.set_checked(is_checked)
+                item_widget.set_checked(should_check)
 
         self._is_selecting_all = False
 
-        # 關鍵補充：
-        # 在操作完所有子項後，手動呼叫一次狀態更新函數。
-        # 這能確保主勾選框的狀態被正確地更新為 Checked 或 Unchecked，
-        # 而不是停留在 PartiallyChecked。
-        self._update_select_all_checkbox_state()
-
-        self._is_selecting_all = True
-        is_checked = (state == Qt.CheckState.Checked.value)
-        for i in range(self.image_list.count()):
-            list_item = self.image_list.item(i)
-            item_widget = self.image_list.itemWidget(list_item)
-            if item_widget:
-                # 呼叫自訂元件的方法來設定勾選狀態
-                item_widget.set_checked(is_checked)
-        self._is_selecting_all = False
+        self.select_all_checkbox.blockSignals(True)
+        self.select_all_checkbox.setCheckState(
+            Qt.CheckState.Checked if should_check else Qt.CheckState.Unchecked
+        )
+        self.select_all_checkbox.blockSignals(False)
 
     def _update_select_all_checkbox_state(self):
-        """根據所有子項的勾選狀態，更新'全選'勾選框的狀態（未選/全選/部分選中）。"""
-        if self._is_selecting_all or self.image_list.count() == 0:
-            # 如果列表為空，確保勾選框是未選中狀態
-            if self.image_list.count() == 0:
-                self.select_all_checkbox.blockSignals(True)
-                self.select_all_checkbox.setCheckState(Qt.CheckState.Unchecked)
-                self.select_all_checkbox.blockSignals(False)
+        if self._is_selecting_all:
             return
 
-        checked_count = 0
-        for i in range(self.image_list.count()):
-            list_item = self.image_list.item(i)
-            item_widget = self.image_list.itemWidget(list_item)
-            if item_widget and item_widget.is_checked():
-                checked_count += 1
+        total_count = self.image_list.count()
+
+        checked_count = sum(
+            self.image_list.itemWidget(self.image_list.item(i)).is_checked()
+            for i in range(total_count)
+        )
 
         # 暫時阻斷信號，防止設定狀態時再次觸發 _on_select_all_changed
         self.select_all_checkbox.blockSignals(True)
+
         if checked_count == 0:
             self.select_all_checkbox.setCheckState(Qt.CheckState.Unchecked)
-        elif checked_count == self.image_list.count():
+        elif checked_count == total_count:
             self.select_all_checkbox.setCheckState(Qt.CheckState.Checked)
         else:
             # 部分選中狀態

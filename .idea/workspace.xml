@@ -4,17 +4,9 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="e1217e66-f6df-4928-bc5a-398e629a83e8" name="Changes" comment="實現部份國際化，後續需要繼續修復國際化問題">
-      <change afterPath="$PROJECT_DIR$/core/env_patch.py" afterDir="false" />
+    <list default="true" id="e1217e66-f6df-4928-bc5a-398e629a83e8" name="Changes" comment="fix: 修復圖片列表管理的國際化問題、修復logo與字體管理的國際化問題、修復kde wayland無法設置窗口透明度的報錯">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app.py" beforeDir="false" afterPath="$PROJECT_DIR$/app.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/i18n/en.json" beforeDir="false" afterPath="$PROJECT_DIR$/i18n/en.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/i18n/zh_CN.json" beforeDir="false" afterPath="$PROJECT_DIR$/i18n/zh_CN.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/i18n/zh_TW.json" beforeDir="false" afterPath="$PROJECT_DIR$/i18n/zh_TW.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/main.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/ui/pages/view_font.py" beforeDir="false" afterPath="$PROJECT_DIR$/ui/pages/view_font.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/ui/pages/view_gallery.py" beforeDir="false" afterPath="$PROJECT_DIR$/ui/pages/view_gallery.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/users_data/settings.json" beforeDir="false" afterPath="$PROJECT_DIR$/users_data/settings.json" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -170,7 +162,7 @@
       <workItem from="1753785895311" duration="15000" />
       <workItem from="1753785917518" duration="18665000" />
       <workItem from="1753807209044" duration="631000" />
-      <workItem from="1753837749207" duration="4374000" />
+      <workItem from="1753837749207" duration="6641000" />
     </task>
     <task id="LOCAL-00001" summary="完成 1. 主題切換 2. 國際化 3. 設定存儲與讀取 4. 完成窗口啟動畫面">
       <option name="closed" value="true" />
@@ -332,7 +324,15 @@
       <option name="project" value="LOCAL" />
       <updated>1753807674998</updated>
     </task>
-    <option name="localTasksCounter" value="21" />
+    <task id="LOCAL-00021" summary="fix: 修復圖片列表管理的國際化問題、修復logo與字體管理的國際化問題、修復kde wayland無法設置窗口透明度的報錯">
+      <option name="closed" value="true" />
+      <created>1753842466206</created>
+      <option name="number" value="00021" />
+      <option name="presentableId" value="LOCAL-00021" />
+      <option name="project" value="LOCAL" />
+      <updated>1753842466206</updated>
+    </task>
+    <option name="localTasksCounter" value="22" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -371,10 +371,11 @@
     <MESSAGE value="圖片列表管理實現列表管理功能（選取、刪除）" />
     <MESSAGE value="修正圖片編輯中 tabs 的樣式（去掉加號與設定最大寬度）" />
     <MESSAGE value="實現部份國際化，後續需要繼續修復國際化問題" />
-    <option name="LAST_COMMIT_MESSAGE" value="實現部份國際化，後續需要繼續修復國際化問題" />
+    <MESSAGE value="fix: 修復圖片列表管理的國際化問題、修復logo與字體管理的國際化問題、修復kde wayland無法設置窗口透明度的報錯" />
+    <option name="LAST_COMMIT_MESSAGE" value="fix: 修復圖片列表管理的國際化問題、修復logo與字體管理的國際化問題、修復kde wayland無法設置窗口透明度的報錯" />
   </component>
   <component name="com.intellij.coverage.CoverageDataManagerImpl">
-    <SUITE FILE_PATH="coverage/stellar_neo$main.coverage" NAME="main Coverage Results" MODIFIED="1753842123680" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/stellar_neo$main.coverage" NAME="main Coverage Results" MODIFIED="1753843741907" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/stellar_neo$app.coverage" NAME="app Coverage Results" MODIFIED="1753689525523" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
   </component>
 </project>
