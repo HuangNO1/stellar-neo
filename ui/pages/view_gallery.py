@@ -230,11 +230,11 @@ class GalleryView(QWidget):
         title = self.tr("confirm_delete_title", "Confirm Deletion")
         body = self.tr("confirm_clear_selected_body", "Clear {count} items?").format(
             count=len(items_to_delete))
-        self.msg_box = MessageBox(title, body, self.window())
-        self.msg_box.yesButton.setText(self.tr("ok", "OK"))
-        self.msg_box.cancelButton.setText(self.tr("cancel", "Cancel"))
+        self.msg_box_all = MessageBox(title, body, self.window())
+        self.msg_box_all.yesButton.setText(self.tr("ok", "OK"))
+        self.msg_box_all.cancelButton.setText(self.tr("cancel", "Cancel"))
 
-        if self.msg_box.exec():
+        if self.msg_box_all.exec():
             # 標記當前預覽是否需要更新
             preview_needs_update = False
 

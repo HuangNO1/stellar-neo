@@ -18,7 +18,7 @@ class LogoView(QWidget):
         self.translator = translator
         self.tr = self.translator.get
 
-        uic.loadUi("ui/components/logo_manager.ui", self)  # [cite: 5]
+        uic.loadUi("ui/components/logo_manager.ui", self)
 
         self.asset_manager = asset_manager
         self._is_selecting_all = False  # 防止信號循環的標誌
@@ -44,10 +44,10 @@ class LogoView(QWidget):
     def _connect_signals(self):
         # 連接「上傳」、「全選」、「清除」按鈕的信號，這些操作只針對使用者列表
 
-        self.upload_logo_button.clicked.connect(self.upload_logo)  # [cite: 6]
+        self.upload_logo_button.clicked.connect(self.upload_logo)
         self.select_all_checkbox.stateChanged.connect(self._on_select_all_changed)
 
-        self.clear_selected_button.clicked.connect(self._on_clear_selected_clicked)  # [cite: 7]
+        self.clear_selected_button.clicked.connect(self._on_clear_selected_clicked)
 
     def load_logos(self):
         """讀取並分類載入使用者 Logo 和預設 Logo"""

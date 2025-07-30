@@ -84,7 +84,7 @@ class GalleryTabs(QWidget):
         w.text_custom_input.setPlaceholderText(self.tr("custom_text_placeholder", "Enter Custom Text"))
         w.exif_options_label.setText(self.tr("exif_options_title", "Parameters to show:"))
         w.exif_model_check.setText(self.tr("exif_model", "Model"))
-        w.exif_f_number_check.setText(self.tr("exif_f_number", "Focal Length"))
+        w.exif_focal_length_check.setText(self.tr("exif_focal_length", "Focal Length"))
         w.exif_iso_check.setText(self.tr("exif_iso", "ISO"))
         w.exif_aperture_check.setText(self.tr("exif_aperture", "Aperture"))
         w.exif_shutter_check.setText(self.tr("exif_shutter", "Shutter"))
@@ -173,7 +173,7 @@ class GalleryTabs(QWidget):
             w.text_source_combo: 'currentIndexChanged',
             w.text_custom_input: 'textChanged',
             w.exif_model_check: 'stateChanged',
-            w.exif_f_number_check: 'stateChanged',
+            w.exif_focal_length_check: 'stateChanged',
             w.exif_iso_check: 'stateChanged',
             w.exif_aperture_check: 'stateChanged',
             w.exif_shutter_check: 'stateChanged',
@@ -219,7 +219,7 @@ class GalleryTabs(QWidget):
                 "text_custom": w.text_custom_input.text(),
                 "exif_options": {
                     "model": w.exif_model_check.isChecked(),
-                    "f_number": w.exif_f_number_check.isChecked(),
+                    "focal_length": w.exif_focal_length_check.isChecked(),
                     "iso": w.exif_iso_check.isChecked(),
                     "aperture": w.exif_aperture_check.isChecked(),
                     "shutter": w.exif_shutter_check.isChecked(),
@@ -282,7 +282,7 @@ class GalleryTabs(QWidget):
         # exif
         exif = w_settings.get('exif_options', {})
         w.exif_model_check.setChecked(exif.get('model', True))
-        w.exif_f_number_check.setChecked(exif.get('f_number', True))
+        w.exif_focal_length_check.setChecked(exif.get('focal_length', True))
         w.exif_iso_check.setChecked(exif.get('iso', True))
         w.exif_aperture_check.setChecked(exif.get('aperture', True))
         w.exif_shutter_check.setChecked(exif.get('shutter', True))

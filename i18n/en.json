@@ -35,7 +35,7 @@
   "custom_text_placeholder": "Enter custom text",
   "exif_options_title": "Parameters to show:",
   "exif_model": "Model",
-  "exif_f_number": "Focal Length",
+  "exif_focal_length": "Focal Length",
   "exif_iso": "ISO",
   "exif_aperture": "Aperture",
   "exif_shutter": "Shutter",

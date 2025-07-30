@@ -35,7 +35,7 @@
   "custom_text_placeholder": "請輸入自訂文字",
   "exif_options_title": "選擇要顯示的參數：",
   "exif_model": "型號",
-  "exif_f_number": "焦距",
+  "exif_focal_length": "焦距",
   "exif_iso": "ISO",
   "exif_aperture": "光圈",
   "exif_shutter": "快門",
