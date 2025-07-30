@@ -6,6 +6,7 @@ from PyQt6.QtGui import QPixmap, QPainter, QColor, QFont
 from PyQt6.QtWidgets import QWidget, QFileDialog, QListWidgetItem
 from qfluentwidgets import MessageBox
 
+from core.asset_manager import AssetManager
 from core.exif_reader import get_exif_data
 from core.settings_manager import SettingsManager
 from core.translator import Translator
@@ -15,12 +16,14 @@ from ui.customs.gallery_tabs import GalleryTabs
 
 class GalleryView(QWidget):
     # TODO 如果文件名過長 需要考慮
-    def __init__(self, translator: Translator, parent=None):
+    # TODO 全選按鈕又有問題，當列表沒有圖片時點擊 應該禁用
+    def __init__(self, asset_manager: AssetManager, translator: Translator, parent=None):
         super().__init__(parent)
         # 修正 uic 載入路徑
         uic.loadUi("ui/components/gallery.ui", self)
 
         self.settings_manager = SettingsManager()
+        self.asset_manager = asset_manager
         # --- 國際化核心 ---
         self.translator = translator
         self.tr = self.translator.get
@@ -37,7 +40,7 @@ class GalleryView(QWidget):
 
         # 加入右側的設定 Tabs
         # 將 translator 傳遞給子元件
-        self.tabs = GalleryTabs(self.translator, self)
+        self.tabs = GalleryTabs(self.asset_manager, self.translator, self)
         self.right_layout.addWidget(self.tabs)
 
         # --- 關鍵修正 ---

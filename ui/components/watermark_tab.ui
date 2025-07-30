@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>280</width>
-    <height>850</height>
+    <height>1032</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -15,7 +15,7 @@
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <property name="sizeConstraint">
-    <enum>QLayout::SetDefaultConstraint</enum>
+    <enum>QLayout::SizeConstraint::SetDefaultConstraint</enum>
    </property>
    <item>
     <widget class="SubtitleLabel" name="title_label_1">
@@ -33,27 +33,22 @@
    </item>
    <item>
     <widget class="ComboBox" name="logo_source_combo">
-     <item>
-      <property name="text">
-       <string>自動偵測品牌</string>
-      </property>
-     </item>
-     <item>
-      <property name="text">
-       <string>從 Logo 庫選擇</string>
-      </property>
-     </item>
-     <item>
-      <property name="text">
-       <string>自訂文字 Logo</string>
-      </property>
-     </item>
+     <property name="text">
+      <string>怎麼選取logo</string>
+     </property>
     </widget>
    </item>
    <item>
-    <widget class="LineEdit" name="logo_text_input">
-     <property name="placeholderText">
-      <string>請輸入 Logo 文字</string>
+    <widget class="ComboBox" name="logo_source_app_combo">
+     <property name="text">
+      <string>選取應用logo</string>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="ComboBox" name="logo_source_my_custom_combo">
+     <property name="text">
+      <string>選取我自己的LOGO</string>
      </property>
     </widget>
    </item>
@@ -66,6 +61,13 @@
    </item>
    <item>
     <widget class="Slider" name="logo_size_slider">
+     <property name="orientation">
+      <enum>Qt::Orientation::Horizontal</enum>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="Line" name="line">
      <property name="orientation">
       <enum>Qt::Orientation::Horizontal</enum>
      </property>
@@ -87,16 +89,9 @@
    </item>
    <item>
     <widget class="ComboBox" name="text_source_combo">
-     <item>
-      <property name="text">
-       <string>自動偵測相機參數</string>
-      </property>
-     </item>
-     <item>
-      <property name="text">
-       <string>自訂文字</string>
-      </property>
-     </item>
+     <property name="text">
+      <string>文字選項（相機資訊、自定義）</string>
+     </property>
     </widget>
    </item>
    <item>
@@ -123,9 +118,9 @@
       </widget>
      </item>
      <item row="0" column="1">
-      <widget class="CheckBox" name="exif_iso_check">
+      <widget class="CheckBox" name="exif_f_number_check">
        <property name="text">
-        <string>ISO</string>
+        <string>焦距</string>
        </property>
       </widget>
      </item>
@@ -143,6 +138,13 @@
        </property>
       </widget>
      </item>
+     <item row="2" column="0">
+      <widget class="CheckBox" name="exif_iso_check">
+       <property name="text">
+        <string>ISO</string>
+       </property>
+      </widget>
+     </item>
     </layout>
    </item>
    <item>
@@ -157,10 +159,31 @@
      <property name="toolTip">
       <string>選擇字體</string>
      </property>
+     <property name="text">
+      <string>選取字體</string>
+     </property>
     </widget>
    </item>
    <item>
-    <widget class="ColorButton" name="font_color_button"/>
+    <widget class="ComboBox" name="font_system_combo">
+     <property name="text">
+      <string>選取系統字體</string>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="ComboBox" name="font_my_custom_combo">
+     <property name="text">
+      <string>選取我自己的字體</string>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="ColorButton" name="font_color_button">
+     <property name="text">
+      <string>字體顏色</string>
+     </property>
+    </widget>
    </item>
    <item>
     <widget class="BodyLabel" name="font_size_label">
@@ -171,6 +194,13 @@
    </item>
    <item>
     <widget class="Slider" name="font_size_slider">
+     <property name="orientation">
+      <enum>Qt::Orientation::Horizontal</enum>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="Line" name="line_2">
      <property name="orientation">
       <enum>Qt::Orientation::Horizontal</enum>
      </property>
@@ -188,21 +218,9 @@
      <property name="toolTip">
       <string>Logo與文字的排版</string>
      </property>
-     <item>
-      <property name="text">
-       <string>Logo 在上，文字在下</string>
-      </property>
-     </item>
-     <item>
-      <property name="text">
-       <string>Logo 在下，文字在上</string>
-      </property>
-     </item>
-     <item>
-      <property name="text">
-       <string>Logo 在左，文字在右</string>
-      </property>
-     </item>
+     <property name="text">
+      <string>logo與文字上下</string>
+     </property>
     </widget>
    </item>
    <item>
@@ -210,22 +228,18 @@
      <property name="toolTip">
       <string>浮水印位置區域</string>
      </property>
-     <item>
-      <property name="text">
-       <string>在相框內</string>
-      </property>
-     </item>
-     <item>
-      <property name="text">
-       <string>在相片內</string>
-      </property>
-     </item>
+     <property name="text">
+      <string>相框上或圖片上</string>
+     </property>
     </widget>
    </item>
    <item>
     <widget class="ComboBox" name="position_align_combo">
      <property name="toolTip">
       <string>浮水印對齊方式</string>
+     </property>
+     <property name="text">
+      <string>浮水印九宮格</string>
      </property>
     </widget>
    </item>

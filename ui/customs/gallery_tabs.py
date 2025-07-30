@@ -4,8 +4,11 @@ from PyQt6.QtWidgets import QWidget, QStackedWidget, QVBoxLayout
 from qfluentwidgets import TabBar
 from qfluentwidgets.components.widgets.tab_view import TabCloseButtonDisplayMode
 
+from core.asset_manager import AssetManager
 from core.settings_manager import SettingsManager
 from core.translator import Translator  # 導入您的 Translator
+from core.utils import wrap_scroll
+
 
 
 class GalleryTabs(QWidget):
@@ -25,10 +28,12 @@ class GalleryTabs(QWidget):
     }
 
     # 接收 translator
-    def __init__(self, translator: Translator, parent=None):
+    def __init__(self, asset_manager: AssetManager, translator: Translator, parent=None):
         super().__init__(parent)
         self.settings_manager = SettingsManager()
         self.translator = translator
+        self.tr = self.translator.get
+        self.asset_manager = asset_manager
 
         main_layout = QVBoxLayout(self)
         main_layout.setContentsMargins(0, 0, 0, 0)
@@ -41,13 +46,14 @@ class GalleryTabs(QWidget):
         main_layout.addWidget(self.tabBar)
         main_layout.addWidget(self.stackedWidget)
 
-        self.watermarkInterface = uic.loadUi("ui/components/watermark_tab.ui")
-        self.frameInterface = uic.loadUi("ui/components/frame_tab.ui")
+        # 加上滾動區塊
+        self.watermarkScrollArea, self.watermarkInterface = wrap_scroll(uic.loadUi("ui/components/watermark_tab.ui"))
+        self.frameScrollArea, self.frameInterface = wrap_scroll(uic.loadUi("ui/components/frame_tab.ui"))
 
         # 使用 translator 更新 Tab 標題
-        self.addSubInterface(self.watermarkInterface, 'watermarkInterface',
-                             self.translator.get('gallery_tab_watermark', 'Watermark'))
-        self.addSubInterface(self.frameInterface, 'frameInterface', self.translator.get('gallery_tab_frame', 'Frame'))
+        self.addSubInterface(self.watermarkScrollArea, 'watermarkInterface',
+                             self.tr('watermark_tab', 'Watermark'))
+        self.addSubInterface(self.frameScrollArea, 'frameInterface', self.tr('frame_tab', 'Frame'))
 
         self.stackedWidget.currentChanged.connect(self.onCurrentIndexChanged)
 
@@ -56,6 +62,7 @@ class GalleryTabs(QWidget):
         self._init_ui_options()
         self._load_settings()
         self._connect_signals()
+
 
     def addSubInterface(self, widget: QWidget, objectName: str, text: str):
         widget.setObjectName(objectName)
@@ -74,55 +81,77 @@ class GalleryTabs(QWidget):
         """ 翻譯所有從 .ui 檔案載入的靜態 UI 元件文字 """
         # --- 浮水印 Tab ---
         w = self.watermarkInterface
-        w.title_label_1.setText(self.translator.get("logo_settings_title", "Logo Settings"))
-        w.logo_enabled_switch.setText(self.translator.get("show_logo", "Show Logo"))
-        w.logo_text_input.setPlaceholderText(self.translator.get("logo_text_placeholder", "Enter Logo Text"))
-        w.logo_size_label.setText(self.translator.get("logo_size", "Logo Size"))
-        w.title_label_2.setText(self.translator.get("watermark_text_settings_title", "Watermark Text Settings"))
-        w.text_enabled_switch.setText(self.translator.get("show_text", "Show Text"))
-        w.text_custom_input.setPlaceholderText(self.translator.get("custom_text_placeholder", "Enter Custom Text"))
-        w.exif_options_label.setText(self.translator.get("exif_options_title", "Parameters to show:"))
-        w.exif_model_check.setText(self.translator.get("exif_model", "Model"))
-        w.exif_iso_check.setText(self.translator.get("exif_iso", "ISO"))
-        w.exif_aperture_check.setText(self.translator.get("exif_aperture", "Aperture"))
-        w.exif_shutter_check.setText(self.translator.get("exif_shutter", "Shutter"))
-        w.title_label_3.setText(self.translator.get("common_style_title", "Common Styles"))
-        w.font_size_label.setText(self.translator.get("font_size", "Font Size"))
-        w.title_label_4.setText(self.translator.get("layout_title", "Overall Layout"))
+        w.title_label_1.setText(self.tr("logo_settings_title", "Logo Settings"))
+        w.logo_enabled_switch.setOnText(self.tr("show_logo", "Show Logo"))
+        w.logo_enabled_switch.setOffText(self.tr("hide_logo", "Hide Logo"))
+        # w.logo_text_input.setPlaceholderText(self.tr("logo_text_placeholder", "Enter Logo Text"))
+        w.logo_size_label.setText(self.tr("logo_size", "Logo Size"))
+        w.title_label_2.setText(self.tr("watermark_text_settings_title", "Watermark Text Settings"))
+        w.text_enabled_switch.setText(self.tr("show_text", "Show Text"))
+        w.text_custom_input.setPlaceholderText(self.tr("custom_text_placeholder", "Enter Custom Text"))
+        w.exif_options_label.setText(self.tr("exif_options_title", "Parameters to show:"))
+        w.exif_model_check.setText(self.tr("exif_model", "Model"))
+        w.exif_iso_check.setText(self.tr("exif_iso", "ISO"))
+        w.exif_aperture_check.setText(self.tr("exif_aperture", "Aperture"))
+        w.exif_shutter_check.setText(self.tr("exif_shutter", "Shutter"))
+        w.title_label_3.setText(self.tr("common_style_title", "Common Styles"))
+        w.font_size_label.setText(self.tr("font_size", "Font Size"))
+        w.title_label_4.setText(self.tr("layout_title", "Overall Layout"))
 
         # 相框
         f = self.frameInterface
-        f.frame_enabled_switch.setText(self.translator.get("enable_frame", "Enable Frame"))
-        f.photo_shadow_switch.setText(self.translator.get("photo_shadow", "Photo Shadow"))
-        f.frame_radius_label.setText(self.translator.get("frame_radius", "Frame Radius"))
-        f.photo_radius_label.setText(self.translator.get("photo_radius", "Photo Radius"))
-        f.padding_top_label.setText(self.translator.get("padding_top", "Top Padding"))
-        f.padding_sides_label.setText(self.translator.get("padding_sides", "Sides Padding"))
-        f.padding_bottom_label.setText(self.translator.get("padding_bottom", "Bottom Padding"))
-        f.frame_style_label.setText(self.translator.get("frame_style", "Frame Style"))
-        f.frame_blur_label.setText(self.translator.get("frame_blur", "Frame Blur"))
-        f.frame_color_label.setText(self.translator.get("frame_color", "Frame Color"))
+        f.frame_enabled_switch.setText(self.tr("enable_frame", "Enable Frame"))
+        f.photo_shadow_switch.setText(self.tr("photo_shadow", "Photo Shadow"))
+        f.frame_radius_label.setText(self.tr("frame_radius", "Frame Radius"))
+        f.photo_radius_label.setText(self.tr("photo_radius", "Photo Radius"))
+        f.padding_top_label.setText(self.tr("padding_top", "Top Padding"))
+        f.padding_sides_label.setText(self.tr("padding_sides", "Sides Padding"))
+        f.padding_bottom_label.setText(self.tr("padding_bottom", "Bottom Padding"))
+        f.frame_style_label.setText(self.tr("frame_style", "Frame Style"))
+        f.frame_blur_label.setText(self.tr("frame_blur", "Frame Blur"))
+        f.frame_color_label.setText(self.tr("frame_color", "Frame Color"))
 
     def _populate_combo(self, combo, key_prefix: str, options: list):
+        # TODO 有一些字體或logo文件名過長
         """ 使用 key-value 填充 ComboBox """
         for option_key in options:
-            display_text = self.translator.get(f"{key_prefix}_{option_key}", option_key.replace("_", " ").title())
+            display_text = self.tr(f"{key_prefix}_{option_key}", option_key.replace("_", " ").title())
             combo.addItem(display_text, userData=option_key)
 
     def _init_ui_options(self):
         """ 初始化 ComboBox 的選項 """
-        self._populate_combo(self.watermarkInterface.logo_source_combo, "w_logo_source", ["auto_detect", "custom_text"])
-        self._populate_combo(self.watermarkInterface.text_source_combo, "w_text_source", ["exif", "custom"])
-        self._populate_combo(self.watermarkInterface.layout_combo, "w_layout",
+        w = self.watermarkInterface
+        f = self.frameInterface
+        # 1. 獲取字體選項並填充
+        user_fonts, system_fonts = self.asset_manager.get_font_options()
+        # self.font_combo.clear()
+        # self.font_combo.addItem("--- User Fonts ---").setEnabled(False)
+        self._populate_combo(w.font_my_custom_combo, "font", user_fonts)
+        # self.font_combo.addItem("--- System Fonts ---").setEnabled(False)
+        self._populate_combo(w.font_system_combo, "font", system_fonts)
+
+        # 2. 獲取 Logo 選項並填充
+        user_logos, app_logos = self.asset_manager.get_logo_options()
+
+        # self.logo_combo.clear()
+        # self.logo_combo.addItem("--- User Logos ---").setEnabled(False)
+        self._populate_combo(w.logo_source_my_custom_combo, "logo", user_logos)
+        # self.logo_combo.addItem("--- App Logos ---").setEnabled(False)
+        self._populate_combo(w.logo_source_app_combo, "logo", app_logos)
+
+
+        self._populate_combo(w.logo_source_combo, "w_logo_source", ["auto_detect","select_from_library", "my_custom_logo"])
+        self._populate_combo(w.text_source_combo, "w_text_source", ["exif", "custom"])
+        self._populate_combo(w.layout_combo, "w_layout",
                              ["logo_top_text_bottom", "logo_bottom_text_top", "logo_left_text_right"])
-        self._populate_combo(self.watermarkInterface.position_area_combo, "w_area", ["in_frame", "in_photo"])
-        self._populate_combo(self.watermarkInterface.position_align_combo, "w_align",
+        self._populate_combo(w.position_area_combo, "w_area", ["in_frame", "in_photo"])
+        self._populate_combo(w.position_align_combo, "w_align",
                              ["top_left", "top_center", "top_right", "bottom_left", "bottom_center", "bottom_right"])
-        self._populate_combo(self.frameInterface.frame_style_combo, "f_style", ["solid_color", "blur_extend"])
+        self._populate_combo(f.frame_style_combo, "f_style", ["solid_color", "blur_extend"])
 
         # 子組件 顏色組件實現國際化
-        self.watermarkInterface.font_color_button.set_translator(self.translator)
-        self.frameInterface.frame_color_button.set_translator(self.translator)
+        w.font_color_button.set_translator(self.translator)
+        f.frame_color_button.set_translator(self.translator)
 
     def _connect_signals(self):
         """連接所有 UI 控制項的信號到 _on_settings_changed 槽函數"""
@@ -130,7 +159,7 @@ class GalleryTabs(QWidget):
             # 浮水印 Tab
             self.watermarkInterface.logo_enabled_switch: 'checkedChanged',
             self.watermarkInterface.logo_source_combo: 'currentIndexChanged',
-            self.watermarkInterface.logo_text_input: 'textChanged',
+            # self.watermarkInterface.logo_text_input: 'textChanged',
             self.watermarkInterface.logo_size_slider: 'valueChanged',
             self.watermarkInterface.text_enabled_switch: 'checkedChanged',
             self.watermarkInterface.text_source_combo: 'currentIndexChanged',
@@ -171,7 +200,7 @@ class GalleryTabs(QWidget):
             "watermark": {
                 "logo_enabled": w.logo_enabled_switch.isChecked(),
                 "logo_source": w.logo_source_combo.currentData(),
-                "logo_text": w.logo_text_input.text(),
+                # "logo_text": w.logo_text_input.text(),
                 "logo_size": w.logo_size_slider.value(),
                 "text_enabled": w.text_enabled_switch.isChecked(),
                 "text_source": w.text_source_combo.currentData(),
@@ -220,8 +249,10 @@ class GalleryTabs(QWidget):
 
         # --- 載入浮水印設定 ---
         w.logo_enabled_switch.setChecked(w_settings.get('logo_enabled', False))
-        w.logo_source_combo.setCurrentIndex(w.logo_source_combo.findData(w_settings.get('logo_source', 'auto_detect')))
-        w.logo_text_input.setText(w_settings.get('logo_text', ''))
+        logo_source = w.logo_source_combo.findData(w_settings.get('w_logo_source_auto_detect', 'w_logo_source_auto_detect'))
+        w.logo_source_combo.setCurrentIndex(logo_source if logo_source > 0 else 0)
+        # w.logo_text_input.setText(w_settings.get('logo_text', ''))
+        # w.logo_text_input.setText(w_settings.get('logo_text', ''))
         w.logo_size_slider.setValue(w_settings.get('logo_size', 30))
         w.text_enabled_switch.setChecked(w_settings.get('text_enabled', True))
         w.text_source_combo.setCurrentIndex(w.text_source_combo.findData(w_settings.get('text_source', 'exif')))

@@ -1,6 +1,7 @@
 # asset_manager.py (修改後)
 
 import os
+import re
 import shutil
 from pathlib import Path
 
@@ -135,3 +136,51 @@ class AssetManager:
         if font_id != -1:
             families = QFontDatabase.applicationFontFamilies(font_id)
             self.user_font_data[font_path] = families
+
+    # --- 新增的公共方法與輔助函式 ---
+
+    def _create_key_from_name(self, name: str) -> str:
+        """將任意字串轉換為 'snake_case' 格式的有效鍵值。"""
+        # 將 "CamelCase" 轉換為 "Camel_Case"
+        s1 = re.sub('(.)([A-Z][a-z]+)', r'\1_\2', name)
+        s2 = re.sub('([a-z0-9])([A-Z])', r'\1_\2', s1)
+        # 用底線取代空格、連字號和多個底線
+        s3 = re.sub(r'[\s-]+', '_', s2)
+        # 移除所有無效字元
+        s4 = re.sub(r'[^\w_]', '', s3)
+        return s4.lower()
+
+    def get_font_options(self) -> (list[str], list[str]):
+        """
+        獲取格式化後的使用者字體和系統字體鍵值列表。
+        返回:
+            (user_font_keys, system_font_keys)
+        """
+        # 1. 處理使用者字體
+        user_fonts_data = self.get_user_fonts()
+        user_families = set()
+        for families in user_fonts_data.values():
+            user_families.update(families)
+        user_font_keys = sorted([self._create_key_from_name(f) for f in user_families])
+
+        # 2. 處理系統字體
+        system_families = self.get_system_fonts()
+        system_font_keys = sorted([self._create_key_from_name(f) for f in system_families])
+
+        return user_font_keys, system_font_keys
+
+    def get_logo_options(self) -> (list[str], list[str]):
+        """
+        獲取格式化後的使用者 Logo 和應用 Logo 鍵值列表。
+        返回:
+            (user_logo_keys, app_logo_keys)
+        """
+        # 1. 處理使用者 Logo
+        user_logo_paths = self.get_user_logos()
+        user_logo_keys = sorted([self._create_key_from_name(Path(p).stem) for p in user_logo_paths])
+
+        # 2. 處理應用預設 Logo
+        default_logo_paths = self.get_default_logos()
+        app_logo_keys = sorted([self._create_key_from_name(Path(p).stem) for p in default_logo_paths])
+
+        return user_logo_keys, app_logo_keys
