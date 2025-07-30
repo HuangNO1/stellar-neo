@@ -32,8 +32,6 @@ class SettingsView(QWidget):
     def _init_ui(self):
         """初始化此頁面的 UI 狀態"""
         self.languageComboBox.addItems(LANGUAGES.keys())
-        # 注意：我們不再在這裡新增 themeComboBox 的項目，
-        # 因為 _update_ui_texts 會處理這項工作，避免重複。
 
         lang_code = self.settings.get("language", "en")
         lang_name = self.reverse_lang_map.get(lang_code, "English")
@@ -96,6 +94,8 @@ class SettingsView(QWidget):
     def _update_ui_texts(self):
         """更新此頁面內的 UI 文字，並建立主題的反向對應"""
         tr = self.translator.get
+
+        self.titleLabel.setText(tr("settings", "Settings"))
         self.languageLabel.setText(tr("language", "Language"))
         self.themeLabel.setText(tr("theme", "Theme"))
 
