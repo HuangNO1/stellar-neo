@@ -37,10 +37,10 @@ class FontView(QWidget):
     def _connect_signals(self):
         # 管理功能的信號只連接到使用者字體相關的操作
 
-        self.upload_font_button.clicked.connect(self.upload_font)  # [cite: 2]
+        self.upload_font_button.clicked.connect(self.upload_font)
         self.select_all_checkbox.stateChanged.connect(self._on_select_all_changed)
 
-        self.clear_selected_button.clicked.connect(self._on_clear_selected_clicked)  # [cite: 3]
+        self.clear_selected_button.clicked.connect(self._on_clear_selected_clicked)
 
     def load_fonts(self):
         """分類載入使用者字體和系統字體到不同的列表中"""

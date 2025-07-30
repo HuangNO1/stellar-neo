@@ -16,7 +16,6 @@ from ui.customs.gallery_tabs import GalleryTabs
 
 class GalleryView(QWidget):
     # TODO 如果文件名過長 需要考慮
-    # TODO 全選按鈕又有問題，當列表沒有圖片時點擊 應該禁用
     def __init__(self, asset_manager: AssetManager, translator: Translator, parent=None):
         super().__init__(parent)
         # 修正 uic 載入路徑
@@ -58,6 +57,7 @@ class GalleryView(QWidget):
         self.select_all_checkbox.setText(self.tr("gallery_select_all", "Select All"))
         self.clear_selected_button.setText(self.tr("gallery_clear_selected", "Clear Selected"))
         self._clear_preview()  # 清除時會設定預設文字
+        self._update_select_all_checkbox_state() # 更新 UI 狀態
 
     def resizeEvent(self, event):
         """
@@ -152,45 +152,54 @@ class GalleryView(QWidget):
             self._update_select_all_checkbox_state()
 
     def _on_select_all_changed(self, state: Qt.CheckState):
+        """處理'全選'核取方塊的狀態變化"""
         if self._is_selecting_all:
             return
 
+        total_count = self.image_list.count()
+
         self._is_selecting_all = True
 
-        total_count = self.image_list.count()
         checked_count = sum(
             self.image_list.itemWidget(self.image_list.item(i)).is_checked()
             for i in range(total_count)
         )
-
-        # 若已經全部選取 → 改為全取消；其餘狀況 → 全部選取
+        # 核心邏輯：如果不是全選狀態（包括部分選中或未選中），則變為全選；否則全不選。
         should_check = not (checked_count == total_count and total_count > 0)
 
         for i in range(total_count):
             item_widget = self.image_list.itemWidget(self.image_list.item(i))
             if item_widget:
+                # set_checked 會觸發 item_widget.selection_changed 信號
                 item_widget.set_checked(should_check)
 
         self._is_selecting_all = False
-
-        self.select_all_checkbox.blockSignals(True)
-        self.select_all_checkbox.setCheckState(
-            Qt.CheckState.Checked if should_check else Qt.CheckState.Unchecked
-        )
-        self.select_all_checkbox.blockSignals(False)
+        # 操作完成後，呼叫狀態更新函式來同步核取方塊的最終狀態
+        self._update_select_all_checkbox_state()
 
     def _update_select_all_checkbox_state(self):
+        """
+        根據圖片列表的勾選情況，更新'全選'框的狀態
+        """
         if self._is_selecting_all:
             return
 
         total_count = self.image_list.count()
+        # 如果列表為空，禁用並取消勾選核取方塊，然後返回。
+        if total_count == 0:
+            self.select_all_checkbox.setCheckState(Qt.CheckState.Unchecked)
+            self.select_all_checkbox.setEnabled(False)
+            return
+
+        # 如果列表不為空，確保核取方塊是啟用的
+        self.select_all_checkbox.setEnabled(True)
 
         checked_count = sum(
             self.image_list.itemWidget(self.image_list.item(i)).is_checked()
             for i in range(total_count)
         )
 
-        # 暫時阻斷信號，防止設定狀態時再次觸發 _on_select_all_changed
+        # 暫時阻斷信號，防止在程式碼中設定狀態時再次觸發 _on_select_all_changed
         self.select_all_checkbox.blockSignals(True)
 
         if checked_count == 0:
@@ -200,6 +209,7 @@ class GalleryView(QWidget):
         else:
             # 部分選中狀態
             self.select_all_checkbox.setCheckState(Qt.CheckState.PartiallyChecked)
+
         self.select_all_checkbox.blockSignals(False)  # 恢復信號
 
     def _on_clear_selected_clicked(self):
