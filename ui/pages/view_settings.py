@@ -1,9 +1,9 @@
 # ui/pages/view_settings.py
 import os
 from PyQt6 import uic
-from PyQt6.QtCore import pyqtSignal
+from PyQt6.QtCore import pyqtSignal, QTimer, Qt
 from PyQt6.QtWidgets import QWidget
-from qfluentwidgets import setTheme, SystemThemeListener
+from qfluentwidgets import setTheme, SystemThemeListener, MessageBox
 
 # 匯入設定檔
 from core.config import LANGUAGES, THEMES
@@ -12,7 +12,6 @@ from core.translator import Translator
 
 
 class SettingsView(QWidget):
-    languageChanged = pyqtSignal()
 
     def __init__(self, translator: Translator, settings: SettingsManager, theme_listener: SystemThemeListener,
                  parent=None):
@@ -46,9 +45,6 @@ class SettingsView(QWidget):
         theme_name = self.settings.get("theme", "System")
         self.themeComboBox.setCurrentText(theme_name)
 
-        if hasattr(self, 'applyButton'):
-            self.applyButton.setVisible(False)
-
         self._update_ui_texts()
 
     def _connect_signals(self):
@@ -64,7 +60,7 @@ class SettingsView(QWidget):
 
         self.settings.set("language", lang_code)
         print(f"Language setting saved: {lang_code}. Restart required.")
-        self.languageChanged.emit()
+        self._show_restart_dialog()
 
     def _on_theme_changed(self, theme_display_name: str):
         """主題改變時，套用主題、儲存設定並管理監聽器"""
@@ -85,6 +81,19 @@ class SettingsView(QWidget):
         # 3. 儲存設定時，也應該儲存原始英文鍵
         self.settings.set("theme", original_theme_key)
         print(f"Theme setting automatically saved: {original_theme_key}")
+
+    def _show_restart_dialog(self):
+        """顯示一個提示框，告知使用者需要重啟"""
+        tr = self.translator.get
+        title = tr("language_changed_title", "Language Changed")
+        content = tr("language_changed_body",
+                     "The language setting has been saved. Please restart the application for the changes to take full effect.")
+        self.w = MessageBox(title, content, self.window())
+        self.w.yesButton.setText(tr("ok", "OK"))
+        self.w.cancelButton.setText(tr("cancel", "Cancel"))
+        # 當對話方塊被接受 (使用者點擊 "OK") 時，關閉應用程式
+        if self.w.exec():
+            self.close()
 
     def _update_ui_texts(self):
         """更新此頁面內的 UI 文字，並建立主題的反向對應"""

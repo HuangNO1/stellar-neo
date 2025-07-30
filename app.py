@@ -87,23 +87,6 @@ class MainWindow(FluentWindow):
             position=NavigationItemPosition.BOTTOM
         )
 
-        # 連接設定頁面發出的信號
-        self.settings_view.languageChanged.connect(self._show_restart_dialog)
-
-    def _show_restart_dialog(self):
-        """顯示一個提示框，告知使用者需要重啟"""
-        tr = self.translator.get
-        title = tr("language_changed_title", "Language Changed")
-        content = tr("language_changed_body",
-                     "The language setting has been saved. Please restart the application for the changes to take full effect.")
-        w = MessageBox(title, content, self)
-        w.yesButton.setText(tr("ok", "OK"))
-        w.cancelButton.setText(tr("cancel", "Cancel"))
-
-        # 當對話方塊被接受 (使用者點擊 "OK") 時，關閉應用程式
-        if w.exec():
-            self.close()
-
     def createSubInterface(self):
         """模擬耗時的初始化操作"""
         loop = QEventLoop(self)
