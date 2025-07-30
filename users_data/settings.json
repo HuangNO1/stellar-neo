@@ -1,6 +1,6 @@
 {
   "language": "zh_TW",
-  "theme": "Light",
+  "theme": "Dark",
   "gallery_settings": {
     "watermark": {
       "logo_enabled": false,
@@ -26,9 +26,9 @@
     "frame": {
       "enabled": true,
       "photo_shadow": true,
-      "frame_radius": 5,
-      "photo_radius": 3,
-      "padding_top": 10,
+      "frame_radius": 23,
+      "photo_radius": 18,
+      "padding_top": 16,
       "padding_sides": 10,
       "padding_bottom": 10,
       "style": "solid_color",

@@ -3,9 +3,7 @@ from PyQt6 import uic
 from PyQt6.QtCore import Qt, QSize, QRect, QPoint
 from PyQt6.QtGui import QPixmap, QPainter, QColor, QFont
 from PyQt6.QtWidgets import QWidget, QFileDialog, QListWidgetItem
-from qfluentwidgets import InfoBarPosition, InfoBar, MessageBox
-
-# 修正 import，使用新的 exif_reader 和自訂元件
+from qfluentwidgets import MessageBox
 from core.exif_reader import get_exif_data
 from core.settings_manager import SettingsManager
 from core.translator import Translator
@@ -47,6 +45,7 @@ class GalleryView(QWidget):
 
         self._translate_ui()  # 翻譯此視圖的 UI
         self._connect_signals()
+        self._clear_preview()
 
     def _translate_ui(self):
         self.import_button.setText(self.tr("gallery_import_button", "Import"))

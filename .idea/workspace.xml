@@ -4,9 +4,11 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="e1217e66-f6df-4928-bc5a-398e629a83e8" name="Changes" comment="fix: 修復圖片列表管理的國際化問題、修復logo與字體管理的國際化問題、修復kde wayland無法設置窗口透明度的報錯">
+    <list default="true" id="e1217e66-f6df-4928-bc5a-398e629a83e8" name="Changes" comment="fix: 修復圖片列表在刪除圖片時出現邏輯錯誤">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/ui/components/gallery.ui" beforeDir="false" afterPath="$PROJECT_DIR$/ui/components/gallery.ui" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/ui/pages/view_gallery.py" beforeDir="false" afterPath="$PROJECT_DIR$/ui/pages/view_gallery.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/users_data/settings.json" beforeDir="false" afterPath="$PROJECT_DIR$/users_data/settings.json" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -162,7 +164,7 @@
       <workItem from="1753785895311" duration="15000" />
       <workItem from="1753785917518" duration="18665000" />
       <workItem from="1753807209044" duration="631000" />
-      <workItem from="1753837749207" duration="6641000" />
+      <workItem from="1753837749207" duration="7845000" />
     </task>
     <task id="LOCAL-00001" summary="完成 1. 主題切換 2. 國際化 3. 設定存儲與讀取 4. 完成窗口啟動畫面">
       <option name="closed" value="true" />
@@ -332,7 +334,15 @@
       <option name="project" value="LOCAL" />
       <updated>1753842466206</updated>
     </task>
-    <option name="localTasksCounter" value="22" />
+    <task id="LOCAL-00022" summary="fix: 修復圖片列表在刪除圖片時出現邏輯錯誤">
+      <option name="closed" value="true" />
+      <created>1753844685401</created>
+      <option name="number" value="00022" />
+      <option name="presentableId" value="LOCAL-00022" />
+      <option name="project" value="LOCAL" />
+      <updated>1753844685401</updated>
+    </task>
+    <option name="localTasksCounter" value="23" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -372,10 +382,11 @@
     <MESSAGE value="修正圖片編輯中 tabs 的樣式（去掉加號與設定最大寬度）" />
     <MESSAGE value="實現部份國際化，後續需要繼續修復國際化問題" />
     <MESSAGE value="fix: 修復圖片列表管理的國際化問題、修復logo與字體管理的國際化問題、修復kde wayland無法設置窗口透明度的報錯" />
-    <option name="LAST_COMMIT_MESSAGE" value="fix: 修復圖片列表管理的國際化問題、修復logo與字體管理的國際化問題、修復kde wayland無法設置窗口透明度的報錯" />
+    <MESSAGE value="fix: 修復圖片列表在刪除圖片時出現邏輯錯誤" />
+    <option name="LAST_COMMIT_MESSAGE" value="fix: 修復圖片列表在刪除圖片時出現邏輯錯誤" />
   </component>
   <component name="com.intellij.coverage.CoverageDataManagerImpl">
-    <SUITE FILE_PATH="coverage/stellar_neo$main.coverage" NAME="main Coverage Results" MODIFIED="1753843741907" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/stellar_neo$main.coverage" NAME="main Coverage Results" MODIFIED="1753845517112" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/stellar_neo$app.coverage" NAME="app Coverage Results" MODIFIED="1753689525523" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
   </component>
 </project>

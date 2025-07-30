@@ -86,7 +86,6 @@
           </widget>
          </item>
          <item>
-          <!-- 關鍵修改：更新 objectName 和 text -->
           <widget class="PushButton" name="clear_selected_button">
            <property name="text">
             <string>清除選取</string>
@@ -127,7 +126,7 @@
         <number>0</number>
        </property>
        <item>
-        <widget class="QLabel" name="image_preview_label">
+        <widget class="BodyLabel" name="image_preview_label">
          <property name="minimumSize">
           <size>
            <width>500</width>
@@ -179,6 +178,11 @@
   <customwidget>
    <class>PushButton</class>
    <extends>QPushButton</extends>
+   <header>qfluentwidgets</header>
+  </customwidget>
+  <customwidget>
+   <class>BodyLabel</class>
+   <extends>QLabel</extends>
    <header>qfluentwidgets</header>
   </customwidget>
  </customwidgets>
