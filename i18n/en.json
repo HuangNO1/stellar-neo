@@ -79,6 +79,7 @@
   "confirm_delete_item_body": "Are you sure you want to remove the image\n{filename} from the list?",
   "confirm_clear_selected_body": "Are you sure you want to clear the {count} selected images?",
   "gallery_import_button": "Import Images",
+  "gallery_export_button": "Export Selected Images",
   "gallery_select_all": "Select All",
   "gallery_clear_selected": "Clear Selected",
   "gallery_drop_prompt": "Drag and drop images here, or use the import button.",

@@ -69,6 +69,8 @@ class GalleryView(QWidget):
         self.import_button.setText(self.tr("gallery_import_button", "Import"))
         self.select_all_checkbox.setText(self.tr("gallery_select_all", "Select All"))
         self.clear_selected_button.setText(self.tr("gallery_clear_selected", "Clear Selected"))
+        self.export_button.setText(self.tr("gallery_export_button", "Export Selected Images"))
+        # TODO 加上導出功能
         self._clear_preview()  # 清除時會設定預設文字
         self._update_select_all_checkbox_state()  # 更新 UI 狀態
 

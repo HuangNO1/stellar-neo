@@ -97,6 +97,13 @@
        <item>
         <widget class="ListWidget" name="image_list"/>
        </item>
+       <item>
+        <widget class="PrimaryPushButton" name="export_button">
+         <property name="text">
+          <string>匯出選取圖片</string>
+         </property>
+        </widget>
+       </item>
       </layout>
      </widget>
      <widget class="QFrame" name="middle_panel">

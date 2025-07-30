@@ -79,6 +79,7 @@
   "confirm_delete_item_body": "您确定要从列表中移除图片\n{filename} 吗？",
   "confirm_clear_selected_body": "您确定要清除选中的 {count} 张图片吗？",
   "gallery_import_button": "导入图片",
+  "gallery_export_button": "导出选取的图片",
   "gallery_select_all": "全选",
   "gallery_clear_selected": "清除所选",
   "gallery_drop_prompt": "拖拽图片到此处，或使用导入按钮。",
