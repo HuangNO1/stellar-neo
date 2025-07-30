@@ -120,11 +120,11 @@ class GalleryView(QWidget):
         title = self.tr("confirm_delete_title", "Confirm Deletion")
         body = self.tr("confirm_delete_item_body", "Delete {filename}?").format(
             filename=os.path.basename(path))
-        msg_box = MessageBox(title, body, self.window())
-        msg_box.yesButton.setText(self.tr("ok", "OK"))
-        msg_box.cancelButton.setText(self.tr("cancel", "Cancel"))
+        self.msg_box_item = MessageBox(title, body, self.window())
+        self.msg_box_item.yesButton.setText(self.tr("ok", "OK"))
+        self.msg_box_item.cancelButton.setText(self.tr("cancel", "Cancel"))
 
-        if msg_box.exec():
+        if self.msg_box_item.exec():
             list_item = self.image_items[path]['list_item']
             row = self.image_list.row(list_item)
 
@@ -214,11 +214,11 @@ class GalleryView(QWidget):
         title = self.tr("confirm_delete_title", "Confirm Deletion")
         body = self.tr("confirm_clear_selected_body", "Clear {count} items?").format(
             count=len(items_to_delete))
-        msg_box = MessageBox(title, body, self.window())
-        msg_box.yesButton.setText(self.tr("ok", "OK"))
-        msg_box.cancelButton.setText(self.tr("cancel", "Cancel"))
+        self.msg_box = MessageBox(title, body, self.window())
+        self.msg_box.yesButton.setText(self.tr("ok", "OK"))
+        self.msg_box.cancelButton.setText(self.tr("cancel", "Cancel"))
 
-        if msg_box.exec():
+        if self.msg_box.exec():
             # 標記當前預覽是否需要更新
             preview_needs_update = False
 

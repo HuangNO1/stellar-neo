@@ -1,38 +1,65 @@
 import sys
 from PyQt6.QtWidgets import QApplication
-# 從 app.py 匯入 MainWindow
-from app import MainWindow
+from PyQt6.QtGui import QFont, QFontDatabase
 from pathlib import Path
+
+from app import MainWindow
 from core.env_patch import patch_qt_platform
 
-def load_stylesheet(file_path: Path) -> str:
-    """從檔案讀取樣式表，並處理可能的錯誤。"""
+def setup_application(app: QApplication):
+    """
+    執行應用程式啟動前的所有設定任務，包括字體和樣式表。
+    """
+    current_dir = Path(__file__).parent
+
+    # --- 1. 設定全域應用程式字體 ---
+    font_path = current_dir / "assets" / "fonts" / "font.ttf"
+    if font_path.exists():
+        font_id = QFontDatabase.addApplicationFont(str(font_path))
+        if font_id != -1:
+            font_families = QFontDatabase.applicationFontFamilies(font_id)
+            if font_families:
+                font_family = font_families[0]
+                print(f"成功載入預設字體：'{font_family}'，路徑：{font_path}")
+                default_font = QFont(font_family)
+                app.setFont(default_font)
+            else:
+                print(f"警告：無法從 {font_path} 獲取字體家族名稱。")
+        else:
+            print(f"警告：無法載入字體檔案：{font_path}")
+    else:
+        print(f"警告：預設字體檔案未找到：{font_path}")
+
+    # --- 2. 載入並套用 QSS 樣式表 ---
+    qss_file_path = current_dir / "assets" / "style" / "splitter.qss"
     try:
-        with open(file_path, "r", encoding="utf-8") as f:
-            return f.read()
+        with open(qss_file_path, "r", encoding="utf-8") as f:
+            splitter_style = f.read()
+            app.setStyleSheet(splitter_style)
     except FileNotFoundError:
-        print(f"警告: 樣式表檔案未找到: {file_path}")
-        return ""
+        print(f"警告: 樣式表檔案未找到: {qss_file_path}")
     except Exception as e:
         print(f"錯誤: 無法讀取樣式表檔案: {e}")
-        return ""
+
 
 def main():
+    """
+    應用程式主入口點。
+    """
+    # 平台修補
     patch_qt_platform()
+
+    # 建立應用程式實例
     app = QApplication(sys.argv)
 
-    # 獲取當前 main.py 檔案所在的目錄
-    current_dir = Path(__file__).parent
-    # 組合出 splitter.qss 的絕對路徑
-    qss_file_path = current_dir / "assets" / "style" / "splitter.qss"
+    # 執行所有設定任務
+    setup_application(app)
 
-    splitter_style = load_stylesheet(qss_file_path)
-    if splitter_style:
-        app.setStyleSheet(splitter_style)
-
-    # 實例化 MainWindow
+    # 實例化並顯示主視窗
     window = MainWindow()
     window.show()
+
+    # 進入應用程式主循環
     sys.exit(app.exec())
 
 

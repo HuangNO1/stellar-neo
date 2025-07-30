@@ -93,7 +93,7 @@ class SettingsView(QWidget):
         self.w.cancelButton.setText(tr("cancel", "Cancel"))
         # 當對話方塊被接受 (使用者點擊 "OK") 時，關閉應用程式
         if self.w.exec():
-            self.close()
+            self.window().close()
 
     def _update_ui_texts(self):
         """更新此頁面內的 UI 文字，並建立主題的反向對應"""
