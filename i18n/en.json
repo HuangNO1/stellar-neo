@@ -3,6 +3,8 @@
   "theme": "Theme",
   "language": "Language",
   "apply": "Apply",
+  "ok": "OK",
+  "cancel": "Cancel",
   "light": "Light",
   "dark": "Dark",
   "system": "System",
@@ -73,5 +75,7 @@
   "delete_logo_title": "Delete Logo",
   "delete_logo_body": "Are you sure you want to delete logo '{name}'?",
   "delete_font_title": "Delete Font",
-  "delete_font_body": "Deleting font '{name}' requires an application restart to take full effect."
+  "delete_font_body": "Deleting font '{name}' requires an application restart to take full effect.",
+  "gallery_open_image_dialog": "Select Images",
+  "gallery_import_image_dialog_file_type": "Image Files"
 }

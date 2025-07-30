@@ -14,20 +14,15 @@ from ui.customs.gallery_item_widget import GalleryItemWidget
 
 
 class GalleryView(QWidget):
-    def __init__(self, parent=None):
+    def __init__(self, translator: Translator,  parent=None):
         super().__init__(parent)
         # 修正 uic 載入路徑
         uic.loadUi("ui/components/gallery.ui", self)
 
         self.settings_manager = SettingsManager()
         # --- 國際化核心 ---
-        self.translator = Translator()
-        # 假設您的語言檔都放在 i18n/ 資料夾下
-        # 且 settings.json 中的 "language" 鍵為 "en", "zh_TW" 等
-        language = self.settings_manager.get("language", "en")
-        self.translator.load(language, "./i18n")
-
-
+        self.translator = translator
+        self.tr = self.translator.get
 
         self.image_items = {}  # 用於存儲圖片路徑和對應的 list_item
         self.current_image_path = None
@@ -54,10 +49,9 @@ class GalleryView(QWidget):
         self._connect_signals()
 
     def _translate_ui(self):
-        """ 翻譯 gallery.ui 中的靜態文字 """
-        self.import_button.setText(self.translator.get("gallery_import_button", "Import"))
-        self.select_all_checkbox.setText(self.translator.get("gallery_select_all", "Select All"))
-        self.clear_selected_button.setText(self.translator.get("gallery_clear_selected", "Clear Selected"))
+        self.import_button.setText(self.tr("gallery_import_button", "Import"))
+        self.select_all_checkbox.setText(self.tr("gallery_select_all", "Select All"))
+        self.clear_selected_button.setText(self.tr("gallery_clear_selected", "Clear Selected"))
         self._clear_preview()  # 清除時會設定預設文字
 
     def resizeEvent(self, event):
@@ -78,7 +72,6 @@ class GalleryView(QWidget):
 
         # 連接新的控制按鈕信號
         self.select_all_checkbox.stateChanged.connect(self._on_select_all_changed)
-        # self.clear_all_button.clicked.connect(self._on_clear_all_clicked)
         self.clear_selected_button.clicked.connect(self._on_clear_selected_clicked)
 
     # --- 核心功能方法 ---
@@ -125,10 +118,12 @@ class GalleryView(QWidget):
             return
 
         # 彈出確認對話框，增加用戶體驗
-        title = self.translator.get("confirm_delete_title", "Confirm Deletion")
-        body = self.translator.get("confirm_delete_item_body", "Delete {filename}?").format(
+        title = self.tr("confirm_delete_title", "Confirm Deletion")
+        body = self.tr("confirm_delete_item_body", "Delete {filename}?").format(
             filename=os.path.basename(path))
         msg_box = MessageBox(title, body, self.window())
+        msg_box.yesButton.setText(self.tr("ok", "OK"))
+        msg_box.cancelButton.setText(self.tr("cancel", "Cancel"))
 
         if msg_box.exec():
             list_item = self.image_items[path]['list_item']
@@ -231,10 +226,12 @@ class GalleryView(QWidget):
             return
 
         # 3. 彈出確認對話框
-        title = self.translator.get("confirm_delete_title", "Confirm Deletion")
-        body = self.translator.get("confirm_clear_selected_body", "Clear {count} items?").format(
+        title = self.tr("confirm_delete_title", "Confirm Deletion")
+        body = self.tr("confirm_clear_selected_body", "Clear {count} items?").format(
             count=len(items_to_delete))
         msg_box = MessageBox(title, body, self.window())
+        msg_box.yesButton.setText(self.tr("ok", "OK"))
+        msg_box.cancelButton.setText(self.tr("cancel", "Cancel"))
 
         if msg_box.exec():
             # 標記當前預覽是否需要更新
@@ -271,7 +268,7 @@ class GalleryView(QWidget):
         self.original_pixmap = None
         self.image_preview_label.clear()
         # 使用 translator 設定提示文字
-        prompt = self.translator.get("gallery_drop_prompt", "Drop image here")
+        prompt = self.tr("gallery_drop_prompt", "Drop image here")
         self.image_preview_label.setText(prompt)
 
     # --- 事件處理 ---
@@ -290,8 +287,10 @@ class GalleryView(QWidget):
     # --- 槽函數 (Slots) ---
 
     def _open_image_dialog(self):
-        image_files, _ = QFileDialog.getOpenFileNames(self, "選擇圖片", "",
-                                                      "圖片檔案 (*.png *.jpg *.jpeg *.bmp *.tif *.tiff)")
+        window_title = self.tr("gallery_open_image_dialog")
+        file_types = self.tr("gallery_import_image_dialog_file_type", "Image Files")
+        image_files, _ = QFileDialog.getOpenFileNames(self, window_title, "",
+                                                      f"{file_types} (*.png *.jpg *.jpeg *.bmp *.tif *.tiff)")
         if image_files:
             self._add_images(image_files)
 

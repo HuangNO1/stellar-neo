@@ -67,9 +67,9 @@ class MainWindow(FluentWindow):
         tr = self.translator.get
         """建立並新增所有子頁面到導覽列"""
         # 實例化子頁面，並傳入需要的管理器
-        self.gallery_view = GalleryView(self)
-        self.logo_view = LogoView(self.asset_manager, self)
-        self.font_view = FontView(self.asset_manager, self)
+        self.gallery_view = GalleryView(self.translator, self)
+        self.logo_view = LogoView(self.asset_manager,self.translator, self)
+        self.font_view = FontView(self.asset_manager,self.translator,  self)
         self.settings_view = SettingsView(self.translator, self.settings, self.themeListener, self)
 
         # 新增主要頁面
@@ -97,6 +97,8 @@ class MainWindow(FluentWindow):
         content = tr("language_changed_body",
                      "The language setting has been saved. Please restart the application for the changes to take full effect.")
         w = MessageBox(title, content, self)
+        w.yesButton.setText(tr("ok", "OK"))
+        w.cancelButton.setText(tr("cancel", "Cancel"))
 
         # 當對話方塊被接受 (使用者點擊 "OK") 時，關閉應用程式
         if w.exec():

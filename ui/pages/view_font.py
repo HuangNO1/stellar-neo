@@ -11,7 +11,7 @@ from core.translator import Translator
 
 
 class FontView(QWidget):
-    def __init__(self, asset_manager: AssetManager,translator: Translator, parent=None):
+    def __init__(self, asset_manager: AssetManager, translator: Translator, parent=None):
         super().__init__(parent)
         self.translator = translator
         uic.loadUi("ui/components/font_manager.ui", self)

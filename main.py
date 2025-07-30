@@ -3,6 +3,7 @@ from PyQt6.QtWidgets import QApplication
 # 從 app.py 匯入 MainWindow
 from app import MainWindow
 from pathlib import Path
+from core.env_patch import patch_qt_platform
 
 def load_stylesheet(file_path: Path) -> str:
     """從檔案讀取樣式表，並處理可能的錯誤。"""
@@ -17,6 +18,7 @@ def load_stylesheet(file_path: Path) -> str:
         return ""
 
 def main():
+    patch_qt_platform()
     app = QApplication(sys.argv)
 
     # 獲取當前 main.py 檔案所在的目錄
