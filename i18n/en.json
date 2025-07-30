@@ -90,6 +90,11 @@
   "default_app_logos": "App Defaults",
   "select_logo_dialog": "Select Logo(s)",
   "image_files": "Image Files",
-  "confirm_clear_selected_body_logo": "Delete {count} selected logo(s)?"
+  "confirm_clear_selected_body_logo": "Delete {count} selected logo(s)?",
+  "select_color": "Select Color",
+  "edit_color": "Edit Color",
+  "red": "Red",
+  "green": "Green",
+  "blue": "Blue"
 
 }

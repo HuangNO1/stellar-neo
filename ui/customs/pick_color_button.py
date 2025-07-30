@@ -2,6 +2,7 @@
 from PyQt6.QtCore import pyqtSignal
 from PyQt6.QtGui import QColor
 from qfluentwidgets import ColorDialog, PushButton
+from core.translator import Translator
 
 
 class ColorButton(PushButton):
@@ -9,6 +10,8 @@ class ColorButton(PushButton):
 
     def __init__(self, *args, color=None, **kwargs):
         super().__init__(*args, **kwargs)
+        self.tr = None
+        self.translator = None
         self.colorDialog = None
         self._color = None
         self._default = color if color is not None else '#FFFFFF'
@@ -29,6 +32,14 @@ class ColorButton(PushButton):
         else:
             self.setStyleSheet("")
 
+    def set_translator(self, translator: Translator):
+        """
+        為此元件設置翻譯器實例。
+        這個方法應該在 UI 載入後由父級視窗呼叫。
+        """
+        self.translator = translator
+        self.tr = self.translator.get
+
     def color(self):
         return self._color
 
@@ -39,10 +50,17 @@ class ColorButton(PushButton):
         # 建立顏色對話框
         self.colorDialog = ColorDialog(
             initial_color,
-            "選擇顏色",
+            self.tr("select_color", "Select Color"),
             self.window(),
             enableAlpha=False
         )
+        # 國際化
+        self.colorDialog.yesButton.setText(self.tr("ok", "Ok"))
+        self.colorDialog.cancelButton.setText(self.tr("cancel", "Cancel"))
+        self.colorDialog.editLabel.setText(self.tr("edit_color", "Edit Color"))
+        self.colorDialog.redLabel.setText(self.tr("red", "Red"))
+        self.colorDialog.greenLabel.setText(self.tr("green", "Green"))
+        self.colorDialog.blueLabel.setText(self.tr("blue", "Blue"))
 
         # 關鍵修正：
         # 將 colorChanged 信號連接到一個 lambda 函數，

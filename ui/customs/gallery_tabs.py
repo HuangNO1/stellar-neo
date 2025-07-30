@@ -120,9 +120,10 @@ class GalleryTabs(QWidget):
                              ["top_left", "top_center", "top_right", "bottom_left", "bottom_center", "bottom_right"])
         self._populate_combo(self.frameInterface.frame_style_combo, "f_style", ["solid_color", "blur_extend"])
 
-    # _connect_signals, _get_current_settings, _on_settings_changed, _load_settings
-    # 這些函數的內部邏輯與上一版相似，主要是確保它們使用 userData 來讀寫設定鍵，這裡不再重複貼出以節省篇幅。
-    # 唯一的修改是確保 _load_settings 使用 `combo.findData(key)` 來正確恢復選項。
+        # 子組件 顏色組件實現國際化
+        self.watermarkInterface.font_color_button.set_translator(self.translator)
+        self.frameInterface.frame_color_button.set_translator(self.translator)
+
     def _connect_signals(self):
         """連接所有 UI 控制項的信號到 _on_settings_changed 槽函數"""
         controls = {

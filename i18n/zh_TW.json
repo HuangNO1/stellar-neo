@@ -92,5 +92,10 @@
   "default_app_logos": "應用程式預設",
   "select_logo_dialog": "選取圖片",
   "image_files": "圖片檔案",
-  "confirm_clear_selected_body_logo": "刪除 {count} 個選取的 Logo？"
+  "confirm_clear_selected_body_logo": "刪除 {count} 個選取的 Logo？",
+  "select_color": "選擇顏色",
+  "edit_color": "編輯顏色",
+  "red": "紅",
+  "green": "綠",
+  "blue": "藍"
 }

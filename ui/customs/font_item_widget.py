@@ -6,8 +6,8 @@ from qfluentwidgets import CheckBox, BodyLabel
 from core.translator import Translator
 
 
-# --- 新增：自訂字體項目元件 ---
 class FontItemWidget(QWidget):
+    # TODO 如果文件名過長 需要考慮
     """用於顯示在字體列表中的自訂項目"""
     selection_changed = pyqtSignal(bool)
 

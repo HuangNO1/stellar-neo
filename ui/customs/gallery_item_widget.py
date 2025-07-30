@@ -4,7 +4,7 @@ from PyQt6.QtCore import Qt, pyqtSignal, QSize
 from PyQt6.QtWidgets import QWidget, QHBoxLayout, QLabel
 from qfluentwidgets import CheckBox, BodyLabel, ToolButton, FluentIcon
 
-from core.translator import Translator  # 導入您的 Translator
+from core.translator import Translator
 from core.utils import load_svg_as_pixmap
 
 
@@ -17,6 +17,7 @@ class GalleryItemWidget(QWidget):
         super().__init__(parent)
         self.path = path
         self.translator = translator
+        self.tr = self.translator.get
 
         self.checkbox = CheckBox(self)
         self.filename_label = BodyLabel(os.path.basename(path), self)
@@ -32,7 +33,7 @@ class GalleryItemWidget(QWidget):
                 self.warning_icon_label.setPixmap(warning_pixmap)
 
             # 使用 translator 更新 ToolTip
-            tooltip_text = self.translator.get("exif_warning_tooltip", "Cannot read EXIF")
+            tooltip_text = self.tr("exif_warning_tooltip", "Cannot read EXIF")
             self.warning_icon_label.setToolTip(tooltip_text)
             self.warning_icon_label.setVisible(True)
 
@@ -40,7 +41,7 @@ class GalleryItemWidget(QWidget):
         self.delete_button.setIcon(FluentIcon.DELETE)
         self.delete_button.setFixedSize(28, 28)
         # 使用 translator 更新 ToolTip
-        delete_tooltip = self.translator.get("delete_image_tooltip", "Delete this image")
+        delete_tooltip = self.tr("delete_image_tooltip", "Delete this image")
         self.delete_button.setToolTip(delete_tooltip)
 
         layout = QHBoxLayout(self)

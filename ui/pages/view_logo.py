@@ -12,6 +12,7 @@ from ui.customs.logo_item_widget import LogoItemWidget
 
 
 class LogoView(QWidget):
+    # TODO 如果文件名過長 需要考慮
     def __init__(self, asset_manager: AssetManager, translator: Translator, parent=None):
         super().__init__(parent)
         self.translator = translator

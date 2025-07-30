@@ -14,6 +14,7 @@ from ui.customs.gallery_tabs import GalleryTabs
 
 
 class GalleryView(QWidget):
+    # TODO 如果文件名過長 需要考慮
     def __init__(self, translator: Translator, parent=None):
         super().__init__(parent)
         # 修正 uic 載入路徑
