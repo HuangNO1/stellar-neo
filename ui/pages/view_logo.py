@@ -32,12 +32,12 @@ class LogoView(QWidget):
 
     def _translate_ui(self):
         # 翻譯標題和按鈕文字
-        
-        self.upload_logo_button.setText(self.tr("upload_logo_button", "Upload Logo"))  # [cite: 6]
+        self.title_label.setText(self.tr("logo_management", "Logo Management"))
+        self.upload_logo_button.setText(self.tr("upload_logo_button", "Upload Logo"))
         self.select_all_checkbox.setText(self.tr("gallery_select_all", "Select All"))
         
-        self.clear_selected_button.setText(self.tr("gallery_clear_selected", "Clear Selected"))  # [cite: 7]
-        self.userLogoTitle.setText(self.tr("user_uploaded_logos", "User Uploaded"))
+        self.clear_selected_button.setText(self.tr("gallery_clear_selected", "Clear Selected"))
+        self.userLogoTitle.setText(self.tr("user_uploaded_logos", "User Uploaded Logos"))
         self.defaultLogoTitle.setText(self.tr("default_app_logos", "App Defaults"))
 
     def _connect_signals(self):
@@ -78,6 +78,7 @@ class LogoView(QWidget):
             # 並且在 widget 內部可以把 checkbox 禁用
             item_widget = LogoItemWidget(logo_path, icon, self)
             item_widget.checkbox.setEnabled(False)  # 禁用勾選框
+            item_widget.checkbox.setVisible(False)
 
             list_item = QListWidgetItem(self.default_logo_list_widget)
             list_item.setData(Qt.ItemDataRole.UserRole, logo_path)
@@ -90,8 +91,11 @@ class LogoView(QWidget):
 
     def upload_logo(self):
         """開啟檔案對話框以上傳新的 Logo"""
-        files, _ = QFileDialog.getOpenFileNames(self, self.tr("select_logo_dialog", "Select Logo(s)"), "",
-                                                "Image Files (*.png *.jpg *.jpeg *.svg)")
+        files, _ = QFileDialog.getOpenFileNames(
+            self,
+            self.tr("select_logo_dialog", "Select Logo(s)"),
+            "",
+            f"{self.tr("image_files", "Image Files")} (*.png *.jpg *.jpeg *.svg)")
         if files:
             for file_path in files:
                 self.asset_manager.add_logo(file_path)
@@ -171,11 +175,11 @@ class LogoView(QWidget):
         title = self.tr("confirm_delete_title", "Confirm Deletion")
         body = self.tr("confirm_clear_selected_body_logo", "Delete {count} selected logo(s)?").format(
             count=len(items_to_delete))
-        msg_box = MessageBox(title, body, self.window())
-        msg_box.yesButton.setText(self.tr("ok", "OK"))
-        msg_box.cancelButton.setText(self.tr("cancel", "Cancel"))
+        self.msg_box = MessageBox(title, body, self.window())
+        self.msg_box.yesButton.setText(self.tr("ok", "OK"))
+        self.msg_box.cancelButton.setText(self.tr("cancel", "Cancel"))
 
-        if msg_box.exec():
+        if self.msg_box.exec():
             # 遍歷並刪除所有選中的項目
             for list_item in items_to_delete:
                 logo_path = list_item.data(Qt.ItemDataRole.UserRole)

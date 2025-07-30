@@ -26,7 +26,7 @@ class FontView(QWidget):
         self.load_fonts()
 
     def _translate_ui(self):
-        self.title_label.setText(self.tr("font_management", "Font Manager"))
+        self.title_label.setText(self.tr("font_management", "Font Management"))
         self.upload_font_button.setText(self.tr("upload_font_button", "Upload Font"))
         self.select_all_checkbox.setText(self.tr("gallery_select_all", "Select All"))
         self.clear_selected_button.setText(self.tr("gallery_clear_selected", "Clear Selected"))

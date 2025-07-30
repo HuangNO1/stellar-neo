@@ -81,5 +81,11 @@
   "upload_font_button": "上傳字體",
   "user_uploaded_fonts": "使用者上傳的字體",
   "system_builtin_fonts": "系統內建字體",
-  "user_upload": "使用者上傳"
+  "user_upload": "使用者上傳",
+  "upload_logo_button": "上傳 Logo",
+  "user_uploaded_logos": "使用者上傳的 Logo",
+  "default_app_logos": "應用程式預設",
+  "select_logo_dialog": "選取圖片",
+  "image_files": "圖片檔案",
+  "confirm_clear_selected_body_logo": "刪除 {count} 個選取的 Logo？"
 }

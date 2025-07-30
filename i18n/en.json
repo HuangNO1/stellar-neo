@@ -81,5 +81,12 @@
   "upload_font_button": "Upload Font",
   "user_uploaded_fonts": "User Uploaded Fonts",
   "system_builtin_fonts": "System-Builtin Fonts",
-  "user_upload": "User Upload"
+  "user_upload": "User Upload",
+  "upload_logo_button": "Upload Logo",
+  "user_uploaded_logos": "User Uploaded Logos",
+  "default_app_logos": "App Defaults",
+  "select_logo_dialog": "Select Logo(s)",
+  "image_files": "Image Files",
+  "confirm_clear_selected_body_logo": "Delete {count} selected logo(s)?"
+
 }

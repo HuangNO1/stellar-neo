@@ -2,41 +2,90 @@
 <ui version="4.0">
  <class>LogoManager</class>
  <widget class="QWidget" name="LogoManager">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>519</width>
+    <height>556</height>
+   </rect>
+  </property>
   <layout class="QVBoxLayout" name="verticalLayout">
+   <property name="leftMargin">
+    <number>80</number>
+   </property>
+   <property name="rightMargin">
+    <number>80</number>
+   </property>
    <item>
-    <widget class="SubtitleLabel" name="userLogoTitle">
-     <property name="text"><string>使用者上傳</string></property>
+    <widget class="TitleLabel" name="title_label">
+     <property name="text">
+      <string>LOGO管理</string>
+     </property>
     </widget>
    </item>
    <item>
-    <widget class="PrimaryPushButton" name="upload_logo_button">
-     <property name="text"><string>上傳新 Logo</string></property>
-    </widget>
-   </item>
-   <item>
-    <layout class="QHBoxLayout" name="horizontalLayout">
+    <layout class="QHBoxLayout" name="horizontalLayout_main">
      <item>
-      <widget class="CheckBox" name="select_all_checkbox">
-       <property name="text"><string>全選</string></property>
-      </widget>
+      <layout class="QVBoxLayout" name="verticalLayout_user">
+       <property name="rightMargin">
+        <number>20</number>
+       </property>
+       <item>
+        <widget class="SubtitleLabel" name="userLogoTitle">
+         <property name="text">
+          <string>使用者上傳</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="PrimaryPushButton" name="upload_logo_button">
+         <property name="text">
+          <string>上傳新 Logo</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <layout class="QHBoxLayout" name="horizontalLayout">
+         <item>
+          <widget class="CheckBox" name="select_all_checkbox">
+           <property name="text">
+            <string>全選</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="PrimaryPushButton" name="clear_selected_button">
+           <property name="text">
+            <string>清除選取</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </item>
+       <item>
+        <widget class="ListWidget" name="user_logo_list_widget"/>
+       </item>
+      </layout>
      </item>
      <item>
-      <widget class="PrimaryPushButton" name="clear_selected_button">
-       <property name="text"><string>清除選取</string></property>
-      </widget>
+      <layout class="QVBoxLayout" name="verticalLayout_default">
+       <property name="leftMargin">
+        <number>20</number>
+       </property>
+       <item>
+        <widget class="SubtitleLabel" name="defaultLogoTitle">
+         <property name="text">
+          <string>應用程式預設</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="ListWidget" name="default_logo_list_widget"/>
+       </item>
+      </layout>
      </item>
     </layout>
-   </item>
-   <item>
-    <widget class="ListWidget" name="user_logo_list_widget"/>
-   </item>
-   <item>
-    <widget class="SubtitleLabel" name="defaultLogoTitle">
-     <property name="text"><string>應用程式預設</string></property>
-    </widget>
-   </item>
-   <item>
-    <widget class="ListWidget" name="default_logo_list_widget"/>
    </item>
   </layout>
  </widget>
@@ -44,11 +93,6 @@
   <customwidget>
    <class>ListWidget</class>
    <extends>QListWidget</extends>
-   <header>qfluentwidgets</header>
-  </customwidget>
-  <customwidget>
-   <class>TitleLabel</class>
-   <extends>QLabel</extends>
    <header>qfluentwidgets</header>
   </customwidget>
   <customwidget>
@@ -66,5 +110,12 @@
    <extends>QPushButton</extends>
    <header>qfluentwidgets</header>
   </customwidget>
+  <customwidget>
+   <class>TitleLabel</class>
+   <extends>QLabel</extends>
+   <header>qfluentwidgets</header>
+  </customwidget>
  </customwidgets>
- </ui>
+ <resources/>
+ <connections/>
+</ui>
