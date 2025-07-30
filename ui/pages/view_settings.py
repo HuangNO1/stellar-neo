@@ -1,7 +1,5 @@
 # ui/pages/view_settings.py
-import os
 from PyQt6 import uic
-from PyQt6.QtCore import pyqtSignal, QTimer, Qt
 from PyQt6.QtWidgets import QWidget
 from qfluentwidgets import setTheme, SystemThemeListener, MessageBox
 

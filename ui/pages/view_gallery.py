@@ -1,18 +1,20 @@
 import os
+
 from PyQt6 import uic
 from PyQt6.QtCore import Qt, QSize, QRect, QPoint
 from PyQt6.QtGui import QPixmap, QPainter, QColor, QFont
 from PyQt6.QtWidgets import QWidget, QFileDialog, QListWidgetItem
 from qfluentwidgets import MessageBox
+
 from core.exif_reader import get_exif_data
 from core.settings_manager import SettingsManager
 from core.translator import Translator
-from ui.customs.gallery_tabs import GalleryTabs
 from ui.customs.gallery_item_widget import GalleryItemWidget
+from ui.customs.gallery_tabs import GalleryTabs
 
 
 class GalleryView(QWidget):
-    def __init__(self, translator: Translator,  parent=None):
+    def __init__(self, translator: Translator, parent=None):
         super().__init__(parent)
         # 修正 uic 載入路徑
         uic.loadUi("ui/components/gallery.ui", self)

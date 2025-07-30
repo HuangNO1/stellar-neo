@@ -1,11 +1,11 @@
 import os
 
 from PyQt6.QtCore import Qt, pyqtSignal, QSize
-from PyQt6.QtGui import QPixmap
 from PyQt6.QtWidgets import QWidget, QHBoxLayout, QLabel
 from qfluentwidgets import CheckBox, BodyLabel, ToolButton, FluentIcon
-from core.utils import load_svg_as_pixmap
+
 from core.translator import Translator  # 導入您的 Translator
+from core.utils import load_svg_as_pixmap
 
 
 class GalleryItemWidget(QWidget):

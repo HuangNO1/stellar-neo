@@ -1,10 +1,12 @@
 import sys
-from PyQt6.QtWidgets import QApplication
-from PyQt6.QtGui import QFont, QFontDatabase
 from pathlib import Path
+
+from PyQt6.QtGui import QFont, QFontDatabase
+from PyQt6.QtWidgets import QApplication
 
 from app import MainWindow
 from core.env_patch import patch_qt_platform
+
 
 def setup_application(app: QApplication):
     """

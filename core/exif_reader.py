@@ -1,14 +1,9 @@
 # core/exif_reader_qt.py
-# 這是參考 exif_utils.py 邏輯重寫的、不依賴 Pillow 的純 Python 版本。
-# 它使用多引擎策略來最大化讀取成功率。
-#
-# 請注意：此檔案需要安裝新的依賴函式庫。請在您的終端中執行：
-# pip install piexif exifread
 
-import os
 import xml.etree.ElementTree as ET
-import piexif
+
 import exifread
+import piexif
 
 
 def _parse_xmp(xmp_str: bytes) -> dict:

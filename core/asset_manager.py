@@ -3,6 +3,7 @@
 import os
 import shutil
 from pathlib import Path
+
 from PyQt6.QtGui import QFontDatabase
 
 

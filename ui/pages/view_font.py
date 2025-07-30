@@ -15,7 +15,7 @@ class FontView(QWidget):
         super().__init__(parent)
         self.translator = translator
         self.tr = self.translator.get
-        
+
         uic.loadUi("ui/components/font_manager.ui", self)
 
         self.asset_manager = asset_manager
@@ -35,10 +35,10 @@ class FontView(QWidget):
 
     def _connect_signals(self):
         # 管理功能的信號只連接到使用者字體相關的操作
-        
+
         self.upload_font_button.clicked.connect(self.upload_font)  # [cite: 2]
         self.select_all_checkbox.stateChanged.connect(self._on_select_all_changed)
-        
+
         self.clear_selected_button.clicked.connect(self._on_clear_selected_clicked)  # [cite: 3]
 
     def load_fonts(self):

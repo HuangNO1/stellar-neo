@@ -1,5 +1,6 @@
 import os
 
+
 def patch_qt_platform():
     """
     如果在 kde 的 wayland 下因為無法設置窗口透明度，
@@ -9,8 +10,8 @@ def patch_qt_platform():
     """
     is_wayland = os.environ.get("XDG_SESSION_TYPE", "").lower() == "wayland"
     is_kde = (
-        os.environ.get("KDE_FULL_SESSION") == "true" or
-        "plasma" in os.environ.get("DESKTOP_SESSION", "").lower()
+            os.environ.get("KDE_FULL_SESSION") == "true" or
+            "plasma" in os.environ.get("DESKTOP_SESSION", "").lower()
     )
 
     if is_wayland and is_kde:

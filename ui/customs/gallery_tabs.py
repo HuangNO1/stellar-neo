@@ -1,6 +1,5 @@
 from PyQt6 import uic
-from PyQt6.QtCore import Qt, pyqtSignal
-from PyQt6.QtGui import QColor
+from PyQt6.QtCore import pyqtSignal
 from PyQt6.QtWidgets import QWidget, QStackedWidget, QVBoxLayout
 from qfluentwidgets import TabBar
 from qfluentwidgets.components.widgets.tab_view import TabCloseButtonDisplayMode
@@ -103,7 +102,6 @@ class GalleryTabs(QWidget):
         f.frame_style_label.setText(self.translator.get("frame_style", "Frame Style"))
         f.frame_blur_label.setText(self.translator.get("frame_blur", "Frame Blur"))
         f.frame_color_label.setText(self.translator.get("frame_color", "Frame Color"))
-
 
     def _populate_combo(self, combo, key_prefix: str, options: list):
         """ 使用 key-value 填充 ComboBox """

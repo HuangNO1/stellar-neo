@@ -1,8 +1,7 @@
 # ColorButton.py
-from PyQt6 import QtWidgets, QtGui
 from PyQt6.QtCore import pyqtSignal
-from qfluentwidgets import ColorDialog, PushButton
 from PyQt6.QtGui import QColor
+from qfluentwidgets import ColorDialog, PushButton
 
 
 class ColorButton(PushButton):
@@ -29,6 +28,7 @@ class ColorButton(PushButton):
             self.setStyleSheet(f"background-color: {self._color};")
         else:
             self.setStyleSheet("")
+
     def color(self):
         return self._color
 

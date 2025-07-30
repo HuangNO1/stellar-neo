@@ -1,13 +1,10 @@
-from pathlib import Path
-
-from PyQt6 import uic
 from PyQt6.QtCore import Qt, pyqtSignal
 from PyQt6.QtGui import QFont
-from PyQt6.QtWidgets import QWidget, QListWidgetItem, QFileDialog, QHBoxLayout
-from qfluentwidgets import MessageBox, CheckBox, BodyLabel, FluentIcon
+from PyQt6.QtWidgets import QWidget, QHBoxLayout
+from qfluentwidgets import CheckBox, BodyLabel
 
-from core.asset_manager import AssetManager
 from core.translator import Translator
+
 
 # --- 新增：自訂字體項目元件 ---
 class FontItemWidget(QWidget):
@@ -24,7 +21,7 @@ class FontItemWidget(QWidget):
         self.is_deletable = path is not None
 
         self.checkbox = CheckBox(self)
-        self.checkbox.setEnabled(self.is_deletable) # 系統字體不給勾選
+        self.checkbox.setEnabled(self.is_deletable)  # 系統字體不給勾選
 
         display_text = family
         if self.is_deletable:

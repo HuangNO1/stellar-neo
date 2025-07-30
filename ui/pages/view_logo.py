@@ -16,7 +16,7 @@ class LogoView(QWidget):
         super().__init__(parent)
         self.translator = translator
         self.tr = self.translator.get
-        
+
         uic.loadUi("ui/components/logo_manager.ui", self)  # [cite: 5]
 
         self.asset_manager = asset_manager
@@ -35,17 +35,17 @@ class LogoView(QWidget):
         self.title_label.setText(self.tr("logo_management", "Logo Management"))
         self.upload_logo_button.setText(self.tr("upload_logo_button", "Upload Logo"))
         self.select_all_checkbox.setText(self.tr("gallery_select_all", "Select All"))
-        
+
         self.clear_selected_button.setText(self.tr("gallery_clear_selected", "Clear Selected"))
         self.userLogoTitle.setText(self.tr("user_uploaded_logos", "User Uploaded Logos"))
         self.defaultLogoTitle.setText(self.tr("default_app_logos", "App Defaults"))
 
     def _connect_signals(self):
         # 連接「上傳」、「全選」、「清除」按鈕的信號，這些操作只針對使用者列表
-        
+
         self.upload_logo_button.clicked.connect(self.upload_logo)  # [cite: 6]
         self.select_all_checkbox.stateChanged.connect(self._on_select_all_changed)
-        
+
         self.clear_selected_button.clicked.connect(self._on_clear_selected_clicked)  # [cite: 7]
 
     def load_logos(self):

@@ -1,23 +1,22 @@
 # app.py (重構後的主框架)
 import os
-from PyQt6.QtCore import QSize, QEventLoop, QTimer, Qt
-from PyQt6.QtGui import QIcon
-from PyQt6.QtWidgets import QFrame, QHBoxLayout
-from qfluentwidgets import (FluentWindow, NavigationInterface, FluentIcon,
-                            setTheme, SystemThemeListener, SplashScreen,
-                            NavigationItemPosition, SubtitleLabel, setFont, MessageBox)
 
+from PyQt6.QtCore import QSize, QEventLoop, QTimer
+from PyQt6.QtGui import QIcon
+from qfluentwidgets import (FluentWindow, FluentIcon,
+                            setTheme, SystemThemeListener, SplashScreen,
+                            NavigationItemPosition)
+
+from core.asset_manager import AssetManager  # 導入資源管理器
 # 匯入核心元件和新建立的頁面
 from core.config import THEMES
 from core.settings_manager import SettingsManager
 from core.translator import Translator
-from core.asset_manager import AssetManager  # 導入資源管理器
-
-# 導入所有頁面
-from ui.pages.view_settings import SettingsView
+from ui.pages.view_font import FontView  # 導入字體頁面
 from ui.pages.view_gallery import GalleryView
 from ui.pages.view_logo import LogoView  # 導入 Logo 頁面
-from ui.pages.view_font import FontView  # 導入字體頁面
+# 導入所有頁面
+from ui.pages.view_settings import SettingsView
 
 
 class MainWindow(FluentWindow):
@@ -68,8 +67,8 @@ class MainWindow(FluentWindow):
         """建立並新增所有子頁面到導覽列"""
         # 實例化子頁面，並傳入需要的管理器
         self.gallery_view = GalleryView(self.translator, self)
-        self.logo_view = LogoView(self.asset_manager,self.translator, self)
-        self.font_view = FontView(self.asset_manager,self.translator,  self)
+        self.logo_view = LogoView(self.asset_manager, self.translator, self)
+        self.font_view = FontView(self.asset_manager, self.translator, self)
         self.settings_view = SettingsView(self.translator, self.settings, self.themeListener, self)
 
         # 新增主要頁面
