@@ -77,5 +77,9 @@
   "delete_font_title": "Delete Font",
   "delete_font_body": "Deleting font '{name}' requires an application restart to take full effect.",
   "gallery_open_image_dialog": "Select Images",
-  "gallery_import_image_dialog_file_type": "Image Files"
+  "gallery_import_image_dialog_file_type": "Image Files",
+  "upload_font_button": "Upload Font",
+  "user_uploaded_fonts": "User Uploaded Fonts",
+  "system_builtin_fonts": "System-Builtin Fonts",
+  "user_upload": "User Upload"
 }

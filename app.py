@@ -75,7 +75,7 @@ class MainWindow(FluentWindow):
         # 新增主要頁面
         self.addSubInterface(self.gallery_view, FluentIcon.PHOTO, tr("gallery", "圖片工坊"))
         self.addSubInterface(self.logo_view, FluentIcon.BRUSH, tr("logo_management", "Logo 管理"))
-        self.addSubInterface(self.font_view, FluentIcon.FONT, tr("font_management", "字體管理"))
+        self.addSubInterface(self.font_view, FluentIcon.FONT, tr("font_management", "Font Manager"))
 
         self.navigationInterface.addSeparator()
 

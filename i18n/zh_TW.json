@@ -77,5 +77,9 @@
   "delete_font_title": "刪除字體",
   "delete_font_body": "刪除字體 '{name}' 需要重新啟動應用程式才能完全生效。",
   "gallery_open_image_dialog": "選擇圖片",
-  "gallery_import_image_dialog_file_type": "圖片檔案"
+  "gallery_import_image_dialog_file_type": "圖片檔案",
+  "upload_font_button": "上傳字體",
+  "user_uploaded_fonts": "使用者上傳的字體",
+  "system_builtin_fonts": "系統內建字體",
+  "user_upload": "使用者上傳"
 }

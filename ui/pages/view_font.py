@@ -16,7 +16,7 @@ class FontView(QWidget):
         self.translator = translator
         self.tr = self.translator.get
         
-        uic.loadUi("ui/components/font_manager.ui", self)  # [cite: 1]
+        uic.loadUi("ui/components/font_manager.ui", self)
 
         self.asset_manager = asset_manager
         self._is_selecting_all = False
@@ -26,9 +26,10 @@ class FontView(QWidget):
         self.load_fonts()
 
     def _translate_ui(self):
-        self.upload_font_button.setText(self.tr("upload_font_button", "Upload Font"))  # [cite: 2]
+        self.title_label.setText(self.tr("font_management", "Font Manager"))
+        self.upload_font_button.setText(self.tr("upload_font_button", "Upload Font"))
         self.select_all_checkbox.setText(self.tr("gallery_select_all", "Select All"))
-        self.clear_selected_button.setText(self.tr("gallery_clear_selected", "Clear Selected"))  # [cite: 3]
+        self.clear_selected_button.setText(self.tr("gallery_clear_selected", "Clear Selected"))
         self.userFontTitle.setText(self.tr("user_uploaded_fonts", "User Uploaded Fonts"))
         self.systemFontTitle.setText(self.tr("system_builtin_fonts", "System-Builtin Fonts"))
 
@@ -55,7 +56,7 @@ class FontView(QWidget):
             path = next((p for p, fams in user_fonts.items() if family in fams), None)
             if not path: continue
 
-            item_widget = FontItemWidget(family, path, self)
+            item_widget = FontItemWidget(family, path, self.translator, self)
             item_widget.selection_changed.connect(self._update_select_all_checkbox_state)
 
             list_item = QListWidgetItem(self.user_font_list_widget)
@@ -68,7 +69,7 @@ class FontView(QWidget):
         system_fonts = self.asset_manager.get_system_fonts()
         for family in system_fonts:
             # 對於系統字體，路徑為 None，且 checkbox 將被禁用
-            item_widget = FontItemWidget(family, None, self)
+            item_widget = FontItemWidget(family, None, self.translator, self)
 
             list_item = QListWidgetItem(self.system_font_list_widget)
             list_item.setData(Qt.ItemDataRole.UserRole, None)  # 沒有路徑

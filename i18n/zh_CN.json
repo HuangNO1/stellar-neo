@@ -77,5 +77,9 @@
   "delete_font_title": "删除字体",
   "delete_font_body": "删除字体 '{name}' 需要重启应用程序才能完全生效。",
   "gallery_open_image_dialog": "选择图片",
-  "gallery_import_image_dialog_file_type": "图片文件"
+  "gallery_import_image_dialog_file_type": "图片文件",
+  "upload_font_button": "上传字体",
+  "user_uploaded_fonts": "用户上传的字体",
+  "system_builtin_fonts": "系统内置字体",
+  "user_upload": "用户上传"
 }

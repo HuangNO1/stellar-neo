@@ -4,7 +4,7 @@ from PyQt6 import uic
 from PyQt6.QtCore import Qt, pyqtSignal
 from PyQt6.QtGui import QFont
 from PyQt6.QtWidgets import QWidget, QListWidgetItem, QFileDialog, QHBoxLayout
-from qfluentwidgets import MessageBox, CheckBox, BodyLabel
+from qfluentwidgets import MessageBox, CheckBox, BodyLabel, FluentIcon
 
 from core.asset_manager import AssetManager
 from core.translator import Translator
@@ -14,8 +14,11 @@ class FontItemWidget(QWidget):
     """用於顯示在字體列表中的自訂項目"""
     selection_changed = pyqtSignal(bool)
 
-    def __init__(self, family: str, path: str | None, parent=None):
+    def __init__(self, family: str, path: str | None, translator: Translator, parent=None):
         super().__init__(parent)
+        self.translator = translator
+        self.tr = self.translator.get
+
         self.path = path  # path is None for system fonts
         self.family = family
         self.is_deletable = path is not None
@@ -25,7 +28,7 @@ class FontItemWidget(QWidget):
 
         display_text = family
         if self.is_deletable:
-            display_text += " (使用者上傳)"
+            display_text += self.tr("user_upload", "User Upload")
 
         self.font_label = BodyLabel(display_text, self)
         self.font_label.setFont(QFont(family, 12))
@@ -33,6 +36,9 @@ class FontItemWidget(QWidget):
         layout = QHBoxLayout(self)
         layout.setContentsMargins(5, 5, 5, 5)
         layout.setSpacing(8)
+        # 直接隱藏
+        if not self.is_deletable:
+            self.checkbox.setVisible(False)
         layout.addWidget(self.checkbox)
         layout.addWidget(self.font_label, 1)
 
