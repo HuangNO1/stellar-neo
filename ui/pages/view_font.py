@@ -82,8 +82,11 @@ class FontView(QWidget):
 
     def upload_font(self):
         """開啟對話框以上傳字體"""
-        files, _ = QFileDialog.getOpenFileNames(self, self.tr("select_font_dialog", "Select Font(s)"), "",
-                                                "Font Files (*.ttf *.otf *.woff *.woff2)")
+        files, _ = QFileDialog.getOpenFileNames(
+            self,
+            self.tr("select_font_dialog", "Select Font(s)"),
+            "",
+            f"{self.tr("font_files", "Font Files")} (*.ttf *.otf *.woff *.woff2)")
         if files:
             for file_path in files:
                 self.asset_manager.add_font(file_path)
@@ -151,11 +154,11 @@ class FontView(QWidget):
         body = self.tr("confirm_clear_selected_body_font",
                        "Delete {count} selected font(s)?\n(May require app restart to take full effect)").format(
             count=len(items_to_delete))
-        msg_box = MessageBox(title, body, self.window())
-        msg_box.yesButton.setText(self.tr("ok", "OK"))
-        msg_box.cancelButton.setText(self.tr("cancel", "Cancel"))
+        self.msg_box = MessageBox(title, body, self.window())
+        self.msg_box.yesButton.setText(self.tr("ok", "OK"))
+        self.msg_box.cancelButton.setText(self.tr("cancel", "Cancel"))
 
-        if msg_box.exec():
+        if self.msg_box.exec():
             for list_item in items_to_delete:
                 font_path = list_item.data(Qt.ItemDataRole.UserRole)
                 if font_path:  # 再次確認是使用者字體

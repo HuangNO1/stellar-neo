@@ -55,7 +55,7 @@
           </widget>
          </item>
          <item>
-          <widget class="PrimaryPushButton" name="clear_selected_button">
+          <widget class="PushButton" name="clear_selected_button">
            <property name="text">
             <string>清除選取</string>
            </property>
@@ -113,6 +113,11 @@
   <customwidget>
    <class>TitleLabel</class>
    <extends>QLabel</extends>
+   <header>qfluentwidgets</header>
+  </customwidget>
+  <customwidget>
+   <class>PushButton</class>
+   <extends>QPushButton</extends>
    <header>qfluentwidgets</header>
   </customwidget>
  </customwidgets>
