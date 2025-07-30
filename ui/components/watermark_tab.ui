@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>280</width>
-    <height>1032</height>
+    <height>1034</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -104,7 +104,7 @@
    <item>
     <widget class="BodyLabel" name="exif_options_label">
      <property name="text">
-      <string>選擇要顯示的參數：</string>
+      <string>選擇要顯示的參數</string>
      </property>
     </widget>
    </item>
@@ -148,7 +148,7 @@
     </layout>
    </item>
    <item>
-    <widget class="SubtitleLabel" name="title_label_3">
+    <widget class="BodyLabel" name="title_label_3">
      <property name="text">
       <string>通用樣式</string>
      </property>
@@ -181,7 +181,7 @@
    <item>
     <widget class="ColorButton" name="font_color_button">
      <property name="text">
-      <string>字體顏色</string>
+      <string/>
      </property>
     </widget>
    </item>

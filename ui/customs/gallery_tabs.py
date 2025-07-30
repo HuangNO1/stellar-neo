@@ -14,19 +14,6 @@ from core.utils import wrap_scroll
 class GalleryTabs(QWidget):
     settingsChanged = pyqtSignal()
 
-    # 定義設定值與翻譯鍵的精確對應關係
-    COMBO_MAPS = {
-        "logo_source": {"auto_detect": "logo_source_auto", "custom_text": "logo_source_text"},
-        "text_source": {"exif": "text_source_exif", "custom": "text_source_custom"},
-        "layout": {"logo_top_text_bottom": "layout_logo_top", "logo_bottom_text_top": "layout_logo_bottom",
-                   "logo_left_text_right": "layout_logo_left"},
-        "area": {"in_frame": "position_in_frame", "in_photo": "position_in_photo"},
-        "align": {"top_left": "align_top_left", "top_center": "align_top_center", "top_right": "align_top_right",
-                  "bottom_left": "align_bottom_left", "bottom_center": "align_bottom_center",
-                  "bottom_right": "align_bottom_right"},
-        "style": {"solid_color": "style_solid_color", "blur_extend": "style_blur_extend"}
-    }
-
     # 接收 translator
     def __init__(self, asset_manager: AssetManager, translator: Translator, parent=None):
         super().__init__(parent)
@@ -58,8 +45,7 @@ class GalleryTabs(QWidget):
         self.stackedWidget.currentChanged.connect(self.onCurrentIndexChanged)
 
         # 執行初始化
-        self._translate_ui_text()  # 新增：翻譯所有靜態文字
-        self._init_ui_options()
+        self.init_all_ui()
         self._load_settings()
         self._connect_signals()
 
@@ -73,6 +59,11 @@ class GalleryTabs(QWidget):
         tab_item.setCloseButtonDisplayMode(TabCloseButtonDisplayMode.NEVER)
         tab_item.setMaximumWidth(120)
 
+    def init_all_ui(self):
+        self._translate_ui_text()  # 新增：翻譯所有靜態文字
+        self._populate_all_options()
+        self._init_color_pick_btn()
+
     def onCurrentIndexChanged(self, index):
         widget = self.stackedWidget.widget(index)
         self.tabBar.setCurrentTab(widget.objectName())
@@ -82,15 +73,18 @@ class GalleryTabs(QWidget):
         # --- 浮水印 Tab ---
         w = self.watermarkInterface
         w.title_label_1.setText(self.tr("logo_settings_title", "Logo Settings"))
+        # logo開關
         w.logo_enabled_switch.setOnText(self.tr("show_logo", "Show Logo"))
         w.logo_enabled_switch.setOffText(self.tr("hide_logo", "Hide Logo"))
-        # w.logo_text_input.setPlaceholderText(self.tr("logo_text_placeholder", "Enter Logo Text"))
         w.logo_size_label.setText(self.tr("logo_size", "Logo Size"))
         w.title_label_2.setText(self.tr("watermark_text_settings_title", "Watermark Text Settings"))
-        w.text_enabled_switch.setText(self.tr("show_text", "Show Text"))
+        # 文字開關
+        w.text_enabled_switch.setOnText(self.tr("show_text", "Show Text"))
+        w.text_enabled_switch.setOffText(self.tr("hide_text", "Hide Text"))
         w.text_custom_input.setPlaceholderText(self.tr("custom_text_placeholder", "Enter Custom Text"))
         w.exif_options_label.setText(self.tr("exif_options_title", "Parameters to show:"))
         w.exif_model_check.setText(self.tr("exif_model", "Model"))
+        w.exif_f_number_check.setText(self.tr("exif_f_number", "Focal Length"))
         w.exif_iso_check.setText(self.tr("exif_iso", "ISO"))
         w.exif_aperture_check.setText(self.tr("exif_aperture", "Aperture"))
         w.exif_shutter_check.setText(self.tr("exif_shutter", "Shutter"))
@@ -100,8 +94,11 @@ class GalleryTabs(QWidget):
 
         # 相框
         f = self.frameInterface
-        f.frame_enabled_switch.setText(self.tr("enable_frame", "Enable Frame"))
-        f.photo_shadow_switch.setText(self.tr("photo_shadow", "Photo Shadow"))
+        # 啟用相框開關
+        f.frame_enabled_switch.setOnText(self.tr("enable_frame", "Enable Frame"))
+        f.frame_enabled_switch.setOffText(self.tr("disable_frame", "Disable Frame"))
+        f.photo_shadow_switch.setOnText(self.tr("enable_photo_shadow", "Enable Photo Shadow"))
+        f.photo_shadow_switch.setOffText(self.tr("disable_enable_photo_shadow", "Disable Photo Shadow"))
         f.frame_radius_label.setText(self.tr("frame_radius", "Frame Radius"))
         f.photo_radius_label.setText(self.tr("photo_radius", "Photo Radius"))
         f.padding_top_label.setText(self.tr("padding_top", "Top Padding"))
@@ -111,81 +108,95 @@ class GalleryTabs(QWidget):
         f.frame_blur_label.setText(self.tr("frame_blur", "Frame Blur"))
         f.frame_color_label.setText(self.tr("frame_color", "Frame Color"))
 
-    def _populate_combo(self, combo, key_prefix: str, options: list):
+    def _populate_combo(self, combo, place_holder_text: str, key_prefix: str, options: list):
         # TODO 有一些字體或logo文件名過長
         """ 使用 key-value 填充 ComboBox """
+        combo.setPlaceholderText(place_holder_text)
+        if len(options) < 1:
+            # 如果是空的就還是加上這樣的提示
+            display_text = self.tr("empty", "Empty")
+            combo.addItem(f"--- {display_text} ---")
+            combo.setEnabled(False)
+            return
         for option_key in options:
             display_text = self.tr(f"{key_prefix}_{option_key}", option_key.replace("_", " ").title())
             combo.addItem(display_text, userData=option_key)
 
-    def _init_ui_options(self):
+    def _populate_all_options(self):
         """ 初始化 ComboBox 的選項 """
+        # TODO 注意當選擇浮水印在相框上時，怎麼處理，
+        #  TODO 顯示LOGO且顯示文字才能有 layout_combo 顯示
         w = self.watermarkInterface
         f = self.frameInterface
         # 1. 獲取字體選項並填充
         user_fonts, system_fonts = self.asset_manager.get_font_options()
-        # self.font_combo.clear()
-        # self.font_combo.addItem("--- User Fonts ---").setEnabled(False)
-        self._populate_combo(w.font_my_custom_combo, "font", user_fonts)
-        # self.font_combo.addItem("--- System Fonts ---").setEnabled(False)
-        self._populate_combo(w.font_system_combo, "font", system_fonts)
+        self._populate_combo(w.font_my_custom_combo, self.tr('select_font', 'Select Font'), "font", user_fonts)
+        self._populate_combo(w.font_system_combo, self.tr('select_font', 'Select Font'), "font", system_fonts)
 
         # 2. 獲取 Logo 選項並填充
         user_logos, app_logos = self.asset_manager.get_logo_options()
+        self._populate_combo(w.logo_source_my_custom_combo, self.tr('select_logo', 'Select Logo'), "logo", user_logos)
+        self._populate_combo(w.logo_source_app_combo, self.tr('select_logo', 'Select Logo'), "logo", app_logos)
 
-        # self.logo_combo.clear()
-        # self.logo_combo.addItem("--- User Logos ---").setEnabled(False)
-        self._populate_combo(w.logo_source_my_custom_combo, "logo", user_logos)
-        # self.logo_combo.addItem("--- App Logos ---").setEnabled(False)
-        self._populate_combo(w.logo_source_app_combo, "logo", app_logos)
-
-
-        self._populate_combo(w.logo_source_combo, "w_logo_source", ["auto_detect","select_from_library", "my_custom_logo"])
-        self._populate_combo(w.text_source_combo, "w_text_source", ["exif", "custom"])
-        self._populate_combo(w.layout_combo, "w_layout",
-                             ["logo_top_text_bottom", "logo_bottom_text_top", "logo_left_text_right"])
-        self._populate_combo(w.position_area_combo, "w_area", ["in_frame", "in_photo"])
-        self._populate_combo(w.position_align_combo, "w_align",
+        self._populate_combo(w.logo_source_combo, self.tr('logo_source_method', 'Logo Source Method'), "w_logo_source", ["auto_detect","select_from_library", "my_custom_logo"])
+        self._populate_combo(w.text_source_combo, self.tr('text_source_method', 'Text Source Method'), "w_text_source", ["exif", "custom"])
+        self._populate_combo(w.font_combo, self.tr('select_font_method', 'Select Font Method'), "w_font_source", ["system", "my_custom"])
+        self._populate_combo(w.layout_combo, self.tr('layout_watermark', 'Watermark Layout'), "w_layout",
+                             ["logo_top", "logo_bottom", "logo_left"])
+        self._populate_combo(w.position_area_combo, self.tr('position_area_title', 'Watermark Area'), "w_area", ["in_frame", "in_photo"])
+        self._populate_combo(w.position_align_combo, self.tr('position_align_title', 'Alignment'), "w_align",
                              ["top_left", "top_center", "top_right", "bottom_left", "bottom_center", "bottom_right"])
-        self._populate_combo(f.frame_style_combo, "f_style", ["solid_color", "blur_extend"])
+        self._populate_combo(f.frame_style_combo, self.tr('frame_style', 'Frame Style'), "f_style", ["solid_color", "blur_extend"])
 
+
+
+    def _init_color_pick_btn(self):
+        """初始化 自定義的顏色選取按鈕"""
+        w = self.watermarkInterface
+        f = self.frameInterface
         # 子組件 顏色組件實現國際化
         w.font_color_button.set_translator(self.translator)
         f.frame_color_button.set_translator(self.translator)
 
     def _connect_signals(self):
+        w = self.watermarkInterface
+        f = self.frameInterface
         """連接所有 UI 控制項的信號到 _on_settings_changed 槽函數"""
         controls = {
             # 浮水印 Tab
-            self.watermarkInterface.logo_enabled_switch: 'checkedChanged',
-            self.watermarkInterface.logo_source_combo: 'currentIndexChanged',
-            # self.watermarkInterface.logo_text_input: 'textChanged',
-            self.watermarkInterface.logo_size_slider: 'valueChanged',
-            self.watermarkInterface.text_enabled_switch: 'checkedChanged',
-            self.watermarkInterface.text_source_combo: 'currentIndexChanged',
-            self.watermarkInterface.text_custom_input: 'textChanged',
-            self.watermarkInterface.exif_model_check: 'stateChanged',
-            self.watermarkInterface.exif_iso_check: 'stateChanged',
-            self.watermarkInterface.exif_aperture_check: 'stateChanged',
-            self.watermarkInterface.exif_shutter_check: 'stateChanged',
-            self.watermarkInterface.font_combo: 'currentIndexChanged',
-            self.watermarkInterface.font_color_button: 'colorChanged',
-            self.watermarkInterface.font_size_slider: 'valueChanged',
-            self.watermarkInterface.layout_combo: 'currentIndexChanged',
-            self.watermarkInterface.position_area_combo: 'currentIndexChanged',
-            self.watermarkInterface.position_align_combo: 'currentIndexChanged',
+            w.logo_enabled_switch: 'checkedChanged',
+            w.logo_source_combo: 'currentIndexChanged',
+            w.logo_source_app_combo: 'currentIndexChanged',
+            w.logo_source_my_custom_combo: 'currentIndexChanged',
+            w.logo_size_slider: 'valueChanged',
+            w.text_enabled_switch: 'checkedChanged',
+            w.text_source_combo: 'currentIndexChanged',
+            w.text_custom_input: 'textChanged',
+            w.exif_model_check: 'stateChanged',
+            w.exif_f_number_check: 'stateChanged',
+            w.exif_iso_check: 'stateChanged',
+            w.exif_aperture_check: 'stateChanged',
+            w.exif_shutter_check: 'stateChanged',
+            w.font_combo: 'currentIndexChanged',
+            w.font_system_combo: 'currentIndexChanged',
+            w.font_my_custom_combo: 'currentIndexChanged',
+            w.font_color_button: 'colorChanged',
+            w.font_size_slider: 'valueChanged',
+            w.layout_combo: 'currentIndexChanged',
+            w.position_area_combo: 'currentIndexChanged',
+            w.position_align_combo: 'currentIndexChanged',
 
             # 相框 Tab
-            self.frameInterface.frame_enabled_switch: 'checkedChanged',
-            self.frameInterface.photo_shadow_switch: 'checkedChanged',
-            self.frameInterface.frame_radius_slider: 'valueChanged',
-            self.frameInterface.photo_radius_slider: 'valueChanged',
-            self.frameInterface.padding_top_slider: 'valueChanged',
-            self.frameInterface.padding_sides_slider: 'valueChanged',
-            self.frameInterface.padding_bottom_slider: 'valueChanged',
-            self.frameInterface.frame_style_combo: 'currentIndexChanged',
-            self.frameInterface.frame_blur_slider: 'valueChanged',
-            self.frameInterface.frame_color_button: 'colorChanged',
+            f.frame_enabled_switch: 'checkedChanged',
+            f.photo_shadow_switch: 'checkedChanged',
+            f.frame_radius_slider: 'valueChanged',
+            f.photo_radius_slider: 'valueChanged',
+            f.padding_top_slider: 'valueChanged',
+            f.padding_sides_slider: 'valueChanged',
+            f.padding_bottom_slider: 'valueChanged',
+            f.frame_style_combo: 'currentIndexChanged',
+            f.frame_blur_slider: 'valueChanged',
+            f.frame_color_button: 'colorChanged',
         }
 
         for control, signal_name in controls.items():
@@ -200,18 +211,22 @@ class GalleryTabs(QWidget):
             "watermark": {
                 "logo_enabled": w.logo_enabled_switch.isChecked(),
                 "logo_source": w.logo_source_combo.currentData(),
-                # "logo_text": w.logo_text_input.text(),
+                "logo_source_app": w.logo_source_app_combo.currentData(),
+                "logo_source_my_custom": w.logo_source_my_custom_combo.currentData(),
                 "logo_size": w.logo_size_slider.value(),
                 "text_enabled": w.text_enabled_switch.isChecked(),
                 "text_source": w.text_source_combo.currentData(),
                 "text_custom": w.text_custom_input.text(),
                 "exif_options": {
                     "model": w.exif_model_check.isChecked(),
+                    "f_number": w.exif_f_number_check.isChecked(),
                     "iso": w.exif_iso_check.isChecked(),
                     "aperture": w.exif_aperture_check.isChecked(),
                     "shutter": w.exif_shutter_check.isChecked(),
                 },
-                "font_family": w.font_combo.currentText(),
+                "font_family": w.font_combo.currentData(),
+                "font_system": w.font_system_combo.currentData(),
+                "font_my_custom": w.font_my_custom_combo.currentData(),
                 "font_color": w.font_color_button.color(),
                 "font_size": w.font_size_slider.value(),
                 "layout": w.layout_combo.currentData(),
@@ -249,20 +264,38 @@ class GalleryTabs(QWidget):
 
         # --- 載入浮水印設定 ---
         w.logo_enabled_switch.setChecked(w_settings.get('logo_enabled', False))
-        logo_source = w.logo_source_combo.findData(w_settings.get('w_logo_source_auto_detect', 'w_logo_source_auto_detect'))
-        w.logo_source_combo.setCurrentIndex(logo_source if logo_source > 0 else 0)
-        # w.logo_text_input.setText(w_settings.get('logo_text', ''))
-        # w.logo_text_input.setText(w_settings.get('logo_text', ''))
+        logo_source = w.logo_source_combo.findData(w_settings.get('logo_source', 'w_logo_source_auto_detect'))
+        w.logo_source_combo.setCurrentIndex(logo_source if logo_source > -1 else 0)
+
+        logo_source_app = w.logo_source_app_combo.findData(w_settings.get('logo_source_app', ''))
+        w.logo_source_app_combo.setCurrentIndex(logo_source_app if logo_source_app > -1 else -1)
+        logo_source_my_custom = w.logo_source_my_custom_combo.findData(w_settings.get('logo_source_my_custom', ''))
+        w.logo_source_app_combo.setCurrentIndex(logo_source_my_custom if logo_source_my_custom > -1 else -1)
+
         w.logo_size_slider.setValue(w_settings.get('logo_size', 30))
         w.text_enabled_switch.setChecked(w_settings.get('text_enabled', True))
-        w.text_source_combo.setCurrentIndex(w.text_source_combo.findData(w_settings.get('text_source', 'exif')))
+
+        text_source = w.text_source_combo.findData(w_settings.get('text_source', 'exif'))
+        w.text_source_combo.setCurrentIndex(text_source if text_source > -1 else 0)
+
         w.text_custom_input.setText(w_settings.get('text_custom', ''))
+        # exif
         exif = w_settings.get('exif_options', {})
         w.exif_model_check.setChecked(exif.get('model', True))
+        w.exif_f_number_check.setChecked(exif.get('f_number', True))
         w.exif_iso_check.setChecked(exif.get('iso', True))
         w.exif_aperture_check.setChecked(exif.get('aperture', True))
         w.exif_shutter_check.setChecked(exif.get('shutter', True))
         # 載入字體
+        font_family = w.font_combo.findData(w_settings.get('font_family', ''))
+        w.font_combo.setCurrentIndex(font_family if font_family > -1 else 0)
+
+        font_system = w.font_system_combo.findData(w_settings.get('font_system', ''))
+        w.font_system_combo.setCurrentIndex(font_system if font_system > -1 else -1)
+
+        font_my_custom = w.font_my_custom_combo.findData(w_settings.get('font_my_custom', ''))
+        w.font_my_custom_combo.setCurrentIndex(font_my_custom if font_my_custom > -1 else -1)
+
         w.font_color_button.setColor(w_settings.get('font_color', '#FFFFFFFF'))
         w.font_size_slider.setValue(w_settings.get('font_size', 20))
         w.layout_combo.setCurrentIndex(w.layout_combo.findData(w_settings.get('layout', 'logo_top_text_bottom')))
@@ -277,6 +310,10 @@ class GalleryTabs(QWidget):
         f.padding_top_slider.setValue(f_settings.get('padding_top', 10))
         f.padding_sides_slider.setValue(f_settings.get('padding_sides', 10))
         f.padding_bottom_slider.setValue(f_settings.get('padding_bottom', 10))
-        f.frame_style_combo.setCurrentIndex(f.frame_style_combo.findData(f_settings.get('style', 'solid_color')))
+
+        frame_style = f.frame_style_combo.findData(f_settings.get('style', 'solid_color'))
+        f.frame_style_combo.setCurrentIndex(frame_style if frame_style > -1 else 0)
+
         f.frame_blur_slider.setValue(f_settings.get('blur_radius', 20))
         f.frame_color_button.setColor(f_settings.get('color', '#FFFFFFFF'))
+
