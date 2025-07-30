@@ -4,6 +4,7 @@ import os
 
 
 class SettingsManager:
+    # TODO 將這個設定文件放到對應用戶目錄，如果讀不到文件就需要進行文件初始化
     def __init__(self, path="users_data/settings.json"):
         self.path = path
         self._data = {}

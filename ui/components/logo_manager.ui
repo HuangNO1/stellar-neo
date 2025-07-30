@@ -4,61 +4,44 @@
  <widget class="QWidget" name="LogoManager">
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>
-    <widget class="TitleLabel" name="titleLabel">
-     <property name="text">
-      <string>Logo 管理</string>
-     </property>
+    <widget class="SubtitleLabel" name="userLogoTitle">
+     <property name="text"><string>使用者上傳</string></property>
     </widget>
    </item>
    <item>
     <widget class="PrimaryPushButton" name="upload_logo_button">
-     <property name="text">
-      <string>上傳新 Logo</string>
-     </property>
+     <property name="text"><string>上傳新 Logo</string></property>
     </widget>
    </item>
    <item>
-    <widget class="ListWidget" name="logo_list_widget"/>
+    <layout class="QHBoxLayout" name="horizontalLayout">
+     <item>
+      <widget class="CheckBox" name="select_all_checkbox">
+       <property name="text"><string>全選</string></property>
+      </widget>
+     </item>
+     <item>
+      <widget class="PrimaryPushButton" name="clear_selected_button">
+       <property name="text"><string>清除選取</string></property>
+      </widget>
+     </item>
+    </layout>
+   </item>
+   <item>
+    <widget class="ListWidget" name="user_logo_list_widget"/>
+   </item>
+   <item>
+    <widget class="SubtitleLabel" name="defaultLogoTitle">
+     <property name="text"><string>應用程式預設</string></property>
+    </widget>
+   </item>
+   <item>
+    <widget class="ListWidget" name="default_logo_list_widget"/>
    </item>
   </layout>
  </widget>
  <customwidgets>
   <customwidget>
-   <class>SwitchButton</class>
-   <extends>QPushButton</extends>
-   <header>qfluentwidgets</header>
-  </customwidget>
-  <customwidget>
-   <class>BodyLabel</class>
-   <extends>QLabel</extends>
-   <header>qfluentwidgets</header>
-  </customwidget>
-  <customwidget>
-   <class>ComboBox</class>
-   <extends>QPushButton</extends>
-   <header>qfluentwidgets</header>
-  </customwidget>
-  <customwidget>
-   <class>LineEdit</class>
-   <extends>QLineEdit</extends>
-   <header>qfluentwidgets</header>
-  </customwidget>
-  <customwidget>
-   <class>Slider</class>
-   <extends>QSlider</extends>
-   <header>qfluentwidgets</header>
-  </customwidget>
-  <customwidget>
-   <class>ColorButton</class>
-   <extends>QPushButton</extends>
-   <header>ui.customs.pick_color_button</header>
-  </customwidget>
-  <customwidget>
-   <class>CheckBox</class>
-   <extends>QCheckBox</extends>
-   <header>qfluentwidgets</header>
-  </customwidget>
-     <customwidget>
    <class>ListWidget</class>
    <extends>QListWidget</extends>
    <header>qfluentwidgets</header>
@@ -69,11 +52,19 @@
    <header>qfluentwidgets</header>
   </customwidget>
   <customwidget>
-  <class>PrimaryPushButton</class>
+   <class>SubtitleLabel</class>
+   <extends>QLabel</extends>
+   <header>qfluentwidgets</header>
+  </customwidget>
+  <customwidget>
+   <class>CheckBox</class>
+   <extends>QCheckBox</extends>
+   <header>qfluentwidgets</header>
+  </customwidget>
+  <customwidget>
+   <class>PrimaryPushButton</class>
    <extends>QPushButton</extends>
    <header>qfluentwidgets</header>
   </customwidget>
  </customwidgets>
- <resources/>
- <connections/>
-</ui>
+ </ui>
