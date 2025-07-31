@@ -36,6 +36,15 @@ class GalleryView(QWidget):
         self.original_pixmap = None
         self._is_selecting_all = False  # 用於防止 '全選' 時信號循環觸發的標誌
 
+        # --- 新增：用於優化的屬性 ---
+        self.base_canvas_pixmap = None  # 快取基礎畫布 (相框+相片)
+        # 定義哪些設定變更需要完全重繪
+        self.FULL_REDRAW_KEYS = {
+            'frame': {'enabled', 'frame_radius', 'photo_radius', 'padding_top', 'padding_sides', 'padding_bottom',
+                      'style', 'blur_radius', 'color'},
+            'watermark': {'area'}  # 浮水印區域變化也需要重算佈局
+        }
+
         # 設定拖拽事件
         self.image_preview_label.setAcceptDrops(True)
         self.image_preview_label.dragEnterEvent = self.dragEnterEvent
@@ -88,7 +97,10 @@ class GalleryView(QWidget):
         self.import_button.clicked.connect(self._open_image_dialog)
         self.image_list.currentItemChanged.connect(self._on_list_item_selected)
         self.main_splitter.splitterMoved.connect(self._update_preview)
-        self.tabs.settingsChanged.connect(self._update_preview)
+        # self.tabs.settingsChanged.connect(self._update_preview)
+
+        # 連接到優化後的信號和槽
+        self.tabs.settingsChanged.connect(self._handle_settings_change)
 
         # 連接新的控制按鈕信號
         self.select_all_checkbox.stateChanged.connect(self._on_select_all_changed)
@@ -337,88 +349,153 @@ class GalleryView(QWidget):
     # vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
     # --- 以下是完全重寫的 _update_preview 方法和其輔助函式 ---
     # vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
+    def _handle_settings_change(self, changes: dict):
+        """
+        策略性更新的入口。
+        根據傳入的 `changes` 字典來決定執行何種程度的更新。
+        """
+        if not self.current_image_path:
+            return
+
+        frame_changes = changes.get('frame', {})
+        watermark_changes = changes.get('watermark', {})
+
+        # 檢查是否需要完全重繪
+        needs_full_redraw = False
+        if any(key in frame_changes for key in self.FULL_REDRAW_KEYS['frame']):
+            needs_full_redraw = True
+        if any(key in watermark_changes for key in self.FULL_REDRAW_KEYS['watermark']):
+            needs_full_redraw = True
+
+        if needs_full_redraw:
+            self._update_preview()
+            return
+
+        # 如果不需要完全重繪，檢查是否只需要更新陰影
+        if 'photo_shadow' in frame_changes:
+            self.shadow.setEnabled(frame_changes['photo_shadow'])
+            self.image_preview_label.setGraphicsEffect(self.shadow)
+            # 陰影更新後可能還需要更新浮水印，所以不在此處 return
+
+        # 如果有任何浮水印相關的變更，則只重繪浮水印
+        if watermark_changes:
+            self._redraw_watermark_only()
 
     def _update_preview(self):
         """
-        核心繪圖函數。
-        根據當前圖片、相框和浮水印設定，重新計算並繪製預覽圖。
+        執行完整的重繪流程。
+        這包括重新計算佈局、繪製相框、相片和浮水印。
+        通常在切換圖片、改變視窗大小或修改核心佈局設定時呼叫。
         """
         if not self.current_image_path or not self.original_pixmap or self.original_pixmap.isNull():
             self._clear_preview()
             return
 
-        # 0. 獲取所有設定和當前圖片的 EXIF 資料
+        # --- 第 1 部分：產生並快取基礎畫布 (相框 + 相片) ---
+        self._generate_base_canvas()
+
+        if not self.base_canvas_pixmap:
+            return
+
+        # --- 第 2 部分：在基礎畫布上繪製浮水印 ---
+        final_pixmap = self.base_canvas_pixmap.copy()
+        painter = QPainter(final_pixmap)
+        painter.setRenderHint(QPainter.RenderHint.Antialiasing)
+
         all_settings = self.tabs._get_current_settings()
-        f_settings = all_settings.get('frame', {})
         w_settings = all_settings.get('watermark', {})
         exif_data = self.image_items.get(self.current_image_path, {}).get('exif', {})
 
-        # 1. 獲取容器大小
+        # 獲取相框和相片的矩形區域 (這些是在 _generate_base_canvas 中計算的)
+        frame_rect = self.base_canvas_pixmap.rect()
+        photo_rect = self.last_photo_rect
+
+        self._draw_watermark(painter, frame_rect, photo_rect, w_settings, exif_data)
+        painter.end()
+
+        # --- 第 3 部分：更新顯示 ---
+        f_settings = all_settings.get('frame', {})
+        self.shadow.setEnabled(f_settings.get('photo_shadow', True))
+        self.image_preview_label.setGraphicsEffect(self.shadow)
+        self.image_preview_label.setPixmap(final_pixmap)
+
+    def _generate_base_canvas(self):
+        """
+        產生基礎畫布，包含相框背景和帶圓角的相片，並將結果存儲在 self.base_canvas_pixmap。
+        這是一個耗時的操作。
+        """
+        all_settings = self.tabs._get_current_settings()
+        f_settings = all_settings.get('frame', {})
+
         container_size = self.middle_panel.size()
         if container_size.width() <= 20 or container_size.height() <= 20:
+            self.base_canvas_pixmap = None
             return
 
-        # 2. 根據設定計算相框邊距 (padding)
-        # 將滑塊的百分比值轉換為實際像素
         base_padding = min(container_size.width(), container_size.height()) * 0.15
         padding_top = int(base_padding * f_settings.get('padding_top', 10) / 100)
         padding_sides = int(base_padding * f_settings.get('padding_sides', 10) / 100)
         padding_bottom = int(base_padding * f_settings.get('padding_bottom', 10) / 100)
 
-        # 如果不啟用相框，則所有邊距為零
         if not f_settings.get('enabled', True):
             padding_top = padding_sides = padding_bottom = 0
 
-        # 3. 計算圖片可用的繪製區域
         image_area_w = container_size.width() - (padding_sides * 2)
         image_area_h = container_size.height() - padding_top - padding_bottom
         if image_area_w <= 0 or image_area_h <= 0:
             self.image_preview_label.clear()
+            self.base_canvas_pixmap = None
             return
 
-        # 4. 等比例縮放原始圖片以適應可用區域
         scaled_photo = self.original_pixmap.scaled(
             QSize(int(image_area_w), int(image_area_h)),
             Qt.AspectRatioMode.KeepAspectRatio,
             Qt.TransformationMode.SmoothTransformation
         )
 
-        # 5. 計算最終畫布大小（縮放後的圖片 + 邊距）
         final_canvas_w = scaled_photo.width() + padding_sides * 2
         final_canvas_h = scaled_photo.height() + padding_top + padding_bottom
-        final_pixmap = QPixmap(QSize(final_canvas_w, final_canvas_h))
-        final_pixmap.fill(Qt.GlobalColor.transparent)  # 使用透明背景
 
-        # 6. 開始繪製
-        painter = QPainter(final_pixmap)
+        self.base_canvas_pixmap = QPixmap(QSize(final_canvas_w, final_canvas_h))
+        self.base_canvas_pixmap.fill(Qt.GlobalColor.transparent)
+
+        painter = QPainter(self.base_canvas_pixmap)
         painter.setRenderHint(QPainter.RenderHint.Antialiasing)
 
-        # 定義相框和相片的矩形區域
-        frame_rect = final_pixmap.rect()
-        photo_rect = QRect(
-            padding_sides,
-            padding_top,
-            scaled_photo.width(),
-            scaled_photo.height()
-        )
+        frame_rect = self.base_canvas_pixmap.rect()
+        photo_rect = QRect(padding_sides, padding_top, scaled_photo.width(), scaled_photo.height())
 
-        # 7. (相框功能) 繪製相框背景
+        # 儲存 photo_rect 供浮水印繪製時使用
+        self.last_photo_rect = photo_rect
+
         if f_settings.get('enabled', True):
             self._draw_frame_background(painter, frame_rect, photo_rect, f_settings)
 
-        # 8. (相框功能) 繪製帶有圓角的相片
         self._draw_photo(painter, photo_rect, scaled_photo, f_settings)
-
-        # 9. (浮水印功能) 繪製浮水印
-        self._draw_watermark(painter, frame_rect, photo_rect, w_settings, exif_data)
-
         painter.end()
 
-        # 10. (相框功能) 根據設定啟用或禁用圖片陰影
-        self.shadow.setEnabled(f_settings.get('photo_shadow', True))
-        self.image_preview_label.setGraphicsEffect(self.shadow)
+    def _redraw_watermark_only(self):
+        """
+        僅重繪浮水印。它會複用 self.base_canvas_pixmap，速度非常快。
+        """
+        if not self.base_canvas_pixmap:
+            self._update_preview()  # 如果沒有基礎畫布，先執行一次完整繪製
+            return
 
-        # 11. 顯示最終成品
+        final_pixmap = self.base_canvas_pixmap.copy()
+        painter = QPainter(final_pixmap)
+        painter.setRenderHint(QPainter.RenderHint.Antialiasing)
+
+        all_settings = self.tabs._get_current_settings()
+        w_settings = all_settings.get('watermark', {})
+        exif_data = self.image_items.get(self.current_image_path, {}).get('exif', {})
+
+        frame_rect = self.base_canvas_pixmap.rect()
+        photo_rect = self.last_photo_rect
+
+        self._draw_watermark(painter, frame_rect, photo_rect, w_settings, exif_data)
+        painter.end()
+
         self.image_preview_label.setPixmap(final_pixmap)
 
     def _draw_frame_background(self, painter: QPainter, frame_rect: QRect, photo_rect: QRect, f_settings: dict):

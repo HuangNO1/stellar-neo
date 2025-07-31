@@ -1,5 +1,7 @@
+import json
+
 from PyQt6 import uic
-from PyQt6.QtCore import pyqtSignal
+from PyQt6.QtCore import pyqtSignal, QTimer
 from PyQt6.QtWidgets import QWidget, QStackedWidget, QVBoxLayout
 from qfluentwidgets import TabBar
 from qfluentwidgets.components.widgets.tab_view import TabCloseButtonDisplayMode
@@ -12,7 +14,13 @@ from core.utils import wrap_scroll
 
 
 class GalleryTabs(QWidget):
-    settingsChanged = pyqtSignal()
+    """
+        優化後的 GalleryTabs 類別。
+        - 使用 QTimer 延遲更新，避免高頻率觸發信號。
+        - 比較設定差異，只在設定實際變更時發出信號。
+        - 發出的信號只包含已變更的設定，以供 view_gallery 進行策略性更新。
+        """
+    settingsChanged = pyqtSignal(dict)  # 信號現在會攜帶一個包含變更的字典
 
     # 接收 translator
     def __init__(self, asset_manager: AssetManager, translator: Translator, parent=None):
@@ -21,6 +29,10 @@ class GalleryTabs(QWidget):
         self.translator = translator
         self.tr = self.translator.get
         self.asset_manager = asset_manager
+
+        # --- 新增：用於優化的屬性 ---
+        self.cached_settings = {}  # 用於快取上一次的設定
+        self.update_timer = QTimer(self)  # 用於延遲更新的計時器
 
         main_layout = QVBoxLayout(self)
         main_layout.setContentsMargins(0, 0, 0, 0)
@@ -48,6 +60,14 @@ class GalleryTabs(QWidget):
         self.init_all_ui()
         self._load_settings()
         self._connect_signals()
+
+        # --- 新增：設定計時器 ---
+        self.update_timer.setSingleShot(True)
+        self.update_timer.setInterval(150)  # 150毫秒的延遲
+        self.update_timer.timeout.connect(self._emit_changes)
+
+        # 首次載入後，快取初始設定
+        self.cached_settings = self._get_current_settings()
 
 
     def addSubInterface(self, widget: QWidget, objectName: str, text: str):
@@ -200,7 +220,47 @@ class GalleryTabs(QWidget):
         }
 
         for control, signal_name in controls.items():
-            getattr(control, signal_name).connect(self._on_settings_changed)
+            # 所有控制項的信號都只觸發計時器，而不是直接處理
+            getattr(control, signal_name).connect(self._request_update)
+
+    def _request_update(self):
+        """當任何設定改變時，這個槽函數會被呼叫，它的唯一作用是啟動或重置計時器。"""
+        self.update_timer.start()
+
+    def _emit_changes(self):
+        """計時器超時後，此函數被呼叫。它會比較設定並發出包含差異的信號。"""
+        current_settings = self._get_current_settings()
+
+        # 使用 JSON 序列化來進行深層比較，簡單有效
+        if json.dumps(self.cached_settings) == json.dumps(current_settings):
+            return  # 如果設定沒有實際變化，則不執行任何操作
+
+        # 計算差異
+        changes = self._compare_settings(self.cached_settings, current_settings)
+
+        if changes:
+            self.cached_settings = current_settings  # 更新快取
+            self.settings_manager.set("gallery_settings", current_settings)  # 儲存完整設定
+            self.settingsChanged.emit(changes)  # 發出包含差異的信號
+
+    def _compare_settings(self, old_settings: dict, new_settings: dict) -> dict:
+        """
+        遞迴比較兩個字典，返回一個只包含已變更鍵值對的新字典。
+        """
+        changes = {}
+        all_keys = old_settings.keys() | new_settings.keys()
+
+        for key in all_keys:
+            old_val = old_settings.get(key)
+            new_val = new_settings.get(key)
+
+            if isinstance(new_val, dict) and isinstance(old_val, dict):
+                sub_changes = self._compare_settings(old_val, new_val)
+                if sub_changes:
+                    changes[key] = sub_changes
+            elif old_val != new_val:
+                changes[key] = new_val
+        return changes
 
     def _get_current_settings(self) -> dict:
         """收集所有 UI 控制項的當前值並返回一個字典"""
@@ -248,11 +308,11 @@ class GalleryTabs(QWidget):
         }
         return settings
 
-    def _on_settings_changed(self):
-        """ 當設定改變時，儲存設定並發出信號 """
-        settings = self._get_current_settings()
-        self.settings_manager.set("gallery_settings", settings)
-        self.settingsChanged.emit()
+    # def _on_settings_changed(self):
+    #     """ 當設定改變時，儲存設定並發出信號 """
+    #     settings = self._get_current_settings()
+    #     self.settings_manager.set("gallery_settings", settings)
+    #     self.settingsChanged.emit()
 
     def _load_settings(self):
         """從設定檔載入設定並更新 UI"""
@@ -316,4 +376,8 @@ class GalleryTabs(QWidget):
 
         f.frame_blur_slider.setValue(f_settings.get('blur_radius', 20))
         f.frame_color_button.setColor(f_settings.get('color', '#FFFFFFFF'))
+
+        # 更新快取
+        self.cached_settings = self._get_current_settings()
+
 
