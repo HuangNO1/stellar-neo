@@ -5,7 +5,7 @@ from PIL.ImageQt import ImageQt
 from PIL import Image, ImageFilter
 from PyQt6 import uic
 from PyQt6.QtCore import Qt, QSize, QRect, QPoint, QRectF
-from PyQt6.QtGui import QPixmap, QPainter, QColor, QFont, QPainterPath, QBrush
+from PyQt6.QtGui import QPixmap, QPainter, QColor, QFont, QPainterPath, QBrush, QFontMetrics
 from PyQt6.QtWidgets import QWidget, QFileDialog, QListWidgetItem, QGraphicsDropShadowEffect
 from qfluentwidgets import MessageBox
 
@@ -609,7 +609,9 @@ class GalleryView(QWidget):
                 logo_path = next((p for p in self.asset_manager.get_user_logos() if Path(p).stem == logo_key), None)
                 if logo_path:
                     logo_pixmap = QPixmap(logo_path)
-            # 'custom_text' 類型由後面的文字部分處理
+            elif w_settings.get('logo_source') == 'custom_text':
+                # 假設 UI 有 'logo_text_custom' 輸入框
+                logo_text = w_settings.get('logo_text_custom', 'Logo')
 
         # 2. 準備文字
         watermark_text = ""
@@ -630,21 +632,16 @@ class GalleryView(QWidget):
             elif text_source == 'custom':
                 watermark_text = w_settings.get('text_custom', '')
 
-        # 如果 Logo 來源是自訂文字，將其作為 logo_text
-        if logo_enabled and w_settings.get('logo_source') == 'custom_text':
-            logo_text = w_settings.get('logo_text_custom', 'Logo')  # 假設 UI 有 'logo_text_custom'
-
         # 3. 設定字體和顏色
         font_size_ratio = w_settings.get('font_size', 20) / 100.0
         base_font_size = max(8, int(min(photo_rect.width(), photo_rect.height()) * 0.04))
         font_size = int(base_font_size * font_size_ratio)
 
-        font_family_name = "Arial"  # 預設字體
+        font_family_name = "Arial"
         font_source = w_settings.get('font_family', 'system')
         if font_source == 'system':
             font_family_name = w_settings.get('font_system', 'Arial')
         elif font_source == 'my_custom':
-            # 這裡需要從 asset_manager 獲取真實的字體家族名稱
             font_key = w_settings.get('font_my_custom', '')
             user_fonts = self.asset_manager.get_user_fonts()
             for path, families in user_fonts.items():
@@ -659,36 +656,37 @@ class GalleryView(QWidget):
         # 4. 計算尺寸和位置
         fm = painter.fontMetrics()
         text_rect = fm.boundingRect(watermark_text)
-        logo_text_rect = fm.boundingRect(logo_text)
 
-        # 根據 Logo 大小設定調整 Logo 尺寸
-        logo_h = int(font_size * 1.2)
+        # 準備 logo 文字的字體和度量
+        logo_font = QFont(font_family_name, int(font_size * 1.2))
+        logo_fm = QFontMetrics(logo_font)
+        logo_text_rect = logo_fm.boundingRect(logo_text)
+
         if logo_pixmap:
-            logo_pixmap = logo_pixmap.scaledToHeight(int(logo_h * (w_settings.get('logo_size', 30) / 50.0)),
-                                                     Qt.TransformationMode.SmoothTransformation)
+            logo_h_scaled = int(logo_font.pointSizeF() * 1.2 * (w_settings.get('logo_size', 30) / 50.0))
+            logo_pixmap = logo_pixmap.scaledToHeight(logo_h_scaled, Qt.TransformationMode.SmoothTransformation)
 
-        # 決定浮水印區塊的總寬高
         layout = w_settings.get('layout', 'logo_left')
-        gap = int(font_size * 0.3)  # Logo 和文字的間距
-        total_w, total_h = 0, 0
+        gap = int(font_size * 0.3)
 
         logo_w = logo_pixmap.width() if logo_pixmap else logo_text_rect.width()
         logo_h = logo_pixmap.height() if logo_pixmap else logo_text_rect.height()
         text_w = text_rect.width()
         text_h = text_rect.height()
 
-        if layout in ['logo_top', 'logo_bottom']:  # 垂直排列
+        total_w, total_h = 0, 0
+        if layout in ['logo_top', 'logo_bottom']:
             total_w = max(logo_w, text_w)
-            total_h = logo_h + text_h + gap if logo_enabled and text_enabled else logo_h or text_h
-        else:  # 水平排列 (logo_left)
-            total_w = logo_w + text_w + gap if logo_enabled and text_enabled else logo_w or text_w
+            total_h = (logo_h + text_h + gap) if (logo_enabled and text_enabled) else (logo_h or text_h)
+        else:
+            total_w = (logo_w + text_w + gap) if (logo_enabled and text_enabled) else (logo_w or text_w)
             total_h = max(logo_h, text_h)
 
         # 5. 決定浮水印的錨點 (左上角)
         area = w_settings.get('area', 'in_photo')
         align = w_settings.get('align', 'bottom_right')
         target_rect = photo_rect if area == 'in_photo' else frame_rect
-        padding = int(font_size * 0.5)  # 浮水印到邊界的距離
+        padding = int(font_size * 0.5)
 
         x, y = 0, 0
         if 'left' in align: x = target_rect.left() + padding
@@ -697,41 +695,45 @@ class GalleryView(QWidget):
         if 'top' in align: y = target_rect.top() + padding
         if 'middle' in align: y = target_rect.center().y() - total_h / 2
         if 'bottom' in align: y = target_rect.bottom() - total_h - padding
-
-        # 如果在相框內，但相片上方，需要特別處理
-        if area == 'in_frame' and 'top' in align:
-            y = padding
-        if area == 'in_frame' and 'bottom' in align:
-            y = photo_rect.bottom() + padding
+        if area == 'in_frame' and 'top' in align: y = padding
+        if area == 'in_frame' and 'bottom' in align: y = photo_rect.bottom() + padding
 
         # 6. 繪製 Logo 和文字
         painter.save()
-        painter.translate(x, y)  # 移動畫布原點到錨點
+        painter.translate(x, y)
 
         logo_x, logo_y, text_x, text_y = 0, 0, 0, 0
 
-        # 根據佈局計算內部相對位置
+        # 根據佈局計算內部相對位置 (y 座標代表物件的頂部)
         if layout == 'logo_top':
             logo_x = (total_w - logo_w) / 2
+            logo_y = 0
             text_x = (total_w - text_w) / 2
             text_y = logo_h + gap
         elif layout == 'logo_bottom':
+            text_x = (total_w - text_w) / 2
+            text_y = 0
             logo_x = (total_w - logo_w) / 2
             logo_y = text_h + gap
-            text_x = (total_w - text_w) / 2
         else:  # logo_left
-            text_x = logo_w + gap
+            logo_x = 0
             logo_y = (total_h - logo_h) / 2
-            text_y = (total_h - text_h) / 2 + fm.ascent()  # 對齊文字基線
+            text_x = logo_w + gap
+            text_y = (total_h - text_h) / 2
 
-        # 繪製
+        # --- 繪製 (核心修正) ---
+        # 繪製時，我們需要將頂部 y 座標轉換為基線 y 座標以供 drawText 使用
         if logo_enabled:
             if logo_pixmap:
                 painter.drawPixmap(int(logo_x), int(logo_y), logo_pixmap)
             elif logo_text:
-                painter.drawText(QPoint(int(logo_x), int(logo_y) + fm.ascent()), logo_text)
+                painter.setFont(logo_font)
+                painter.drawText(QPoint(int(logo_x), int(logo_y + logo_fm.ascent())), logo_text)
+                painter.setFont(font)
 
         if text_enabled:
-            painter.drawText(QPoint(int(text_x), int(text_y)), watermark_text)
+            # 修正：為 watermark_text 的 y 座標加上 ascent，使其與 logo_text 處理方式一致
+            painter.drawText(QPoint(int(text_x), int(text_y + fm.ascent())), watermark_text)
 
         painter.restore()
+
