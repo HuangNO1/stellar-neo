@@ -117,8 +117,10 @@ class GalleryTabs(QWidget):
         # 啟用相框開關
         f.frame_enabled_switch.setOnText(self.tr("enable_frame", "Enable Frame"))
         f.frame_enabled_switch.setOffText(self.tr("disable_frame", "Disable Frame"))
+        f.frame_shadow_switch.setOnText(self.tr("enable_frame_shadow", "Enable Frame Shadow"))
+        f.frame_shadow_switch.setOffText(self.tr("disable_frame_shadow", "Disable Frame Shadow"))
         f.photo_shadow_switch.setOnText(self.tr("enable_photo_shadow", "Enable Photo Shadow"))
-        f.photo_shadow_switch.setOffText(self.tr("disable_enable_photo_shadow", "Disable Photo Shadow"))
+        f.photo_shadow_switch.setOffText(self.tr("disable_photo_shadow", "Disable Photo Shadow"))
         f.frame_radius_label.setText(self.tr("frame_radius", "Frame Radius"))
         f.photo_radius_label.setText(self.tr("photo_radius", "Photo Radius"))
         f.padding_top_label.setText(self.tr("padding_top", "Top Padding"))
@@ -208,6 +210,7 @@ class GalleryTabs(QWidget):
 
             # 相框 Tab
             f.frame_enabled_switch: 'checkedChanged',
+            f.frame_shadow_switch: 'checkedChanged',
             f.photo_shadow_switch: 'checkedChanged',
             f.frame_radius_slider: 'valueChanged',
             f.photo_radius_slider: 'valueChanged',
@@ -295,6 +298,7 @@ class GalleryTabs(QWidget):
             },
             "frame": {
                 "enabled": f.frame_enabled_switch.isChecked(),
+                "frame_shadow": f.frame_shadow_switch.isChecked(),
                 "photo_shadow": f.photo_shadow_switch.isChecked(),
                 "frame_radius": f.frame_radius_slider.value(),
                 "photo_radius": f.photo_radius_slider.value(),
@@ -364,6 +368,7 @@ class GalleryTabs(QWidget):
 
         # --- 載入相框設定 ---
         f.frame_enabled_switch.setChecked(f_settings.get('enabled', True))
+        f.frame_shadow_switch.setChecked(f_settings.get('frame_shadow', True))
         f.photo_shadow_switch.setChecked(f_settings.get('photo_shadow', True))
         f.frame_radius_slider.setValue(f_settings.get('frame_radius', 5))
         f.photo_radius_slider.setValue(f_settings.get('photo_radius', 3))

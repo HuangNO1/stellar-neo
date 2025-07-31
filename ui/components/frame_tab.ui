@@ -15,12 +15,19 @@
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <property name="sizeConstraint">
-    <enum>QLayout::SetDefaultConstraint</enum>
+    <enum>QLayout::SizeConstraint::SetDefaultConstraint</enum>
    </property>
    <item>
     <widget class="SwitchButton" name="frame_enabled_switch">
      <property name="text">
       <string>啟用相框</string>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="SwitchButton" name="frame_shadow_switch">
+     <property name="text">
+      <string>相框懸浮陰影</string>
      </property>
     </widget>
    </item>
@@ -109,18 +116,7 @@
     </widget>
    </item>
    <item>
-    <widget class="ComboBox" name="frame_style_combo">
-     <item>
-      <property name="text">
-       <string>純色背景</string>
-      </property>
-     </item>
-     <item>
-      <property name="text">
-       <string>模糊延伸</string>
-      </property>
-     </item>
-    </widget>
+    <widget class="ComboBox" name="frame_style_combo"/>
    </item>
    <item>
     <widget class="BodyLabel" name="frame_blur_label">

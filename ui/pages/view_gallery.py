@@ -39,10 +39,12 @@ class GalleryView(QWidget):
         # --- 新增：用於優化的屬性 ---
         self.base_canvas_pixmap = None  # 快取基礎畫布 (相框+相片)
         # 定義哪些設定變更需要完全重繪
+        # photo_shadow 需要重繪畫布內容，因此加入
+        # photo_shadow 需要重繪畫布內容，因此加入
         self.FULL_REDRAW_KEYS = {
             'frame': {'enabled', 'frame_radius', 'photo_radius', 'padding_top', 'padding_sides', 'padding_bottom',
-                      'style', 'blur_radius', 'color'},
-            'watermark': {'area'}  # 浮水印區域變化也需要重算佈局
+                      'style', 'blur_radius', 'color', 'photo_shadow'},
+            'watermark': {'area'}
         }
 
         # 設定拖拽事件
@@ -63,12 +65,13 @@ class GalleryView(QWidget):
 
         # --- 新增：為圖片標籤建立一個陰影效果物件 ---
         # 我們將根據設定來啟用或禁用它
-        self.shadow = QGraphicsDropShadowEffect(self)
-        self.shadow.setBlurRadius(30)
-        self.shadow.setColor(QColor(0, 0, 0, 80))
-        self.shadow.setOffset(0, 0)
-        self.image_preview_label.setGraphicsEffect(self.shadow)
-        self.shadow.setEnabled(False)  # 預設關閉
+        # 這個效果作用於整個 QLabel，實現相框的外部陰影
+        self.frame_shadow_effect = QGraphicsDropShadowEffect(self)
+        self.frame_shadow_effect.setBlurRadius(30)
+        self.frame_shadow_effect.setColor(QColor(0, 0, 0, 80))
+        self.frame_shadow_effect.setOffset(0, 0)
+        self.image_preview_label.setGraphicsEffect(self.frame_shadow_effect)
+        self.frame_shadow_effect.setEnabled(False)  # 預設關閉
 
         self._translate_ui()  # 翻譯此視圖的 UI
         self._connect_signals()
@@ -372,9 +375,9 @@ class GalleryView(QWidget):
             return
 
         # 如果不需要完全重繪，檢查是否只需要更新陰影
-        if 'photo_shadow' in frame_changes:
-            self.shadow.setEnabled(frame_changes['photo_shadow'])
-            self.image_preview_label.setGraphicsEffect(self.shadow)
+        # --- 修改：單獨處理相框陰影，不觸發重繪，效能最佳 ---
+        if 'frame_shadow' in frame_changes:
+            self.frame_shadow_effect.setEnabled(frame_changes['frame_shadow'])
             # 陰影更新後可能還需要更新浮水印，所以不在此處 return
 
         # 如果有任何浮水印相關的變更，則只重繪浮水印
@@ -415,8 +418,7 @@ class GalleryView(QWidget):
 
         # --- 第 3 部分：更新顯示 ---
         f_settings = all_settings.get('frame', {})
-        self.shadow.setEnabled(f_settings.get('photo_shadow', True))
-        self.image_preview_label.setGraphicsEffect(self.shadow)
+        self.frame_shadow_effect.setEnabled(f_settings.get('frame_shadow', False))
         self.image_preview_label.setPixmap(final_pixmap)
 
     def _generate_base_canvas(self):
@@ -471,6 +473,10 @@ class GalleryView(QWidget):
         if f_settings.get('enabled', True):
             self._draw_frame_background(painter, frame_rect, photo_rect, f_settings)
 
+        # --- 新增：在繪製相片前，先繪製相片陰影 ---
+        if f_settings.get('photo_shadow', True):
+            self._draw_photo_shadow(painter, photo_rect, f_settings)
+
         self._draw_photo(painter, photo_rect, scaled_photo, f_settings)
         painter.end()
 
@@ -497,6 +503,30 @@ class GalleryView(QWidget):
         painter.end()
 
         self.image_preview_label.setPixmap(final_pixmap)
+
+    # --- 新增：繪製相片陰影的輔助函式 ---
+    def _draw_photo_shadow(self, painter: QPainter, photo_rect: QRect, f_settings: dict):
+            """
+            使用 QPainter 手動繪製相片在相框上的內部陰影。
+            """
+            painter.save()
+            radius = f_settings.get('photo_radius', 3) / 100.0 * min(photo_rect.width(), photo_rect.height()) / 2
+
+            # 繪製多個半透明圖層來疊加出柔和的陰影
+            # 這裡我們從一個較大的偏移和較淡的顏色開始
+            for i in range(5, 0, -1):
+                shadow_color = QColor(0, 0, 0, 15 + i * 4)  # 調整透明度曲線
+                painter.setPen(Qt.PenStyle.NoPen)
+                painter.setBrush(shadow_color)
+
+                # 偏移量從大到小，產生模糊效果
+                shadow_draw_rect = photo_rect.translated(i, i)
+
+                path = QPainterPath()
+                path.addRoundedRect(QRectF(shadow_draw_rect), radius, radius)
+                painter.drawPath(path)
+
+            painter.restore()
 
     def _draw_frame_background(self, painter: QPainter, frame_rect: QRect, photo_rect: QRect, f_settings: dict):
         """輔助函式：繪製相框背景（純色或模糊延伸）"""
