@@ -20,7 +20,7 @@ from ui.customs.gallery_tabs import GalleryTabs
 
 
 class GalleryView(QWidget):
-    # TODO 如果文件名過長 需要考慮c
+    # TODO 如果文件名過長 需要考慮
     def __init__(self, asset_manager: AssetManager, translator: Translator, parent=None):
         super().__init__(parent)
         uic.loadUi("ui/components/gallery.ui", self)
@@ -104,9 +104,7 @@ class GalleryView(QWidget):
         self.image_preview_label.setGraphicsEffect(self.frame_shadow_effect)
 
         # 設定拖拽事件
-        self.image_preview_label.setAcceptDrops(True)
-        self.image_preview_label.dragEnterEvent = self.dragEnterEvent
-        self.image_preview_label.dropEvent = self.dropEvent
+        self.setAcceptDrops(True) # <--- 在主元件上啟用拖放
 
         # 加入右側的設定 Tabs
         # 將 translator 傳遞給子元件
@@ -753,6 +751,7 @@ class GalleryView(QWidget):
         if logo_enabled:
             if logo_pixmap and not logo_pixmap.isNull():
                 self.logo_item.setPixmap(logo_pixmap)
+                self.logo_item.setTransformationMode(Qt.TransformationMode.SmoothTransformation)
                 self.logo_item.setPos(x + logo_x_rel, y + logo_y_rel)
                 self.logo_item.show()
             elif logo_text:
