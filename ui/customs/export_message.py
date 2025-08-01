@@ -36,15 +36,19 @@ class ExportMessageBox(MessageBoxBase):
         self.cancelButton.setText(self.tr('cancel', 'Cancel'))
         self.cancelButton.clicked.connect(self._on_cancel_export)
 
-    def setCurrentProgress(self, current):
+    def setCurrentProgress(self, current, text: str):
         self.current = current
         self.progressBar.setValue(current)
-        self.progressLabel.setText(f'{current} / {self.total}')
+        self.progressLabel.setText(text)
 
     def setExportError(self, error):
         self.progressBar.error()
         self.titleLabel.setText(f'{self.tr('export_error', 'Export Error')}: {error}')
         self.exportError.emit()
+
+    def setExportCompleted(self):
+        self.setCurrentProgress(self.total, self.tr('export_completed', 'Export Completed'))
+
 
     def _on_cancel_export(self):
         self.progressBar.pause()

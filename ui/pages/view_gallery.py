@@ -408,8 +408,7 @@ class GalleryView(QWidget):
                 break
 
             # 更新進度條顯示的文字
-            export_dialog.setCurrentProgress(i)
-            export_dialog.progressLabel.setText(f"{i} / {total_count} - {os.path.basename(path)}")
+            export_dialog.setCurrentProgress(i, f"{i} / {total_count} - {os.path.basename(path)}")
 
             try:
                 # 核心：使用離屏渲染方法生成最終圖片
@@ -436,8 +435,7 @@ class GalleryView(QWidget):
 
         # 7. 導出結束
         if not self.is_export_cancelled:
-            export_dialog.setCurrentProgress(total_count)
-            export_dialog.titleLabel.setText(self.tr('export_completed', 'Export Completed'))
+            export_dialog.setExportCompleted()
             QTimer.singleShot(1500, export_dialog.close)  # 顯示完成1.5秒後關閉
         else:
             export_dialog.close()
