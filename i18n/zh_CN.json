@@ -82,6 +82,8 @@
   "confirm_clear_selected_body": "您确定要清除选中的 {count} 张图片吗？",
   "gallery_import_button": "导入图片",
   "gallery_export_button": "导出选取的图片",
+  "export_no_selection_title": "未选择图片",
+  "export_no_selection_content": "请选择要导出的图片。",
   "exporting": "导出中",
   "cancel_export": "取消导出",
   "export_error": "导出异常",

@@ -310,12 +310,6 @@ class GalleryTabs(QWidget):
         }
         return settings
 
-    # def _on_settings_changed(self):
-    #     """ 當設定改變時，儲存設定並發出信號 """
-    #     settings = self._get_current_settings()
-    #     self.settings_manager.set("gallery_settings", settings)
-    #     self.settingsChanged.emit()
-
     def _load_settings(self):
         """從設定檔載入設定並更新 UI"""
         settings = self.settings_manager.get("gallery_settings")

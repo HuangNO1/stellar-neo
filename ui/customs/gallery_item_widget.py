@@ -2,10 +2,10 @@ import os
 
 from PyQt6.QtCore import Qt, pyqtSignal, QSize
 from PyQt6.QtWidgets import QWidget, QHBoxLayout, QLabel
-from qfluentwidgets import CheckBox, BodyLabel, ToolButton, FluentIcon
+from qfluentwidgets import CheckBox, BodyLabel, ToolButton, FluentIcon, IconWidget
 
 from core.translator import Translator
-from core.utils import load_svg_as_pixmap
+from ui.customs.custom_icon import MyFluentIcon
 
 
 class GalleryItemWidget(QWidget):
@@ -22,20 +22,15 @@ class GalleryItemWidget(QWidget):
         self.checkbox = CheckBox(self)
         self.filename_label = BodyLabel(os.path.basename(path), self)
         self.filename_label.setMinimumWidth(100)
-        self.warning_icon_label = QLabel(self)
-        self.warning_icon_label.setFixedSize(16, 16)
-        self.warning_icon_label.setVisible(False)
+        self.warning_icon_widget = IconWidget(MyFluentIcon.WARNING, parent=self)
+        self.warning_icon_widget.setFixedSize(16, 16)
 
         if not has_exif:
-            icon_size = QSize(16, 16)
-            warning_pixmap = load_svg_as_pixmap("assets/icons/base/warning.svg", icon_size)
-            if not warning_pixmap.isNull():
-                self.warning_icon_label.setPixmap(warning_pixmap)
-
-            # 使用 translator 更新 ToolTip
             tooltip_text = self.tr("exif_warning_tooltip", "Cannot read EXIF")
-            self.warning_icon_label.setToolTip(tooltip_text)
-            self.warning_icon_label.setVisible(True)
+            self.warning_icon_widget.setToolTip(tooltip_text)
+            self.warning_icon_widget.setVisible(True)
+        else:
+            self.warning_icon_widget.setVisible(False)
 
         self.delete_button = ToolButton(self)
         self.delete_button.setIcon(FluentIcon.DELETE)
@@ -49,7 +44,7 @@ class GalleryItemWidget(QWidget):
         layout.setSpacing(8)
         layout.addWidget(self.checkbox)
         layout.addWidget(self.filename_label, 1)
-        layout.addWidget(self.warning_icon_label)
+        layout.addWidget(self.warning_icon_widget)
         layout.addWidget(self.delete_button)
 
         self.delete_button.clicked.connect(self._on_delete_clicked)

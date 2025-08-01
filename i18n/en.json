@@ -82,6 +82,8 @@
   "confirm_clear_selected_body": "Are you sure you want to clear the {count} selected images?",
   "gallery_import_button": "Import Images",
   "gallery_export_button": "Export Selected Images",
+  "export_no_selection_title": "No Images Selected",
+  "export_no_selection_content": "Please select images to export.",
   "exporting": "Exporting",
   "cancel_export": "Cancel Export",
   "export_error": "Export Error",
