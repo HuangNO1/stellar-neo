@@ -85,6 +85,7 @@
   "export_no_selection_title": "未选择图片",
   "export_no_selection_content": "请选择要导出的图片。",
   "exporting": "导出中",
+  "export_completed": "导出完成",
   "cancel_export": "取消导出",
   "export_error": "导出异常",
   "gallery_select_all": "全选",

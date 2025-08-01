@@ -85,6 +85,7 @@
   "export_no_selection_title": "No Images Selected",
   "export_no_selection_content": "Please select images to export.",
   "exporting": "Exporting",
+  "export_completed": "Export Completed",
   "cancel_export": "Cancel Export",
   "export_error": "Export Error",
   "gallery_select_all": "Select All",
