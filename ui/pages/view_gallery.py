@@ -22,6 +22,15 @@ from ui.customs.export_message import ExportMessageBox
 
 
 class GalleryView(QWidget):
+    FULL_REDRAW_KEYS = {
+        'frame': [
+            'enabled', 'padding_top', 'padding_sides', 'padding_bottom',
+            'style', 'frame_radius', 'photo_radius', 'blur_radius'
+        ],
+        'watermark': [
+            'layout', 'area', 'align', 'font_size'
+        ]
+    }
     # TODO 如果文件名過長 需要考慮
     def __init__(self, asset_manager: AssetManager, translator: Translator, parent=None):
         super().__init__(parent)
@@ -47,6 +56,9 @@ class GalleryView(QWidget):
 
         # --- 新增：用於快取的屬性 ---
         self.blur_cache = {}
+        # 用於快取上次計算的佈局矩形，避免在局部更新時重新計算
+        self.last_frame_rect = None
+        self.last_photo_rect = None
 
         # --- QGraphicsView 核心設定 ---
         self.scene = QGraphicsScene(self)
@@ -777,16 +789,46 @@ class GalleryView(QWidget):
             self.blur_cache.clear() # 換了新圖，清除模糊快取
             self._update_display()
 
-    # --- 繪圖與更新 ---
-
+    # vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
     # --- 核心繪圖與更新 ---
     # vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
-    # --- 以下是完全重寫的 _update_preview 方法和其輔助函式 ---
-    # vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
+
+    def _update_frame_shadow(self, enabled: bool):
+        """僅更新相框陰影的啟用狀態"""
+        self.frame_shadow_effect.setEnabled(enabled)
+
+    def _update_photo_shadow(self, enabled: bool):
+        """僅更新照片陰影的啟用狀態"""
+        f_settings = self.tabs._get_current_settings().get('frame', {})
+        # 照片陰影也依賴於相框是否啟用
+        self.photo_shadow_effect.setEnabled(enabled and f_settings.get('enabled', True))
+
+    def _update_frame_color(self, color_hex: str):
+        """僅更新相框顏色（僅在純色模式下有效）"""
+        f_settings = self.tabs._get_current_settings().get('frame', {})
+        if f_settings.get('style') == 'solid_color':
+            self.frame_item.setBrush(QBrush(QColor(color_hex)))
+
+    def _redraw_watermark(self):
+        """
+        僅重繪浮水印，而不重新計算整個場景佈局。
+        它會使用快取的 `last_frame_rect` 和 `last_photo_rect`。
+        """
+        if not self.last_frame_rect or not self.last_photo_rect or not self.current_image_path:
+            # 如果沒有快取數據，執行一次完整更新來生成它
+            self._update_display()
+            return
+
+        all_settings = self.tabs._get_current_settings()
+        w_settings = all_settings.get('watermark', {})
+        exif_data = self.image_items.get(self.current_image_path, {}).get('exif', {})
+        self._update_watermark(self.last_frame_rect, self.last_photo_rect, w_settings, exif_data)
+
     def _handle_settings_change(self, changes: dict):
         """
-        策略性更新的入口。
-        根據傳入的 `changes` 字典來決定執行何種程度的更新。
+        處理設定變更的智慧型插槽。
+        - 優先檢查是否需要完整重繪。
+        - 若否，則根據變更內容執行對應的局部更新函式。
         """
         if not self.current_image_path:
             return
@@ -794,34 +836,32 @@ class GalleryView(QWidget):
         frame_changes = changes.get('frame', {})
         watermark_changes = changes.get('watermark', {})
 
-        # 檢查是否需要完全重繪
-        needs_full_redraw = False
-        # TODO FULL_REDRAW_KEYS 是什麼
-        if any(key in frame_changes for key in self.FULL_REDRAW_KEYS['frame']):
-            needs_full_redraw = True
-        if any(key in watermark_changes for key in self.FULL_REDRAW_KEYS['watermark']):
-            needs_full_redraw = True
+        # 1. 檢查是否觸發了任何需要完整重繪的設定
+        if any(key in frame_changes for key in self.FULL_REDRAW_KEYS['frame']) or \
+                any(key in watermark_changes for key in self.FULL_REDRAW_KEYS['watermark']):
+            self._update_display()
+            return  # 執行完完整重繪後，直接返回
 
-        if needs_full_redraw:
-            self._update_preview()
-            return
+        # 2. 若未觸發完整重繪，則處理局部、輕量的更新
+        needs_watermark_redraw = False
 
-        # 如果不需要完全重繪，檢查是否只需要更新陰影
-        # --- 修改：單獨處理相框陰影，不觸發重繪，效能最佳 ---
+        # --- 處理相框的局部變更 ---
         if 'frame_shadow' in frame_changes:
-            self.frame_shadow_effect.setEnabled(frame_changes['frame_shadow'])
-            # 陰影更新後可能還需要更新浮水印，所以不在此處 return
+            self._update_frame_shadow(frame_changes['frame_shadow'])
 
-        # 如果有任何浮水印相關的變更，則只重繪浮水印
+        if 'photo_shadow' in frame_changes:
+            self._update_photo_shadow(frame_changes['photo_shadow'])
+
+        if 'color' in frame_changes:
+            self._update_frame_color(frame_changes['color'])
+
+        # --- 處理浮水印的局部變更 ---
+        # 任何未觸發完整重繪的浮水印變更，都只需要重繪浮水印本身
         if watermark_changes:
-            self._redraw_watermark_only()
+            needs_watermark_redraw = True
 
-    def _handle_settings_change(self, changes: dict):
-        """此方法不能刪"""
-        if not self.current_image_path:
-            return
-        # 直接調用主更新函數，因為更新現在是增量的，效能很高。
-        self._update_display()
+        if needs_watermark_redraw:
+            self._redraw_watermark()
 
     def _update_display(self):
         """
@@ -887,6 +927,9 @@ class GalleryView(QWidget):
 
         frame_rect = QRectF(0, 0, frame_w, frame_h)
         photo_rect = QRectF(padding_sides, padding_top, scaled_photo.width(), scaled_photo.height())
+
+        self.last_frame_rect = frame_rect
+        self.last_photo_rect = photo_rect
 
         # 2. 更新各個圖形物件
         self._update_frame(frame_rect, photo_rect, f_settings)
