@@ -8,7 +8,7 @@ from qfluentwidgets.components.widgets.tab_view import TabCloseButtonDisplayMode
 
 from core.asset_manager import AssetManager
 from core.settings_manager import SettingsManager
-from core.translator import Translator  # 導入您的 Translator
+from core.translator import Translator
 from core.utils import wrap_scroll
 
 
@@ -19,7 +19,7 @@ class GalleryTabs(QWidget):
         - 使用 QTimer 延遲更新，避免高頻率觸發信號。
         - 比較設定差異，只在設定實際變更時發出信號。
         - 發出的信號只包含已變更的設定，以供 view_gallery 進行策略性更新。
-        """
+    """
     settingsChanged = pyqtSignal(dict)  # 信號現在會攜帶一個包含變更的字典
 
     # 接收 translator
@@ -146,8 +146,6 @@ class GalleryTabs(QWidget):
 
     def _populate_all_options(self):
         """ 初始化 ComboBox 的選項 """
-        # TODO 注意當選擇浮水印在相框上時，怎麼處理，
-        #  TODO 顯示LOGO且顯示文字才能有 layout_combo 顯示
         w = self.watermarkInterface
         f = self.frameInterface
         # 1. 獲取字體選項並填充

@@ -146,6 +146,9 @@ class GalleryView(QWidget):
         self.select_all_checkbox.stateChanged.connect(self._on_select_all_changed)
         self.clear_selected_button.clicked.connect(self._on_clear_selected_clicked)
 
+        # 連接 匯出按鈕 匯出圖片
+        self.export_button.clicked.connect(self._on_export_button_clicked)
+
     # --- 核心功能方法 ---
 
     def _add_images(self, paths: list):
@@ -330,6 +333,10 @@ class GalleryView(QWidget):
                     self._update_display()
 
             self._update_select_all_checkbox_state()
+
+    def _on_export_button_clicked(self):
+        """批量導出匯出圖片"""
+        pass
 
     def _clear_preview(self):
         """清空預覽，隱藏所有物件並顯示提示文字"""
