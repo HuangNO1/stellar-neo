@@ -133,21 +133,21 @@
         <number>0</number>
        </property>
        <item>
-        <widget class="BodyLabel" name="image_preview_label">
+        <widget class="QGraphicsView" name="image_preview_label">
          <property name="minimumSize">
           <size>
            <width>500</width>
            <height>0</height>
           </size>
          </property>
-         <property name="text">
-          <string>拖拽圖片到此處或點擊左側按鈕導入</string>
-         </property>
-         <property name="scaledContents">
-          <bool>true</bool>
-         </property>
          <property name="alignment">
           <set>Qt::AlignmentFlag::AlignCenter</set>
+         </property>
+         <property name="text" stdset="0">
+          <string/>
+         </property>
+         <property name="scaledContents" stdset="0">
+          <bool>true</bool>
          </property>
         </widget>
        </item>
@@ -185,11 +185,6 @@
   <customwidget>
    <class>PushButton</class>
    <extends>QPushButton</extends>
-   <header>qfluentwidgets</header>
-  </customwidget>
-  <customwidget>
-   <class>BodyLabel</class>
-   <extends>QLabel</extends>
    <header>qfluentwidgets</header>
   </customwidget>
  </customwidgets>

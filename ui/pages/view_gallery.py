@@ -4,9 +4,10 @@ from pathlib import Path
 from PIL.ImageQt import ImageQt
 from PIL import Image, ImageFilter
 from PyQt6 import uic
-from PyQt6.QtCore import Qt, QSize, QRect, QPoint, QRectF
-from PyQt6.QtGui import QPixmap, QPainter, QColor, QFont, QPainterPath, QBrush, QFontMetrics
-from PyQt6.QtWidgets import QWidget, QFileDialog, QListWidgetItem, QGraphicsDropShadowEffect
+from PyQt6.QtCore import Qt, QSize, QRect, QPoint, QRectF, QTimer
+from PyQt6.QtGui import QPixmap, QPainter, QColor, QFont, QPainterPath, QBrush, QFontMetrics, QPen
+from PyQt6.QtWidgets import QWidget, QFileDialog, QListWidgetItem, QGraphicsDropShadowEffect, QGraphicsScene, \
+    QGraphicsView, QGraphicsPathItem, QGraphicsPixmapItem, QGraphicsSimpleTextItem
 from qfluentwidgets import MessageBox
 
 from core.asset_manager import AssetManager
@@ -22,7 +23,6 @@ class GalleryView(QWidget):
     # TODO 如果文件名過長 需要考慮c
     def __init__(self, asset_manager: AssetManager, translator: Translator, parent=None):
         super().__init__(parent)
-        # 修正 uic 載入路徑
         uic.loadUi("ui/components/gallery.ui", self)
 
         self.settings_manager = SettingsManager()
@@ -31,21 +31,77 @@ class GalleryView(QWidget):
         self.translator = translator
         self.tr = self.translator.get
 
-        self.image_items = {}  # 用於存儲圖片路徑和對應的 list_item
+        self.image_items = {}
+        self.original_pil_img = None  # 新增此屬性
         self.current_image_path = None
         self.original_pixmap = None
-        self._is_selecting_all = False  # 用於防止 '全選' 時信號循環觸發的標誌
+        self._is_selecting_all = False
 
-        # --- 新增：用於優化的屬性 ---
-        self.base_canvas_pixmap = None  # 快取基礎畫布 (相框+相片)
-        # 定義哪些設定變更需要完全重繪
-        # photo_shadow 需要重繪畫布內容，因此加入
-        # photo_shadow 需要重繪畫布內容，因此加入
-        self.FULL_REDRAW_KEYS = {
-            'frame': {'enabled', 'frame_radius', 'photo_radius', 'padding_top', 'padding_sides', 'padding_bottom',
-                      'style', 'blur_radius', 'color', 'photo_shadow'},
-            'watermark': {'area'}
-        }
+        # 新增一個用於防抖的計時器
+        self.resize_timer = QTimer(self)
+        self.resize_timer.setSingleShot(True)
+        self.resize_timer.setInterval(100)  # 100毫秒延遲，可根據體驗調整
+        self.resize_timer.timeout.connect(self._update_display)
+
+        # --- 新增：用於快取的屬性 ---
+        self.blur_cache = {}
+
+        # --- QGraphicsView 核心設定 ---
+        self.scene = QGraphicsScene(self)
+        self.image_preview_label.setScene(self.scene)  # 在 .ui 中，這現在是 QGraphicsView
+        # 設定 View 的渲染提示和行為，以獲得最佳品質和體驗
+        self.image_preview_label.setRenderHints(
+            QPainter.RenderHint.Antialiasing |
+            QPainter.RenderHint.TextAntialiasing |
+            QPainter.RenderHint.SmoothPixmapTransform
+        )
+        self.image_preview_label.setDragMode(QGraphicsView.DragMode.ScrollHandDrag)
+        self.image_preview_label.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+        self.image_preview_label.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+        self.image_preview_label.setTransformationAnchor(QGraphicsView.ViewportAnchor.AnchorUnderMouse)
+        self.image_preview_label.setResizeAnchor(QGraphicsView.ViewportAnchor.AnchorViewCenter)
+        # 設定透明背景，讓 frame_shadow 生效
+        self.image_preview_label.setStyleSheet("background: transparent; border: none;")
+
+
+        # --- 新增：場景中的圖形物件 (Graphics Items) ---
+        # 我們將創建一次，然後只更新它們的屬性
+        self.frame_item = QGraphicsPathItem()
+        self.photo_item = QGraphicsPathItem()
+        self.logo_item = QGraphicsPixmapItem()
+        self.logo_text_item = QGraphicsSimpleTextItem()
+        self.watermark_text_item = QGraphicsSimpleTextItem()
+        self.prompt_item = QGraphicsSimpleTextItem() # 用於顯示提示文字
+
+        # 使用 ZValue 控制圖層順序 (數字越大，越在上層)
+        self.frame_item.setZValue(0)
+        self.photo_item.setZValue(10)
+        self.logo_item.setZValue(20)
+        self.logo_text_item.setZValue(20)
+        self.watermark_text_item.setZValue(20)
+        self.prompt_item.setZValue(30)
+
+        # 將物件添加到場景中
+        self.scene.addItem(self.frame_item)
+        self.scene.addItem(self.photo_item)
+        self.scene.addItem(self.logo_item)
+        self.scene.addItem(self.logo_text_item)
+        self.scene.addItem(self.watermark_text_item)
+        self.scene.addItem(self.prompt_item)
+
+        # 照片陰影效果 (直接作用於照片物件)
+        self.photo_shadow_effect = QGraphicsDropShadowEffect(self)
+        self.photo_shadow_effect.setColor(QColor(0, 0, 0, 100))
+        self.photo_shadow_effect.setBlurRadius(40)
+        self.photo_shadow_effect.setOffset(5, 5)
+        self.photo_item.setGraphicsEffect(self.photo_shadow_effect)
+
+        # 相框外部陰影 (作用於整個 QGraphicsView 元件)
+        self.frame_shadow_effect = QGraphicsDropShadowEffect(self)
+        self.frame_shadow_effect.setBlurRadius(30)
+        self.frame_shadow_effect.setColor(QColor(0, 0, 0, 80))
+        self.frame_shadow_effect.setOffset(0, 0)
+        self.image_preview_label.setGraphicsEffect(self.frame_shadow_effect)
 
         # 設定拖拽事件
         self.image_preview_label.setAcceptDrops(True)
@@ -57,23 +113,7 @@ class GalleryView(QWidget):
         self.tabs = GalleryTabs(self.asset_manager, self.translator, self)
         self.right_layout.addWidget(self.tabs)
 
-        # --- 關鍵修正 ---
-        # 1. 關閉 QLabel 的自動縮放，防止圖片被拉伸變形。由我們手動控制縮放。
-        self.image_preview_label.setScaledContents(False)
-        # 2. 確保 .ui 檔案中的置中設定生效，讓手動縮放的圖片能居中顯示。
-        self.image_preview_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-
-        # --- 新增：為圖片標籤建立一個陰影效果物件 ---
-        # 我們將根據設定來啟用或禁用它
-        # 這個效果作用於整個 QLabel，實現相框的外部陰影
-        self.frame_shadow_effect = QGraphicsDropShadowEffect(self)
-        self.frame_shadow_effect.setBlurRadius(30)
-        self.frame_shadow_effect.setColor(QColor(0, 0, 0, 80))
-        self.frame_shadow_effect.setOffset(0, 0)
-        self.image_preview_label.setGraphicsEffect(self.frame_shadow_effect)
-        self.frame_shadow_effect.setEnabled(False)  # 預設關閉
-
-        self._translate_ui()  # 翻譯此視圖的 UI
+        self._translate_ui()
         self._connect_signals()
         self._clear_preview()
 
@@ -92,15 +132,14 @@ class GalleryView(QWidget):
         每當視窗或 splitter 大小改變時，此函數會被呼叫。
         """
         super().resizeEvent(event)
-        # 重新計算並更新預覽圖，以適應新的標籤大小
-        self._update_preview()
+        self.resize_timer.start()  # 啟動或重置計時器
 
     def _connect_signals(self):
         """連接所有元件的信號與槽函數。"""
         self.import_button.clicked.connect(self._open_image_dialog)
         self.image_list.currentItemChanged.connect(self._on_list_item_selected)
-        self.main_splitter.splitterMoved.connect(self._update_preview)
-        # self.tabs.settingsChanged.connect(self._update_preview)
+        # 將 splitterMoved 連接到計時器，而不是直接更新
+        self.main_splitter.splitterMoved.connect(self.resize_timer.start)
 
         # 連接到優化後的信號和槽
         self.tabs.settingsChanged.connect(self._handle_settings_change)
@@ -123,7 +162,6 @@ class GalleryView(QWidget):
                 exif = get_exif_data(path)
                 # 簡單判斷是否有關鍵的 EXIF 資訊，例如相機型號
                 has_exif = bool(exif.get('Model'))
-                # 創建自訂元件實例
                 # 創建自訂元件實例時傳入 translator
                 item_widget = GalleryItemWidget(path, has_exif, self.translator, self)
                 # 連接自訂元件發出的信號
@@ -178,6 +216,7 @@ class GalleryView(QWidget):
                 else:
                     # 列表已空，清空預覽
                     self._clear_preview()
+                    self._update_display() # 更新顯示以顯示提示文字
 
             self._update_select_all_checkbox_state()
 
@@ -290,17 +329,26 @@ class GalleryView(QWidget):
                     self.image_list.setCurrentRow(0)
                 else:
                     self._clear_preview()
+                    self._update_display()
 
             self._update_select_all_checkbox_state()
 
     def _clear_preview(self):
-        """清空預覽區域並重設相關狀態變數。"""
+        """清空預覽，隱藏所有物件並顯示提示文字"""
         self.current_image_path = None
         self.original_pixmap = None
-        self.image_preview_label.clear()
-        # 使用 translator 設定提示文字
-        prompt = self.tr("gallery_drop_prompt", "Drop image here")
-        self.image_preview_label.setText(prompt)
+        # 隱藏所有主要物件
+        self.frame_item.hide()
+        self.photo_item.hide()
+        self.logo_item.hide()
+        self.logo_text_item.hide()
+        self.watermark_text_item.hide()
+        # 設定並顯示提示文字
+        prompt_text = self.tr("gallery_drop_prompt", "Drop image here")
+        self.prompt_item.setText(prompt_text)
+        self.prompt_item.setFont(QFont("Arial", 16))
+        self.prompt_item.setBrush(QColor("#aaa"))
+        self.prompt_item.show()
 
     # --- 事件處理 ---
 
@@ -330,6 +378,7 @@ class GalleryView(QWidget):
         if not current_item:
             # 如果沒有選中項 (例如列表被清空)，則清除預覽
             self._clear_preview()
+            self._update_display() # 更新顯示以顯示提示文字
             return
 
         path = current_item.data(Qt.ItemDataRole.UserRole)
@@ -339,12 +388,26 @@ class GalleryView(QWidget):
 
             # 處理圖片載入失敗的情況
             if self.original_pixmap.isNull():
-                print(f"無法載入圖片: {path}")
-                # 直接調用刪除邏輯來處理損壞或不存在的圖片
+                # 這裡可以加入一個錯誤提示的對話框
+                self._on_delete_item_requested(path) # 假設壞圖就直接刪除
+                return
+
+                # 新增：預先載入 PIL Image 並處理潛在錯誤
+            try:
+                # 使用 with 陳述式確保檔案被正確關閉
+                with Image.open(path) as img:
+                    self.original_pil_img = img
+                    # 強制載入圖像資料，將其讀入記憶體
+                    self.original_pil_img.load()
+            except Exception as e:
+                print(f"無法使用 Pillow 載入圖片 {path}: {e}")
+                self.original_pil_img = None
+                # 可以選擇彈出錯誤訊息或直接移除該項目
                 self._on_delete_item_requested(path)
                 return
 
-            self._update_preview()
+            self.blur_cache.clear() # 換了新圖，清除模糊快取
+            self._update_display()
 
     # --- 繪圖與更新 ---
 
@@ -384,57 +447,43 @@ class GalleryView(QWidget):
         if watermark_changes:
             self._redraw_watermark_only()
 
-    def _update_preview(self):
+    def _handle_settings_change(self, changes: dict):
+        if not self.current_image_path:
+            return
+        # 直接調用主更新函數，因為更新現在是增量的，效能很高。
+        self._update_display()
+
+    def _update_display(self):
         """
-        執行完整的重繪流程。
-        這包括重新計算佈局、繪製相框、相片和浮水印。
-        通常在切換圖片、改變視窗大小或修改核心佈局設定時呼叫。
+        核心更新函數。它計算佈局，然後調用各自的輔助函數來更新圖形物件。
         """
         if not self.current_image_path or not self.original_pixmap or self.original_pixmap.isNull():
+            # 如果沒有圖片，確保場景是空的但提示文字可見
             self._clear_preview()
+            # 讓提示文字居中
+            view_rect = self.image_preview_label.viewport().rect()
+            prompt_rect = self.prompt_item.boundingRect()
+            self.prompt_item.setPos(
+                (view_rect.width() - prompt_rect.width()) / 2,
+                (view_rect.height() - prompt_rect.height()) / 2
+            )
+            self.prompt_item.show()
             return
 
-        # --- 第 1 部分：產生並快取基礎畫布 (相框 + 相片) ---
-        self._generate_base_canvas()
-
-        if not self.base_canvas_pixmap:
-            return
-
-        # --- 第 2 部分：在基礎畫布上繪製浮水印 ---
-        final_pixmap = self.base_canvas_pixmap.copy()
-        painter = QPainter(final_pixmap)
-        painter.setRenderHint(QPainter.RenderHint.Antialiasing)
+        # 有圖片，隱藏提示文字
+        self.prompt_item.hide()
 
         all_settings = self.tabs._get_current_settings()
+        f_settings = all_settings.get('frame', {})
         w_settings = all_settings.get('watermark', {})
         exif_data = self.image_items.get(self.current_image_path, {}).get('exif', {})
 
-        # 獲取相框和相片的矩形區域 (這些是在 _generate_base_canvas 中計算的)
-        frame_rect = self.base_canvas_pixmap.rect()
-        photo_rect = self.last_photo_rect
-
-        self._draw_watermark(painter, frame_rect, photo_rect, w_settings, exif_data)
-        painter.end()
-
-        # --- 第 3 部分：更新顯示 ---
-        f_settings = all_settings.get('frame', {})
-        self.frame_shadow_effect.setEnabled(f_settings.get('frame_shadow', False))
-        self.image_preview_label.setPixmap(final_pixmap)
-
-    def _generate_base_canvas(self):
-        """
-        產生基礎畫布，包含相框背景和帶圓角的相片，並將結果存儲在 self.base_canvas_pixmap。
-        這是一個耗時的操作。
-        """
-        all_settings = self.tabs._get_current_settings()
-        f_settings = all_settings.get('frame', {})
-
-        container_size = self.middle_panel.size()
-        if container_size.width() <= 20 or container_size.height() <= 20:
-            self.base_canvas_pixmap = None
+        # 1. 計算佈局尺寸
+        view_size = self.image_preview_label.viewport().size()
+        if view_size.width() <= 20 or view_size.height() <= 20:
             return
 
-        base_padding = min(container_size.width(), container_size.height()) * 0.15
+        base_padding = min(view_size.width(), view_size.height()) * 0.1
         padding_top = int(base_padding * f_settings.get('padding_top', 10) / 100)
         padding_sides = int(base_padding * f_settings.get('padding_sides', 10) / 100)
         padding_bottom = int(base_padding * f_settings.get('padding_bottom', 10) / 100)
@@ -442,11 +491,9 @@ class GalleryView(QWidget):
         if not f_settings.get('enabled', True):
             padding_top = padding_sides = padding_bottom = 0
 
-        image_area_w = container_size.width() - (padding_sides * 2)
-        image_area_h = container_size.height() - padding_top - padding_bottom
+        image_area_w = view_size.width() - (padding_sides * 2)
+        image_area_h = view_size.height() - padding_top - padding_bottom
         if image_area_w <= 0 or image_area_h <= 0:
-            self.image_preview_label.clear()
-            self.base_canvas_pixmap = None
             return
 
         scaled_photo = self.original_pixmap.scaled(
@@ -455,133 +502,124 @@ class GalleryView(QWidget):
             Qt.TransformationMode.SmoothTransformation
         )
 
-        final_canvas_w = scaled_photo.width() + padding_sides * 2
-        final_canvas_h = scaled_photo.height() + padding_top + padding_bottom
+        frame_w = scaled_photo.width() + padding_sides * 2
+        frame_h = scaled_photo.height() + padding_top + padding_bottom
 
-        self.base_canvas_pixmap = QPixmap(QSize(final_canvas_w, final_canvas_h))
-        self.base_canvas_pixmap.fill(Qt.GlobalColor.transparent)
+        frame_rect = QRectF(0, 0, frame_w, frame_h)
+        photo_rect = QRectF(padding_sides, padding_top, scaled_photo.width(), scaled_photo.height())
 
-        painter = QPainter(self.base_canvas_pixmap)
-        painter.setRenderHint(QPainter.RenderHint.Antialiasing)
+        # 2. 更新各個圖形物件
+        self._update_frame(frame_rect, photo_rect, f_settings)
+        self._update_photo(photo_rect, scaled_photo, f_settings)
+        self._update_watermark(frame_rect, photo_rect, w_settings, exif_data)
 
-        frame_rect = self.base_canvas_pixmap.rect()
-        photo_rect = QRect(padding_sides, padding_top, scaled_photo.width(), scaled_photo.height())
+        # 3. 更新場景並讓 View 適應內容
+        self.scene.setSceneRect(frame_rect)
+        self.image_preview_label.fitInView(frame_rect, Qt.AspectRatioMode.KeepAspectRatio)
 
-        # 儲存 photo_rect 供浮水印繪製時使用
-        self.last_photo_rect = photo_rect
+    def _update_frame(self, frame_rect: QRectF, photo_rect: QRectF, f_settings: dict):
+        """更新相框物件"""
+        self.frame_shadow_effect.setEnabled(f_settings.get('frame_shadow', False))
 
-        if f_settings.get('enabled', True):
-            self._draw_frame_background(painter, frame_rect, photo_rect, f_settings)
-
-        # --- 新增：在繪製相片前，先繪製相片陰影 ---
-        if f_settings.get('photo_shadow', True):
-            self._draw_photo_shadow(painter, photo_rect, f_settings)
-
-        self._draw_photo(painter, photo_rect, scaled_photo, f_settings)
-        painter.end()
-
-    def _redraw_watermark_only(self):
-        """
-        僅重繪浮水印。它會複用 self.base_canvas_pixmap，速度非常快。
-        """
-        if not self.base_canvas_pixmap:
-            self._update_preview()  # 如果沒有基礎畫布，先執行一次完整繪製
+        if not f_settings.get('enabled', True):
+            self.frame_item.hide()
             return
 
-        final_pixmap = self.base_canvas_pixmap.copy()
-        painter = QPainter(final_pixmap)
-        painter.setRenderHint(QPainter.RenderHint.Antialiasing)
-
-        all_settings = self.tabs._get_current_settings()
-        w_settings = all_settings.get('watermark', {})
-        exif_data = self.image_items.get(self.current_image_path, {}).get('exif', {})
-
-        frame_rect = self.base_canvas_pixmap.rect()
-        photo_rect = self.last_photo_rect
-
-        self._draw_watermark(painter, frame_rect, photo_rect, w_settings, exif_data)
-        painter.end()
-
-        self.image_preview_label.setPixmap(final_pixmap)
-
-    # --- 新增：繪製相片陰影的輔助函式 ---
-    def _draw_photo_shadow(self, painter: QPainter, photo_rect: QRect, f_settings: dict):
-            """
-            使用 QPainter 手動繪製相片在相框上的內部陰影。
-            """
-            painter.save()
-            radius = f_settings.get('photo_radius', 3) / 100.0 * min(photo_rect.width(), photo_rect.height()) / 2
-
-            # 繪製多個半透明圖層來疊加出柔和的陰影
-            # 這裡我們從一個較大的偏移和較淡的顏色開始
-            for i in range(5, 0, -1):
-                shadow_color = QColor(0, 0, 0, 15 + i * 4)  # 調整透明度曲線
-                painter.setPen(Qt.PenStyle.NoPen)
-                painter.setBrush(shadow_color)
-
-                # 偏移量從大到小，產生模糊效果
-                shadow_draw_rect = photo_rect.translated(i, i)
-
-                path = QPainterPath()
-                path.addRoundedRect(QRectF(shadow_draw_rect), radius, radius)
-                painter.drawPath(path)
-
-            painter.restore()
-
-    def _draw_frame_background(self, painter: QPainter, frame_rect: QRect, photo_rect: QRect, f_settings: dict):
-        """輔助函式：繪製相框背景（純色或模糊延伸）"""
+        self.frame_item.show()
         frame_style = f_settings.get('style', 'solid_color')
         frame_radius = f_settings.get('frame_radius', 5) / 100.0 * min(frame_rect.width(), frame_rect.height()) / 2
 
         path = QPainterPath()
-        path.addRoundedRect(QRectF(frame_rect), frame_radius, frame_radius)
-        painter.save()
-        painter.setClipPath(path)
+        path.addRoundedRect(frame_rect, frame_radius, frame_radius)
+        self.frame_item.setPath(path)
 
         if frame_style == 'solid_color':
             color = QColor(f_settings.get('color', '#FFFFFFFF'))
-            painter.setBrush(QBrush(color))
-            painter.setPen(Qt.PenStyle.NoPen)
-            painter.drawRect(frame_rect)
-
+            self.frame_item.setBrush(QBrush(color))
+            # self.frame_item.setPen(Qt.PenStyle.NoPen)
+            self.frame_item.setPen(QPen(Qt.PenStyle.NoPen))
         elif frame_style == 'blur_extend':
-            # 使用 Pillow 進行模糊處理
-            pil_img = Image.open(self.current_image_path)
             blur_radius = f_settings.get('blur_radius', 20)
+            # 使用我們在 _on_list_item_selected 中預載入的 PIL Image
+            if not self.original_pil_img:
+                self.frame_item.setBrush(QBrush(QColor("transparent")))  # 如果圖像載入失敗則設為透明
+                return
+            cache_key = (self.current_image_path, blur_radius, int(frame_rect.width()), int(frame_rect.height()))
 
-            # 放大圖片以確保模糊邊緣能填滿相框
-            extended_w = int(pil_img.width * (frame_rect.width() / photo_rect.width()))
-            extended_h = int(pil_img.height * (frame_rect.height() / photo_rect.height()))
-            extended_pil = pil_img.resize((extended_w, extended_h), Image.Resampling.LANCZOS)
+            if cache_key in self.blur_cache:
+                blurred_pixmap = self.blur_cache[cache_key]
+            else:
+                # --- 開始修正邏輯 ---
+                pil_img = self.original_pil_img
+                target_w, target_h = int(frame_rect.width()), int(frame_rect.height())
+                img_w, img_h = pil_img.size
 
-            blurred_pil = extended_pil.filter(ImageFilter.GaussianBlur(radius=blur_radius))
+                if target_w == 0 or target_h == 0 or img_w == 0 or img_h == 0:
+                    return  # 避免除以零錯誤
 
-            # 將 Pillow 圖片轉回 QPixmap
-            blurred_qimage = ImageQt(blurred_pil)
-            blurred_pixmap = QPixmap.fromImage(blurred_qimage)
+                # 1. 計算統一的縮放比例，以「覆蓋」目標區域
+                scale = max(target_w / img_w, target_h / img_h)
 
-            # 計算繪製位置使其居中
-            draw_x = (frame_rect.width() - blurred_pixmap.width()) / 2
-            draw_y = (frame_rect.height() - blurred_pixmap.height()) / 2
-            painter.drawPixmap(int(draw_x), int(draw_y), blurred_pixmap)
+                # 2. 等比例縮放
+                new_w, new_h = int(img_w * scale), int(img_h * scale)
+                resized_pil = pil_img.resize((new_w, new_h), Image.Resampling.LANCZOS)
 
-        painter.restore()
+                # 3. 從中心裁切到目標尺寸
+                left = (new_w - target_w) / 2
+                top = (new_h - target_h) / 2
+                right = (new_w + target_w) / 2
+                bottom = (new_h + target_h) / 2
+                cropped_pil = resized_pil.crop((left, top, right, bottom))
 
-    def _draw_photo(self, painter: QPainter, photo_rect: QRect, scaled_photo: QPixmap, f_settings: dict):
-        """輔助函式：繪製帶圓角的相片"""
+                # 4. 僅在 blur_radius > 0 時應用模糊
+                if blur_radius > 0:
+                    blurred_pil = cropped_pil.filter(ImageFilter.GaussianBlur(radius=blur_radius))
+                else:
+                    blurred_pil = cropped_pil  # 半徑為0時，使用清晰的裁切後圖像
+                # --- 結束修正邏輯 ---
+
+                blurred_qimage = ImageQt(blurred_pil)
+                blurred_pixmap = QPixmap.fromImage(blurred_qimage)
+                # 將 pixmap 存入快取，但也要將 qimage 物件一起存入，防止其被回收
+                self.blur_cache[cache_key] = (blurred_pixmap, blurred_qimage)
+
+                # 從快取中獲取 pixmap
+                pixmap_to_use, _ = self.blur_cache[cache_key]
+                self.frame_item.setBrush(QBrush(pixmap_to_use))
+                self.frame_item.setPen(QPen(Qt.PenStyle.NoPen))
+
+    def _update_photo(self, photo_rect: QRectF, scaled_photo: QPixmap, f_settings: dict):
+        """
+        更新照片物件和其陰影。
+        使用 QGraphicsPathItem 並用圖片畫刷填充，以實現圓角效果。
+        """
+        self.photo_item.show()
+        # 將 Path Item 移動到正確的位置
+        self.photo_item.setPos(photo_rect.topLeft())
+
+        # 1. 在物件的本地座標系中，定義圓角矩形路徑
         photo_radius = f_settings.get('photo_radius', 3) / 100.0 * min(photo_rect.width(), photo_rect.height()) / 2
+        photo_path = QPainterPath()
+        photo_path.addRoundedRect(0, 0, photo_rect.width(), photo_rect.height(), photo_radius, photo_radius)
+        self.photo_item.setPath(photo_path)
 
-        path = QPainterPath()
-        path.addRoundedRect(QRectF(photo_rect), photo_radius, photo_radius)
+        # 2. 建立一個基於圖片的畫刷，並將其應用於路徑物件
+        photo_brush = QBrush(scaled_photo)
+        self.photo_item.setBrush(photo_brush)
 
-        painter.save()
-        painter.setClipPath(path)
-        painter.drawPixmap(photo_rect, scaled_photo)
-        painter.restore()
+        # 3. 確保沒有邊框被繪製
+        self.photo_item.setPen(QPen(Qt.PenStyle.NoPen))
 
-    def _draw_watermark(self, painter: QPainter, frame_rect: QRect, photo_rect: QRect, w_settings: dict,
-                        exif_data: dict):
-        """輔助函式：處理所有浮水印相關的繪製"""
+        # 4. 啟用或禁用陰影效果
+        self.photo_shadow_effect.setEnabled(f_settings.get('photo_shadow', True) and f_settings.get('enabled', True))
+
+    def _update_watermark(self, frame_rect: QRectF, photo_rect: QRectF, w_settings: dict, exif_data: dict):
+        """完整實現：更新浮水印文字和 Logo 物件"""
+        # 預先隱藏所有浮水印相關物件
+        self.logo_item.hide()
+        self.logo_text_item.hide()
+        self.watermark_text_item.hide()
+
         logo_enabled = w_settings.get('logo_enabled', False)
         text_enabled = w_settings.get('text_enabled', True)
 
@@ -596,21 +634,16 @@ class GalleryView(QWidget):
             if logo_source == 'auto_detect':
                 make = exif_data.get('Make', '')
                 logo_path = get_logo_path(make, str(self.asset_manager.default_logos_dir))
-                if logo_path:
-                    logo_pixmap = QPixmap(logo_path)
+                if logo_path: logo_pixmap = QPixmap(logo_path)
             elif logo_source == 'select_from_library':
                 logo_key = w_settings.get('logo_source_app', '')
-                logo_path = next((p for p in self.asset_manager.get_default_logos() if Path(p).stem == logo_key),
-                                 None)
-                if logo_path:
-                    logo_pixmap = QPixmap(logo_path)
+                logo_path = next((p for p in self.asset_manager.get_default_logos() if Path(p).stem == logo_key), None)
+                if logo_path: logo_pixmap = QPixmap(logo_path)
             elif logo_source == 'my_custom_logo':
                 logo_key = w_settings.get('logo_source_my_custom', '')
                 logo_path = next((p for p in self.asset_manager.get_user_logos() if Path(p).stem == logo_key), None)
-                if logo_path:
-                    logo_pixmap = QPixmap(logo_path)
+                if logo_path: logo_pixmap = QPixmap(logo_path)
             elif w_settings.get('logo_source') == 'custom_text':
-                # 假設 UI 有 'logo_text_custom' 輸入框
                 logo_text = w_settings.get('logo_text_custom', 'Logo')
 
         # 2. 準備文字
@@ -623,8 +656,7 @@ class GalleryView(QWidget):
                 if exif_options.get('model') and exif_data.get('Model'): parts.append(exif_data['Model'])
                 if exif_options.get('focal_length') and exif_data.get('FocalLength'): parts.append(
                     f"{exif_data['FocalLength']}mm")
-                if exif_options.get('aperture') and exif_data.get('FNumber'): parts.append(
-                    f"f/{exif_data['FNumber']}")
+                if exif_options.get('aperture') and exif_data.get('FNumber'): parts.append(f"f/{exif_data['FNumber']}")
                 if exif_options.get('shutter') and exif_data.get('ExposureTime'): parts.append(
                     f"{exif_data['ExposureTime']}s")
                 if exif_options.get('iso') and exif_data.get('ISO'): parts.append(f"ISO {exif_data['ISO']}")
@@ -636,6 +668,7 @@ class GalleryView(QWidget):
         font_size_ratio = w_settings.get('font_size', 20) / 100.0
         base_font_size = max(8, int(min(photo_rect.width(), photo_rect.height()) * 0.04))
         font_size = int(base_font_size * font_size_ratio)
+        font_color = QColor(w_settings.get('font_color', '#FFFFFFFF'))
 
         font_family_name = "Arial"
         font_source = w_settings.get('font_family', 'system')
@@ -649,37 +682,34 @@ class GalleryView(QWidget):
                     font_family_name = families[0] if families else "Arial"
                     break
 
-        font = QFont(font_family_name, font_size)
-        painter.setFont(font)
-        painter.setPen(QColor(w_settings.get('font_color', '#FFFFFFFF')))
+        watermark_font = QFont(font_family_name, font_size)
+        logo_font = QFont(font_family_name, int(font_size * 1.2))
 
         # 4. 計算尺寸和位置
-        fm = painter.fontMetrics()
+        fm = QFontMetrics(watermark_font)
         text_rect = fm.boundingRect(watermark_text)
-
-        # 準備 logo 文字的字體和度量
-        logo_font = QFont(font_family_name, int(font_size * 1.2))
         logo_fm = QFontMetrics(logo_font)
         logo_text_rect = logo_fm.boundingRect(logo_text)
 
-        if logo_pixmap:
+        if logo_pixmap and not logo_pixmap.isNull():
             logo_h_scaled = int(logo_font.pointSizeF() * 1.2 * (w_settings.get('logo_size', 30) / 50.0))
             logo_pixmap = logo_pixmap.scaledToHeight(logo_h_scaled, Qt.TransformationMode.SmoothTransformation)
 
-        layout = w_settings.get('layout', 'logo_left')
         gap = int(font_size * 0.3)
-
-        logo_w = logo_pixmap.width() if logo_pixmap else logo_text_rect.width()
-        logo_h = logo_pixmap.height() if logo_pixmap else logo_text_rect.height()
+        logo_w = logo_pixmap.width() if logo_pixmap and not logo_pixmap.isNull() else logo_text_rect.width()
+        logo_h = logo_pixmap.height() if logo_pixmap and not logo_pixmap.isNull() else logo_text_rect.height()
         text_w = text_rect.width()
         text_h = text_rect.height()
 
+        layout = w_settings.get('layout', 'logo_left')
         total_w, total_h = 0, 0
         if layout in ['logo_top', 'logo_bottom']:
             total_w = max(logo_w, text_w)
-            total_h = (logo_h + text_h + gap) if (logo_enabled and text_enabled) else (logo_h or text_h)
+            total_h = (logo_h + text_h + gap) if (logo_enabled and text_enabled and logo_w > 0 and text_w > 0) else (
+                        logo_h or text_h)
         else:
-            total_w = (logo_w + text_w + gap) if (logo_enabled and text_enabled) else (logo_w or text_w)
+            total_w = (logo_w + text_w + gap) if (logo_enabled and text_enabled and logo_w > 0 and text_w > 0) else (
+                        logo_w or text_w)
             total_h = max(logo_h, text_h)
 
         # 5. 決定浮水印的錨點 (左上角)
@@ -698,42 +728,43 @@ class GalleryView(QWidget):
         if area == 'in_frame' and 'top' in align: y = padding
         if area == 'in_frame' and 'bottom' in align: y = photo_rect.bottom() + padding
 
-        # 6. 繪製 Logo 和文字
-        painter.save()
-        painter.translate(x, y)
-
-        logo_x, logo_y, text_x, text_y = 0, 0, 0, 0
-
-        # 根據佈局計算內部相對位置 (y 座標代表物件的頂部)
+        # 6. 計算內部相對位置並更新物件
+        logo_x_rel, logo_y_rel, text_x_rel, text_y_rel = 0, 0, 0, 0
         if layout == 'logo_top':
-            logo_x = (total_w - logo_w) / 2
-            logo_y = 0
-            text_x = (total_w - text_w) / 2
-            text_y = logo_h + gap
+            logo_x_rel = (total_w - logo_w) / 2
+            text_x_rel = (total_w - text_w) / 2
+            logo_y_rel = 0
+            text_y_rel = logo_h + gap
         elif layout == 'logo_bottom':
-            text_x = (total_w - text_w) / 2
-            text_y = 0
-            logo_x = (total_w - logo_w) / 2
-            logo_y = text_h + gap
-        else:  # logo_left
-            logo_x = 0
-            logo_y = (total_h - logo_h) / 2
-            text_x = logo_w + gap
-            text_y = (total_h - text_h) / 2
+            logo_x_rel = (total_w - logo_w) / 2
+            text_x_rel = (total_w - text_w) / 2
+            text_y_rel = 0
+            logo_y_rel = text_h + gap
+        else:  # logo_left or logo_right
+            logo_y_rel = (total_h - logo_h) / 2
+            text_y_rel = (total_h - text_h) / 2
+            if layout == 'logo_right':
+                text_x_rel = 0
+                logo_x_rel = text_w + gap
+            else:  # logo_left
+                logo_x_rel = 0
+                text_x_rel = logo_w + gap
 
-        # --- 繪製 (核心修正) ---
-        # 繪製時，我們需要將頂部 y 座標轉換為基線 y 座標以供 drawText 使用
         if logo_enabled:
-            if logo_pixmap:
-                painter.drawPixmap(int(logo_x), int(logo_y), logo_pixmap)
+            if logo_pixmap and not logo_pixmap.isNull():
+                self.logo_item.setPixmap(logo_pixmap)
+                self.logo_item.setPos(x + logo_x_rel, y + logo_y_rel)
+                self.logo_item.show()
             elif logo_text:
-                painter.setFont(logo_font)
-                painter.drawText(QPoint(int(logo_x), int(logo_y + logo_fm.ascent())), logo_text)
-                painter.setFont(font)
+                self.logo_text_item.setText(logo_text)
+                self.logo_text_item.setFont(logo_font)
+                self.logo_text_item.setBrush(font_color)
+                self.logo_text_item.setPos(x + logo_x_rel, y + logo_y_rel)
+                self.logo_text_item.show()
 
-        if text_enabled:
-            # 修正：為 watermark_text 的 y 座標加上 ascent，使其與 logo_text 處理方式一致
-            painter.drawText(QPoint(int(text_x), int(text_y + fm.ascent())), watermark_text)
-
-        painter.restore()
-
+        if text_enabled and watermark_text:
+            self.watermark_text_item.setText(watermark_text)
+            self.watermark_text_item.setFont(watermark_font)
+            self.watermark_text_item.setBrush(font_color)
+            self.watermark_text_item.setPos(x + text_x_rel, y + text_y_rel)
+            self.watermark_text_item.show()
