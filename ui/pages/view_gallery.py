@@ -458,13 +458,23 @@ class GalleryView(QWidget):
         if not self.current_image_path or not self.original_pixmap or self.original_pixmap.isNull():
             # 如果沒有圖片，確保場景是空的但提示文字可見
             self._clear_preview()
-            # 讓提示文字居中
-            view_rect = self.image_preview_label.viewport().rect()
+
+            # 1. 將 viewport 的矩形映射到 scene 的座標系統，得到當前可見的場景區域
+            visible_scene_rect = self.image_preview_label.mapToScene(
+                self.image_preview_label.viewport().rect()).boundingRect()
+
+            # 2. 將場景的邊界設定為剛好等於可見區域，這會重設任何縮放或平移
+            self.scene.setSceneRect(visible_scene_rect)
+
+            # 3. 獲取提示文字的邊界
             prompt_rect = self.prompt_item.boundingRect()
-            self.prompt_item.setPos(
-                (view_rect.width() - prompt_rect.width()) / 2,
-                (view_rect.height() - prompt_rect.height()) / 2
-            )
+
+            # 4. 在場景座標系統中計算居中的位置
+            center_x = visible_scene_rect.x() + (visible_scene_rect.width() - prompt_rect.width()) / 2
+            center_y = visible_scene_rect.y() + (visible_scene_rect.height() - prompt_rect.height()) / 2
+
+            # 5. 設定提示文字的位置並顯示
+            self.prompt_item.setPos(center_x, center_y)
             self.prompt_item.show()
             return
 

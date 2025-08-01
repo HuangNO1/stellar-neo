@@ -84,7 +84,7 @@
   "gallery_export_button": "Export Selected Images",
   "gallery_select_all": "Select All",
   "gallery_clear_selected": "Clear Selected",
-  "gallery_drop_prompt": "Drag and drop images here, or use the import button.",
+  "gallery_drop_prompt": "Drag images to the image list on the left, or use the import button.",
   "delete_image_tooltip": "Delete this image",
   "exif_warning_tooltip": "Cannot read EXIF device information",
   "delete_logo_title": "Delete Logo",

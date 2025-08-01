@@ -84,7 +84,7 @@
   "gallery_export_button": "导出选取的图片",
   "gallery_select_all": "全选",
   "gallery_clear_selected": "清除所选",
-  "gallery_drop_prompt": "拖拽图片到此处，或使用导入按钮。",
+  "gallery_drop_prompt": "将图片拖到左侧的图片列表，或使用导入按钮。",
   "delete_image_tooltip": "删除此图片",
   "exif_warning_tooltip": "无法读取 EXIF 设备信息",
   "delete_logo_title": "删除徽标",

@@ -84,7 +84,7 @@
   "gallery_export_button": "匯出選取的圖片",
   "gallery_select_all": "全選",
   "gallery_clear_selected": "清除選取",
-  "gallery_drop_prompt": "拖曳圖片到此處，或使用匯入按鈕。",
+  "gallery_drop_prompt": "拖曳圖片到左側的圖片列表，或使用匯入按鈕。",
   "delete_image_tooltip": "刪除此圖片",
   "exif_warning_tooltip": "無法讀取 EXIF 裝置資訊",
   "delete_logo_title": "刪除標誌",
