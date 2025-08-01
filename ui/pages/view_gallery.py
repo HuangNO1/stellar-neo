@@ -1,14 +1,14 @@
 import os
 from pathlib import Path
 
-from PIL.ImageQt import ImageQt
 from PIL import Image, ImageFilter
+from PIL.ImageQt import ImageQt
 from PyQt6 import uic
 from PyQt6.QtCore import Qt, QSize, QRectF, QTimer
-from PyQt6.QtGui import QPixmap, QPainter, QColor, QFont, QPainterPath, QBrush, QFontMetrics, QPen, QTransform
+from PyQt6.QtGui import QPixmap, QPainter, QColor, QFont, QPainterPath, QBrush, QFontMetrics, QPen
 from PyQt6.QtWidgets import QWidget, QFileDialog, QListWidgetItem, QGraphicsDropShadowEffect, QGraphicsScene, \
     QGraphicsView, QGraphicsPathItem, QGraphicsPixmapItem, QGraphicsSimpleTextItem, QApplication
-from qfluentwidgets import MessageBox, FlyoutView, PushButton, Flyout, ComboBox, FluentIcon
+from qfluentwidgets import MessageBox, Flyout
 
 from core.asset_manager import AssetManager
 from core.exif_reader import get_exif_data
@@ -16,9 +16,9 @@ from core.logo_mapping import get_logo_path
 from core.settings_manager import SettingsManager
 from core.translator import Translator
 from ui.customs.custom_icon import MyFluentIcon
+from ui.customs.export_message import ExportMessageBox
 from ui.customs.gallery_item_widget import GalleryItemWidget
 from ui.customs.gallery_tabs import GalleryTabs
-from ui.customs.export_message import ExportMessageBox
 
 
 class GalleryView(QWidget):
@@ -31,6 +31,7 @@ class GalleryView(QWidget):
             'layout', 'area', 'align', 'font_size'
         ]
     }
+
     # TODO 如果文件名過長 需要考慮
     def __init__(self, asset_manager: AssetManager, translator: Translator, parent=None):
         super().__init__(parent)
@@ -77,7 +78,6 @@ class GalleryView(QWidget):
         # 設定透明背景，讓 frame_shadow 生效
         self.image_preview_label.setStyleSheet("background: transparent; border: none;")
 
-
         # --- 新增：場景中的圖形物件 (Graphics Items) ---
         # 我們將創建一次，然後只更新它們的屬性
         self.frame_item = QGraphicsPathItem()
@@ -85,7 +85,7 @@ class GalleryView(QWidget):
         self.logo_item = QGraphicsPixmapItem()
         self.logo_text_item = QGraphicsSimpleTextItem()
         self.watermark_text_item = QGraphicsSimpleTextItem()
-        self.prompt_item = QGraphicsSimpleTextItem() # 用於顯示提示文字
+        self.prompt_item = QGraphicsSimpleTextItem()  # 用於顯示提示文字
 
         # 使用 ZValue 控制圖層順序 (數字越大，越在上層)
         self.frame_item.setZValue(0)
@@ -118,7 +118,7 @@ class GalleryView(QWidget):
         self.image_preview_label.setGraphicsEffect(self.frame_shadow_effect)
 
         # 設定拖拽事件
-        self.setAcceptDrops(True) # <--- 在主元件上啟用拖放
+        self.setAcceptDrops(True)  # <--- 在主元件上啟用拖放
 
         # 加入右側的設定 Tabs
         # 將 translator 傳遞給子元件
@@ -231,7 +231,7 @@ class GalleryView(QWidget):
                 else:
                     # 列表已空，清空預覽
                     self._clear_preview()
-                    self._update_display() # 更新顯示以顯示提示文字
+                    self._update_display()  # 更新顯示以顯示提示文字
 
             self._update_select_all_checkbox_state()
 
@@ -638,9 +638,21 @@ class GalleryView(QWidget):
                 elif text_source == 'custom':
                     watermark_text = w_settings.get('text_custom', '')
 
+            # 1. 直接使用導出畫布上的照片尺寸 (photo_rect) 來計算，這是最準確的方式。
+            #    photo_rect 此時代表的是原始圖片的尺寸。
+            export_photo_w = photo_rect.width()
+            export_photo_h = photo_rect.height()
+
+            # 2. 應用與 `_update_watermark` 中完全相同的公式，確保比例一致。
+            #    基礎大小現在是相對於全尺寸圖片，而非預覽圖。
+            base_font_size = max(8, int(min(export_photo_w, export_photo_h) * 0.04))
+
+            # 3. 根據使用者設定的滑桿百分比，計算最終的字體大小。
             font_size_ratio = w_settings.get('font_size', 20) / 100.0
-            base_font_size = max(12, int(min(img_w, img_h) * 0.035))  # 調整導出字體大小基準
             font_size = int(base_font_size * font_size_ratio)
+
+            # 後續所有尺寸相關的計算（如 gap, padding, logo_h_scaled）都將基於這個
+            # 正確縮放後的 font_size，從而保證整體比例一致。
             font_color = QColor(w_settings.get('font_color', '#FFFFFFFF'))
 
             font_family_name = "Arial"
@@ -678,11 +690,11 @@ class GalleryView(QWidget):
             if layout in ['logo_top', 'logo_bottom']:
                 total_w = max(logo_w, text_w)
                 total_h = (logo_h + text_h + gap) if (
-                            logo_enabled and text_enabled and logo_w > 0 and text_w > 0) else (
+                        logo_enabled and text_enabled and logo_w > 0 and text_w > 0) else (
                         logo_h or text_h)
             else:  # logo_left or logo_right
                 total_w = (logo_w + text_w + gap) if (
-                            logo_enabled and text_enabled and logo_w > 0 and text_w > 0) else (
+                        logo_enabled and text_enabled and logo_w > 0 and text_w > 0) else (
                         logo_w or text_w)
                 total_h = max(logo_h, text_h)
 
@@ -826,7 +838,7 @@ class GalleryView(QWidget):
         if not current_item:
             # 如果沒有選中項 (例如列表被清空)，則清除預覽
             self._clear_preview()
-            self._update_display() # 更新顯示以顯示提示文字
+            self._update_display()  # 更新顯示以顯示提示文字
             return
 
         path = current_item.data(Qt.ItemDataRole.UserRole)
@@ -837,7 +849,7 @@ class GalleryView(QWidget):
             # 處理圖片載入失敗的情況
             if self.original_pixmap.isNull():
                 # 這裡可以加入一個錯誤提示的對話框
-                self._on_delete_item_requested(path) # 假設壞圖就直接刪除
+                self._on_delete_item_requested(path)  # 假設壞圖就直接刪除
                 return
 
                 # 新增：預先載入 PIL Image 並處理潛在錯誤
@@ -854,7 +866,7 @@ class GalleryView(QWidget):
                 self._on_delete_item_requested(path)
                 return
 
-            self.blur_cache.clear() # 換了新圖，清除模糊快取
+            self.blur_cache.clear()  # 換了新圖，清除模糊快取
             self._update_display()
 
     # vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
@@ -971,7 +983,13 @@ class GalleryView(QWidget):
         if view_size.width() <= 20 or view_size.height() <= 20:
             return
 
-        base_padding = min(view_size.width(), view_size.height()) * 0.1
+        # 步驟 A: 獲取原始圖片尺寸，並計算其在 view_size 中按比例縮放後的大小
+        img_size = self.original_pixmap.size()
+        image_fitted_in_view = img_size.scaled(view_size, Qt.AspectRatioMode.KeepAspectRatio)
+
+        # 步驟 B: 以圖片實際佔據的區域大小為基準來計算 base_padding，確保比例正確
+        base_padding = min(image_fitted_in_view.width(), image_fitted_in_view.height()) * 0.1
+
         padding_top = int(base_padding * f_settings.get('padding_top', 10) / 100)
         padding_sides = int(base_padding * f_settings.get('padding_sides', 10) / 100)
         padding_bottom = int(base_padding * f_settings.get('padding_bottom', 10) / 100)
