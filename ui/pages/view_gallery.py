@@ -4,11 +4,11 @@ from pathlib import Path
 from PIL.ImageQt import ImageQt
 from PIL import Image, ImageFilter
 from PyQt6 import uic
-from PyQt6.QtCore import Qt, QSize, QRect, QPoint, QRectF, QTimer
+from PyQt6.QtCore import Qt, QSize, QRectF, QTimer
 from PyQt6.QtGui import QPixmap, QPainter, QColor, QFont, QPainterPath, QBrush, QFontMetrics, QPen
 from PyQt6.QtWidgets import QWidget, QFileDialog, QListWidgetItem, QGraphicsDropShadowEffect, QGraphicsScene, \
     QGraphicsView, QGraphicsPathItem, QGraphicsPixmapItem, QGraphicsSimpleTextItem
-from qfluentwidgets import MessageBox
+from qfluentwidgets import MessageBox, FlyoutView, PushButton, Flyout, ComboBox
 
 from core.asset_manager import AssetManager
 from core.exif_reader import get_exif_data
@@ -17,6 +17,7 @@ from core.settings_manager import SettingsManager
 from core.translator import Translator
 from ui.customs.gallery_item_widget import GalleryItemWidget
 from ui.customs.gallery_tabs import GalleryTabs
+from ui.customs.export_message import ExportMessageBox
 
 
 class GalleryView(QWidget):
@@ -336,7 +337,11 @@ class GalleryView(QWidget):
 
     def _on_export_button_clicked(self):
         """批量導出匯出圖片"""
-        pass
+        # print("click export")
+        self.export_msg = ExportMessageBox(self.translator, self.window())
+        self.export_msg.setCurrentProgress(40)
+        if self.export_msg.exec():
+            print("click export")
 
     def _clear_preview(self):
         """清空預覽，隱藏所有物件並顯示提示文字"""
