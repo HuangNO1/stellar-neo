@@ -512,23 +512,64 @@ class GalleryView(QWidget):
             path = QPainterPath()
             path.addRoundedRect(frame_rect, frame_radius, frame_radius)
             frame_item.setPath(path)
-            frame_item.setPen(QPen(Qt.PenStyle.NoPen))
+            frame_item.setPen(QPen(Qt.PenStyle.NoPen))  # 無論何種樣式，都先取消邊框
 
             frame_style = f_settings.get('style', 'solid_color')
+
+            # vvvvvvvvvvvvvv 重構後的畫刷設定邏輯 vvvvvvvvvvvvvv
             if frame_style == 'solid_color':
                 frame_item.setBrush(QBrush(QColor(f_settings.get('color', '#FFFFFFFF'))))
+
             elif frame_style == 'blur_extend' and pil_img:
-                blur_radius_val = f_settings.get('blur_radius', 20)
-                target_w, target_h = int(frame_w), int(frame_h)
+                # 1. 獲取使用者在UI上設定的基礎模糊半徑
+                base_blur_radius = f_settings.get('blur_radius', 20)
+
+                # 2. 獲取原始圖片尺寸
                 pil_w, pil_h = pil_img.size
+
+                # 3. 計算縮放比例並應用
+                export_blur_radius = base_blur_radius
+                if hasattr(self, 'last_preview_photo_size') and self.last_preview_photo_size.width() > 0:
+                    preview_w = self.last_preview_photo_size.width()
+                    scale_factor = pil_w / preview_w
+                    export_blur_radius = base_blur_radius * scale_factor
+                    print(f"[DEBUG] Preview Width: {preview_w}, Original Width: {pil_w}, Scale: {scale_factor:.2f}")
+                    print(f"[DEBUG] Base Radius: {base_blur_radius}, Scaled Export Radius: {export_blur_radius:.2f}")
+
+                # 後續計算
+                target_w, target_h = int(frame_w), int(frame_h)
                 scale = max(target_w / pil_w, target_h / pil_h)
                 resized = pil_img.resize((int(pil_w * scale), int(pil_h * scale)), Image.Resampling.LANCZOS)
                 left, top = (resized.width - target_w) / 2, (resized.height - target_h) / 2
                 cropped = resized.crop((left, top, left + target_w, top + target_h))
-                blurred = cropped.filter(
-                    ImageFilter.GaussianBlur(radius=blur_radius_val)) if blur_radius_val > 0 else cropped
-                blurred_pixmap = QPixmap.fromImage(ImageQt(blurred))
-                frame_item.setBrush(QBrush(blurred_pixmap))
+
+                if cropped.mode != 'RGB':
+                    cropped = cropped.convert('RGB')
+
+                blurred = None
+                # 4. 使用計算後、適用於高解析度圖片的模糊半徑
+                if export_blur_radius > 0:
+                    blurred = cropped.filter(ImageFilter.GaussianBlur(radius=export_blur_radius))
+                else:
+                    blurred = cropped
+
+                # 關鍵：將 PIL Image 轉換為 QPixmap，並保留對 QImage 的引用以防被回收
+                blurred_qimage = ImageQt(blurred)
+                blurred_pixmap = QPixmap.fromImage(blurred_qimage)
+
+                # 增加建議的保險措施
+                if blurred_pixmap.isNull():
+                    print("警告：模糊相框未能正確轉換為 QPixmap，將使用灰色作為備用。")
+                    frame_item.setBrush(QBrush(QColor("#CCCCCC")))
+                else:
+                    # 1. 創建一個空的畫刷
+                    image_brush = QBrush()
+
+                    # 2. 使用 .setTexture() 將 QPixmap 明確設置為畫刷的紋理
+                    image_brush.setTexture(blurred_pixmap)
+
+                    # 3. 將配置好的畫刷應用到 item
+                    frame_item.setBrush(image_brush)
 
             # (B) 繪製照片 (帶圓角和陰影)
             photo_radius = f_settings.get('photo_radius', 3) / 100.0 * min(photo_rect.width(),
@@ -948,6 +989,9 @@ class GalleryView(QWidget):
             Qt.AspectRatioMode.KeepAspectRatio,
             Qt.TransformationMode.SmoothTransformation
         )
+
+        # 記錄下當前預覽照片的尺寸，以便導出時計算縮放比例
+        self.last_preview_photo_size = scaled_photo.size()
 
         frame_w = scaled_photo.width() + padding_sides * 2
         frame_h = scaled_photo.height() + padding_top + padding_bottom
