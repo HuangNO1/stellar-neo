@@ -61,6 +61,9 @@
    </item>
    <item>
     <widget class="Slider" name="logo_size_slider">
+     <property name="maximum">
+      <number>120</number>
+     </property>
      <property name="orientation">
       <enum>Qt::Orientation::Horizontal</enum>
      </property>
@@ -194,6 +197,9 @@
    </item>
    <item>
     <widget class="Slider" name="font_size_slider">
+     <property name="maximum">
+      <number>120</number>
+     </property>
      <property name="orientation">
       <enum>Qt::Orientation::Horizontal</enum>
      </property>

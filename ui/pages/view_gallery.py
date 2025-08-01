@@ -531,22 +531,19 @@ class GalleryView(QWidget):
                 frame_item.setBrush(QBrush(blurred_pixmap))
 
             # (B) 繪製照片 (帶圓角和陰影)
-            # 新方法: item 保持在原點(0,0)，直接在全域座標定義 Path，並對 Brush 進行座標變換，使其與 Path 對齊。
             photo_radius = f_settings.get('photo_radius', 3) / 100.0 * min(photo_rect.width(),
                                                                            photo_rect.height()) / 2
-            photo_path = QPainterPath()
-            # 直接使用 photo_rect 的全域座標來定義路徑
-            photo_path.addRoundedRect(photo_rect, photo_radius, photo_radius)
-            photo_item.setPath(photo_path)
-            photo_item.setPen(QPen(Qt.PenStyle.NoPen))
+            # 將物件移動到照片應在的位置
+            photo_item.setPos(photo_rect.topLeft())
 
-            # 創建一個圖片畫刷
-            photo_brush = QBrush(original_pixmap)
-            # 關鍵修正：建立一個變換，將畫刷的原點移動到照片路徑的左上角
-            transform = QTransform().translate(photo_rect.left(), photo_rect.top())
-            photo_brush.setTransform(transform)
-            # 應用修正後的畫刷
-            photo_item.setBrush(photo_brush)
+            # 在物件的本地座標系中定義路徑 (從0,0開始)
+            photo_path = QPainterPath()
+            photo_path.addRoundedRect(0, 0, photo_rect.width(), photo_rect.height(), photo_radius, photo_radius)
+            photo_item.setPath(photo_path)
+
+            # 直接使用原始圖片作為畫刷，無需複雜的座標變換
+            photo_item.setBrush(QBrush(original_pixmap))
+            photo_item.setPen(QPen(Qt.PenStyle.NoPen))
 
             if f_settings.get('enabled', True) and f_settings.get('photo_shadow', True):
                 shadow = QGraphicsDropShadowEffect()
@@ -640,46 +637,76 @@ class GalleryView(QWidget):
             if layout in ['logo_top', 'logo_bottom']:
                 total_w = max(logo_w, text_w)
                 total_h = (logo_h + text_h + gap) if (
-                            logo_enabled and text_enabled and logo_w > 0 and text_w > 0) else (logo_h or text_h)
-            else:
+                            logo_enabled and text_enabled and logo_w > 0 and text_w > 0) else (
+                        logo_h or text_h)
+            else:  # logo_left or logo_right
                 total_w = (logo_w + text_w + gap) if (
-                            logo_enabled and text_enabled and logo_w > 0 and text_w > 0) else (logo_w or text_w)
+                            logo_enabled and text_enabled and logo_w > 0 and text_w > 0) else (
+                        logo_w or text_w)
                 total_h = max(logo_h, text_h)
 
+            # 5. 決定浮水印的錨點 (左上角)
             area = w_settings.get('area', 'in_photo')
             align = w_settings.get('align', 'bottom_right')
+            # 如果相框被禁用，則強制將區域設為 'in_photo'
+            f_settings = self.tabs._get_current_settings().get('frame', {})
+            if not f_settings.get('enabled', True):
+                area = 'in_photo'
+
             target_rect = photo_rect if area == 'in_photo' else frame_rect
-            padding = int(font_size * 0.8)  # 導出時邊距可以大一些
+            padding = int(font_size * 0.5)
 
             x, y = 0, 0
-            if 'left' in align: x = target_rect.left() + padding
-            if 'center' in align: x = target_rect.center().x() - total_w / 2
-            if 'right' in align: x = target_rect.right() - total_w - padding
-            if 'top' in align: y = target_rect.top() + padding
-            if 'middle' in align: y = target_rect.center().y() - total_h / 2
-            if 'bottom' in align: y = target_rect.bottom() - total_h - padding
-            if area == 'in_frame' and 'top' in align: y = padding
-            if area == 'in_frame' and 'bottom' in align: y = photo_rect.bottom() + padding
+            # --- 水平定位 (X) ---
+            if 'left' in align:
+                x = target_rect.left() + padding
+            elif 'center' in align:
+                x = target_rect.center().x() - total_w / 2
+            elif 'right' in align:
+                x = target_rect.right() - total_w - padding
 
+            # --- 垂直定位 (Y) ---
+            if area == 'in_photo':
+                if 'top' in align:
+                    y = target_rect.top() + padding
+                elif 'middle' in align:  # QGraphicsScene 中沒有 middle，這裡假設是 center
+                    y = target_rect.center().y() - total_h / 2
+                elif 'bottom' in align:
+                    y = target_rect.bottom() - total_h - padding
+            elif area == 'in_frame':
+                if 'top' in align:
+                    # 垂直置中於上邊框的空白區域
+                    top_padding_space = photo_rect.top()
+                    y = (top_padding_space - total_h) / 2
+                elif 'bottom' in align:
+                    # 垂直置中於下邊框的空白區域
+                    bottom_padding_space = frame_rect.bottom() - photo_rect.bottom()
+                    y = photo_rect.bottom() + (bottom_padding_space - total_h) / 2
+                else:  # 對於 in_frame 模式，middle/center/left/right 的 Y 軸與 in_photo 相同
+                    y = target_rect.center().y() - total_h / 2
+
+            # 6. 計算內部相對位置並更新物件
             logo_x_rel, logo_y_rel, text_x_rel, text_y_rel = 0, 0, 0, 0
             if layout == 'logo_top':
-                logo_x_rel = (total_w - logo_w) / 2;
-                text_x_rel = (total_w - text_w) / 2
-                logo_y_rel = 0;
+                # [修正] 移除水平居中，改為左對齊以保持一致性
+                logo_x_rel = 0
+                text_x_rel = 0
+                logo_y_rel = 0
                 text_y_rel = logo_h + gap
             elif layout == 'logo_bottom':
-                logo_x_rel = (total_w - logo_w) / 2;
-                text_x_rel = (total_w - text_w) / 2
-                text_y_rel = 0;
+                # [修正] 移除水平居中，改為左對齊以保持一致性
+                logo_x_rel = 0
+                text_x_rel = 0
+                text_y_rel = 0
                 logo_y_rel = text_h + gap
-            else:
-                logo_y_rel = (total_h - logo_h) / 2;
+            else:  # logo_left or logo_right
+                logo_y_rel = (total_h - logo_h) / 2
                 text_y_rel = (total_h - text_h) / 2
                 if layout == 'logo_right':
-                    text_x_rel = 0;
+                    text_x_rel = 0
                     logo_x_rel = text_w + gap
-                else:
-                    logo_x_rel = 0;
+                else:  # logo_left
+                    logo_x_rel = 0
                     text_x_rel = logo_w + gap
 
             if logo_enabled:
@@ -1129,38 +1156,64 @@ class GalleryView(QWidget):
         if layout in ['logo_top', 'logo_bottom']:
             total_w = max(logo_w, text_w)
             total_h = (logo_h + text_h + gap) if (logo_enabled and text_enabled and logo_w > 0 and text_w > 0) else (
-                        logo_h or text_h)
-        else:
+                    logo_h or text_h)
+        else:  # logo_left or logo_right
             total_w = (logo_w + text_w + gap) if (logo_enabled and text_enabled and logo_w > 0 and text_w > 0) else (
-                        logo_w or text_w)
+                    logo_w or text_w)
             total_h = max(logo_h, text_h)
 
         # 5. 決定浮水印的錨點 (左上角)
         area = w_settings.get('area', 'in_photo')
         align = w_settings.get('align', 'bottom_right')
+        # 如果相框被禁用，則強制將區域設為 'in_photo'
+        f_settings = self.tabs._get_current_settings().get('frame', {})
+        if not f_settings.get('enabled', True):
+            area = 'in_photo'
+
         target_rect = photo_rect if area == 'in_photo' else frame_rect
         padding = int(font_size * 0.5)
 
         x, y = 0, 0
-        if 'left' in align: x = target_rect.left() + padding
-        if 'center' in align: x = target_rect.center().x() - total_w / 2
-        if 'right' in align: x = target_rect.right() - total_w - padding
-        if 'top' in align: y = target_rect.top() + padding
-        if 'middle' in align: y = target_rect.center().y() - total_h / 2
-        if 'bottom' in align: y = target_rect.bottom() - total_h - padding
-        if area == 'in_frame' and 'top' in align: y = padding
-        if area == 'in_frame' and 'bottom' in align: y = photo_rect.bottom() + padding
+        # --- 水平定位 (X) ---
+        if 'left' in align:
+            x = target_rect.left() + padding
+        elif 'center' in align:
+            x = target_rect.center().x() - total_w / 2
+        elif 'right' in align:
+            x = target_rect.right() - total_w - padding
+
+        # --- 垂直定位 (Y) ---
+        if area == 'in_photo':
+            if 'top' in align:
+                y = target_rect.top() + padding
+            elif 'middle' in align:  # QGraphicsScene 中沒有 middle，這裡假設是 center
+                y = target_rect.center().y() - total_h / 2
+            elif 'bottom' in align:
+                y = target_rect.bottom() - total_h - padding
+        elif area == 'in_frame':
+            if 'top' in align:
+                # 垂直置中於上邊框的空白區域
+                top_padding_space = photo_rect.top()
+                y = (top_padding_space - total_h) / 2
+            elif 'bottom' in align:
+                # 垂直置中於下邊框的空白區域
+                bottom_padding_space = frame_rect.bottom() - photo_rect.bottom()
+                y = photo_rect.bottom() + (bottom_padding_space - total_h) / 2
+            else:  # 對於 in_frame 模式，middle/center/left/right 的 Y 軸與 in_photo 相同
+                y = target_rect.center().y() - total_h / 2
 
         # 6. 計算內部相對位置並更新物件
         logo_x_rel, logo_y_rel, text_x_rel, text_y_rel = 0, 0, 0, 0
         if layout == 'logo_top':
-            logo_x_rel = (total_w - logo_w) / 2
-            text_x_rel = (total_w - text_w) / 2
+            # [修正] 移除水平居中，改為左對齊以保持一致性
+            logo_x_rel = 0
+            text_x_rel = 0
             logo_y_rel = 0
             text_y_rel = logo_h + gap
         elif layout == 'logo_bottom':
-            logo_x_rel = (total_w - logo_w) / 2
-            text_x_rel = (total_w - text_w) / 2
+            # [修正] 移除水平居中，改為左對齊以保持一致性
+            logo_x_rel = 0
+            text_x_rel = 0
             text_y_rel = 0
             logo_y_rel = text_h + gap
         else:  # logo_left or logo_right
