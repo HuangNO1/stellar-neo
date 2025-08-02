@@ -8,6 +8,7 @@
   "empty": "空",
   "light": "浅色",
   "dark": "深色",
+  "about": "关于",
   "system": "系统",
   "settings": "设置",
   "gallery": "图片工坊",
@@ -118,5 +119,11 @@
   "edit_color": "编辑颜色",
   "red": "红",
   "green": "绿",
-  "blue": "蓝"
+  "blue": "蓝",
+  "about_app_title": "关于应用",
+  "about_app_body": "鉴于市面上缺乏令人满意的水印应用，特别是在读取LRC或Luminar Neo导出的图片EXIF信息方面存在不足，Stellar Neo因此诞生。本应用致力于提供真正开箱即用、注重细节优化的相框与水印工具，希望能成为大家的首选。",
+  "about_author_title": "关于作者",
+  "about_credits_title": "致谢与声明",
+  "about_credits_prefix": "应用Logo来源：",
+  "about_credits_disclaimer": "本应用所涉及的品牌Logo仅用于学习与参考，请勿用于任何商业用途。"
 }

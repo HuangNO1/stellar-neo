@@ -8,6 +8,7 @@
   "empty": "Empty",
   "light": "Light",
   "dark": "Dark",
+  "about": "About",
   "system": "System",
   "settings": "Settings",
   "gallery": "Workshop",
@@ -116,6 +117,11 @@
   "edit_color": "Edit Color",
   "red": "Red",
   "green": "Green",
-  "blue": "Blue"
-
+  "blue": "Blue",
+  "about_app_title": "About the App",
+  "about_app_body": "Given the lack of satisfactory watermark applications on the market, especially with deficiencies in reading EXIF information from images exported by LRC or Luminar Neo, Stellar Neo was born. This application is dedicated to providing truly out-of-the-box, detail-optimized photo frame and watermark tools, hoping to become everyone's top choice.",
+  "about_author_title": "About the Author",
+  "about_credits_title": "Acknowledgments and Disclaimer",
+  "about_credits_prefix": "App Logo source: ",
+  "about_credits_disclaimer": "The brand logos involved in this application are for learning and reference only. Please do not use them for any commercial purposes."
 }

@@ -7,6 +7,7 @@ class MyFluentIcon(FluentIconBase, Enum):
     """ Custom icons """
 
     WARNING = "warning"
+    INFO = "info"
 
     def path(self, theme=Theme.AUTO):
         # getIconColor() 根据主题返回字符串 "white" 或者 "black"

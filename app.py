@@ -12,11 +12,13 @@ from core.asset_manager import AssetManager  # 導入資源管理器
 from core.config import THEMES
 from core.settings_manager import SettingsManager
 from core.translator import Translator
+from ui.customs.custom_icon import MyFluentIcon
 from ui.pages.view_font import FontView  # 導入字體頁面
 from ui.pages.view_gallery import GalleryView
 from ui.pages.view_logo import LogoView  # 導入 Logo 頁面
 # 導入所有頁面
 from ui.pages.view_settings import SettingsView
+from ui.pages.view_about import AboutView
 
 
 class MainWindow(FluentWindow):
@@ -69,6 +71,7 @@ class MainWindow(FluentWindow):
         self.gallery_view = GalleryView(self.asset_manager, self.translator, self)
         self.logo_view = LogoView(self.asset_manager, self.translator, self)
         self.font_view = FontView(self.asset_manager, self.translator, self)
+        self.about_view = AboutView(self.translator, self)
         self.settings_view = SettingsView(self.translator, self.settings, self.themeListener, self)
 
         # 新增主要頁面
@@ -78,6 +81,12 @@ class MainWindow(FluentWindow):
 
         self.navigationInterface.addSeparator()
 
+        self.addSubInterface(
+            self.about_view,
+            MyFluentIcon.INFO,
+            tr("about", "About"),
+            position=NavigationItemPosition.BOTTOM
+        )
         # 新增底部的設定頁面
         self.addSubInterface(
             self.settings_view,

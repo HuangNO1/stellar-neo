@@ -8,6 +8,7 @@
   "empty": "空",
   "light": "淺色",
   "dark": "深色",
+  "about": "關於",
   "system": "系統",
   "settings": "設定",
   "gallery": "圖片工坊",
@@ -118,5 +119,11 @@
   "edit_color": "編輯顏色",
   "red": "紅",
   "green": "綠",
-  "blue": "藍"
+  "blue": "藍",
+  "about_app_title": "關於應用",
+  "about_app_body": "鑒於市面上缺乏令人滿意的浮水印應用，特別是在讀取 LRC 或 Luminar Neo 導出的圖片 EXIF 資訊方面存在不足，Stellar Neo 因此誕生。本應用致力於提供真正開箱即用、注重細節優化的相框與浮水印工具，希望能成為大家的首選。",
+  "about_author_title": "關於作者",
+  "about_credits_title": "致謝與聲明",
+  "about_credits_prefix": "應用 Logo 來源：",
+  "about_credits_disclaimer": "此應用涉及的品牌 Logo 僅用於學習與參考，請勿用於任何商業用途。"
 }
