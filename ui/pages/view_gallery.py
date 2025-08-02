@@ -641,13 +641,18 @@ class GalleryView(QWidget):
             export_photo_w = photo_rect.width()
             export_photo_h = photo_rect.height()
 
-            # 2. 應用與 `_update_watermark` 中完全相同的公式，確保比例一致。
-            #    基礎大小現在是相對於全尺寸圖片，而非預覽圖。
-            base_font_size = max(8, int(min(export_photo_w, export_photo_h) * 0.04))
+            # 從預覽區的圖片尺寸獲取基礎字體大小
+            preview_photo_w = self.last_preview_photo_size.width()
+            preview_photo_h = self.last_preview_photo_size.height()
+            base_preview_font_size = max(8, int(min(preview_photo_w, preview_photo_h) * 0.04))
 
-            # 3. 根據使用者設定的滑桿百分比，計算最終的字體大小。
+            # 計算縮放比例
+            scale_factor = (export_photo_w / preview_photo_w * 0.95) if preview_photo_w > 0 else 1.0
+
+            # 應用與 `_update_watermark` 中完全相同的公式
+            # 並乘上縮放比例，以確保匯出圖片的字體大小與預覽時的視覺大小一致
             font_size_ratio = w_settings.get('font_size', 20) / 100.0
-            font_size = int(base_font_size * font_size_ratio)
+            font_size = int(base_preview_font_size * font_size_ratio * scale_factor)
 
             # 後續所有尺寸相關的計算（如 gap, padding, logo_h_scaled）都將基於這個
             # 正確縮放後的 font_size，從而保證整體比例一致。
@@ -674,7 +679,7 @@ class GalleryView(QWidget):
             logo_text_rect = logo_fm.boundingRect(logo_text)
 
             if logo_pixmap and not logo_pixmap.isNull():
-                logo_h_scaled = int(logo_font.pointSizeF() * 1.2 * (w_settings.get('logo_size', 30) / 50.0))
+                logo_h_scaled = int(font_size * 1.2 * (w_settings.get('logo_size', 30) / 50.0) * 0.95)
                 logo_pixmap = logo_pixmap.scaledToHeight(logo_h_scaled, Qt.TransformationMode.SmoothTransformation)
 
             gap = int(font_size * 0.3)
@@ -739,15 +744,15 @@ class GalleryView(QWidget):
             # 6. 計算內部相對位置並更新物件
             logo_x_rel, logo_y_rel, text_x_rel, text_y_rel = 0, 0, 0, 0
             if layout == 'logo_top':
-                # [修正] 移除水平居中，改為左對齊以保持一致性
-                logo_x_rel = 0
-                text_x_rel = 0
+                # 計算水平居中對齊的偏移量
+                logo_x_rel = (total_w - logo_w) / 2
+                text_x_rel = (total_w - text_w) / 2
                 logo_y_rel = 0
                 text_y_rel = logo_h + gap
             elif layout == 'logo_bottom':
-                # [修正] 移除水平居中，改為左對齊以保持一致性
-                logo_x_rel = 0
-                text_x_rel = 0
+                # 計算水平居中對齊的偏移量
+                logo_x_rel = (total_w - logo_w) / 2
+                text_x_rel = (total_w - text_w) / 2
                 text_y_rel = 0
                 logo_y_rel = text_h + gap
             else:  # logo_left or logo_right
@@ -1265,15 +1270,15 @@ class GalleryView(QWidget):
         # 6. 計算內部相對位置並更新物件
         logo_x_rel, logo_y_rel, text_x_rel, text_y_rel = 0, 0, 0, 0
         if layout == 'logo_top':
-            # [修正] 移除水平居中，改為左對齊以保持一致性
-            logo_x_rel = 0
-            text_x_rel = 0
+            # 計算水平居中對齊的偏移量
+            logo_x_rel = (total_w - logo_w) / 2
+            text_x_rel = (total_w - text_w) / 2
             logo_y_rel = 0
             text_y_rel = logo_h + gap
         elif layout == 'logo_bottom':
-            # [修正] 移除水平居中，改為左對齊以保持一致性
-            logo_x_rel = 0
-            text_x_rel = 0
+            # 計算水平居中對齊的偏移量
+            logo_x_rel = (total_w - logo_w) / 2
+            text_x_rel = (total_w - text_w) / 2
             text_y_rel = 0
             logo_y_rel = text_h + gap
         else:  # logo_left or logo_right
