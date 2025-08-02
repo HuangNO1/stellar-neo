@@ -333,7 +333,7 @@ class GalleryTabs(QWidget):
         logo_source_app = w.logo_source_app_combo.findData(w_settings.get('logo_source_app', ''))
         w.logo_source_app_combo.setCurrentIndex(logo_source_app if logo_source_app > -1 else -1)
         logo_source_my_custom = w.logo_source_my_custom_combo.findData(w_settings.get('logo_source_my_custom', ''))
-        w.logo_source_app_combo.setCurrentIndex(logo_source_my_custom if logo_source_my_custom > -1 else -1)
+        w.logo_source_my_custom_combo.setCurrentIndex(logo_source_my_custom if logo_source_my_custom > -1 else -1)
 
         w.logo_size_slider.setValue(w_settings.get('logo_size', 30))
         w.text_enabled_switch.setChecked(w_settings.get('text_enabled', True))
