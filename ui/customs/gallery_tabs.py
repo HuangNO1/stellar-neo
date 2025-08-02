@@ -1,8 +1,9 @@
 import json
 
 from PyQt6 import uic
-from PyQt6.QtCore import pyqtSignal, QTimer
-from PyQt6.QtWidgets import QWidget, QStackedWidget, QVBoxLayout
+from PyQt6.QtCore import pyqtSignal, QTimer, QParallelAnimationGroup, QPropertyAnimation, QEasingCurve, \
+    QAbstractAnimation
+from PyQt6.QtWidgets import QWidget, QStackedWidget, QVBoxLayout, QLayout, QSizePolicy
 from qfluentwidgets import TabBar
 from qfluentwidgets.components.widgets.tab_view import TabCloseButtonDisplayMode
 
@@ -10,7 +11,6 @@ from core.asset_manager import AssetManager
 from core.settings_manager import SettingsManager
 from core.translator import Translator
 from core.utils import wrap_scroll
-
 
 
 class GalleryTabs(QWidget):
@@ -33,6 +33,7 @@ class GalleryTabs(QWidget):
         # --- 新增：用於優化的屬性 ---
         self.cached_settings = {}  # 用於快取上一次的設定
         self.update_timer = QTimer(self)  # 用於延遲更新的計時器
+        self.running_animation_groups = []  # 用於管理動畫生命週期
 
         main_layout = QVBoxLayout(self)
         main_layout.setContentsMargins(0, 0, 0, 0)
@@ -61,6 +62,9 @@ class GalleryTabs(QWidget):
         self._load_settings()
         self._connect_signals()
 
+        # --- 新增：初始化動態 UI 邏輯 ---
+        self._init_animated_visibility_logic()
+
         # --- 新增：設定計時器 ---
         self.update_timer.setSingleShot(True)
         self.update_timer.setInterval(150)  # 150毫秒的延遲
@@ -68,7 +72,6 @@ class GalleryTabs(QWidget):
 
         # 首次載入後，快取初始設定
         self.cached_settings = self._get_current_settings()
-
 
     def addSubInterface(self, widget: QWidget, objectName: str, text: str):
         widget.setObjectName(objectName)
@@ -111,6 +114,7 @@ class GalleryTabs(QWidget):
         w.title_label_3.setText(self.tr("common_style_title", "Common Styles"))
         w.font_size_label.setText(self.tr("font_size", "Font Size"))
         w.title_label_4.setText(self.tr("layout_title", "Overall Layout"))
+        w.font_color_label.setText(self.tr("font_color", "Font Color"))
 
         # 相框
         f = self.frameInterface
@@ -158,17 +162,20 @@ class GalleryTabs(QWidget):
         self._populate_combo(w.logo_source_my_custom_combo, self.tr('select_logo', 'Select Logo'), "logo", user_logos)
         self._populate_combo(w.logo_source_app_combo, self.tr('select_logo', 'Select Logo'), "logo", app_logos)
 
-        self._populate_combo(w.logo_source_combo, self.tr('logo_source_method', 'Logo Source Method'), "w_logo_source", ["auto_detect","select_from_library", "my_custom_logo"])
-        self._populate_combo(w.text_source_combo, self.tr('text_source_method', 'Text Source Method'), "w_text_source", ["exif", "custom"])
-        self._populate_combo(w.font_combo, self.tr('select_font_method', 'Select Font Method'), "w_font_source", ["system", "my_custom"])
+        self._populate_combo(w.logo_source_combo, self.tr('logo_source_method', 'Logo Source Method'), "w_logo_source",
+                             ["auto_detect", "select_from_library", "my_custom_logo"])
+        self._populate_combo(w.text_source_combo, self.tr('text_source_method', 'Text Source Method'), "w_text_source",
+                             ["exif", "custom"])
+        self._populate_combo(w.font_combo, self.tr('select_font_method', 'Select Font Method'), "w_font_source",
+                             ["system", "my_custom"])
         self._populate_combo(w.layout_combo, self.tr('layout_watermark', 'Watermark Layout'), "w_layout",
                              ["logo_top", "logo_bottom", "logo_left"])
-        self._populate_combo(w.position_area_combo, self.tr('position_area_title', 'Watermark Area'), "w_area", ["in_frame", "in_photo"])
+        self._populate_combo(w.position_area_combo, self.tr('position_area_title', 'Watermark Area'), "w_area",
+                             ["in_frame", "in_photo"])
         self._populate_combo(w.position_align_combo, self.tr('position_align_title', 'Alignment'), "w_align",
                              ["top_left", "top_center", "top_right", "bottom_left", "bottom_center", "bottom_right"])
-        self._populate_combo(f.frame_style_combo, self.tr('frame_style', 'Frame Style'), "f_style", ["solid_color", "blur_extend"])
-
-
+        self._populate_combo(f.frame_style_combo, self.tr('frame_style', 'Frame Style'), "f_style",
+                             ["solid_color", "blur_extend"])
 
     def _init_color_pick_btn(self):
         """初始化 自定義的顏色選取按鈕"""
@@ -377,4 +384,226 @@ class GalleryTabs(QWidget):
         # 更新快取
         self.cached_settings = self._get_current_settings()
 
+    # =================================================================================
+    # ==                 以下是動畫與可見性邏輯的核心修改區域                   ==
+    # =================================================================================
 
+    def _init_animated_visibility_logic(self):
+        """初始化所有與動態 UI 可見性相關的邏輯"""
+        w = self.watermarkInterface
+        f = self.frameInterface
+
+        # 1. 連接信號
+        w.logo_enabled_switch.checkedChanged.connect(self._update_logo_controls_visibility)
+        w.text_enabled_switch.checkedChanged.connect(self._update_text_controls_visibility)
+        f.frame_enabled_switch.checkedChanged.connect(self._update_frame_controls_visibility)
+        w.logo_source_combo.currentIndexChanged.connect(self._update_logo_source_visibility)
+        w.text_source_combo.currentIndexChanged.connect(self._update_text_source_visibility)
+        w.font_combo.currentIndexChanged.connect(self._update_font_source_visibility)
+        f.frame_style_combo.currentIndexChanged.connect(self._update_frame_style_visibility)
+
+        # 2. 初始狀態更新
+        self._update_all_visibilities(animate=False)
+
+    def _update_all_visibilities(self, animate=False):
+        """呼叫所有的可見性更新函式，用於初始化或刷新狀態。"""
+        w = self.watermarkInterface
+        f = self.frameInterface
+        self._update_logo_controls_visibility(w.logo_enabled_switch.isChecked(), animate)
+        self._update_text_controls_visibility(w.text_enabled_switch.isChecked(), animate)
+        self._update_frame_controls_visibility(f.frame_enabled_switch.isChecked(), animate)
+
+    def _get_widgets_from_layout(self, layout: QLayout) -> list[QWidget]:
+        """遞迴地從一個佈局及其所有子佈局中收集所有的 QWidget。"""
+        widgets = []
+        if not layout: return widgets
+        for i in range(layout.count()):
+            item = layout.itemAt(i)
+            if widget := item.widget():
+                widgets.append(widget)
+            elif sub_layout := item.layout():
+                widgets.extend(self._get_widgets_from_layout(sub_layout))
+        return widgets
+
+    def _animate_widget_visibility(self, widget: QWidget, show: bool, animate: bool):
+        """使用動畫平滑地顯示或隱藏單個元件"""
+        if widget.isVisible() == show and show:
+            return
+
+        if not animate:
+            widget.setVisible(show)
+            if show:
+                widget.setMaximumHeight(16777215)  # 還原 PyQt 的預設最大高度
+            return
+
+        animation = QPropertyAnimation(widget, b"maximumHeight", self)
+        animation.setDuration(250)
+        animation.setEasingCurve(QEasingCurve.Type.InOutQuad)
+
+        if show:
+            widget.setVisible(True)
+            widget.setMaximumHeight(0)
+            end_height = widget.sizeHint().height()
+            if end_height == 0:
+                end_height = 100  # fallback，避免 sizeHint 為 0 導致動畫不動
+            animation.setStartValue(0)
+            animation.setEndValue(end_height)
+            animation.finished.connect(lambda: widget.setMaximumHeight(16777215))  # 還原
+        else:
+            animation.setStartValue(widget.height())
+            animation.setEndValue(0)
+            animation.finished.connect(lambda: (
+                widget.setVisible(False),
+                widget.setMaximumHeight(16777215)  # 還原
+            ))
+
+        animation.start(QAbstractAnimation.DeletionPolicy.DeleteWhenStopped)
+
+    def _animate_layout_visibility(self, layout: QLayout, show: bool, animate: bool):
+        """使用動畫平滑地顯示或隱藏一個佈局及其內所有元件"""
+        if not layout:
+            return
+
+        widgets = self._get_widgets_from_layout(layout)
+
+        if not animate:
+            for widget in widgets:
+                widget.setVisible(show)
+                if show:
+                    widget.setMaximumHeight(16777215)
+            layout.activate()
+            return
+
+        group = QParallelAnimationGroup(self)
+        for widget in widgets:
+            if widget.isVisible() == show and show:
+                continue
+
+            animation = QPropertyAnimation(widget, b"maximumHeight", self)
+            animation.setDuration(250)
+            animation.setEasingCurve(QEasingCurve.Type.InOutQuad)
+
+            if show:
+                widget.setVisible(True)
+                widget.setMaximumHeight(0)
+                end_height = widget.sizeHint().height()
+                if end_height == 0:
+                    end_height = 100
+                animation.setStartValue(0)
+                animation.setEndValue(end_height)
+                animation.finished.connect(lambda w=widget: w.setMaximumHeight(16777215))
+            else:
+                animation.setStartValue(widget.height())
+                animation.setEndValue(0)
+                animation.finished.connect(lambda w=widget: (
+                    w.setVisible(False),
+                    w.setMaximumHeight(16777215)
+                ))
+
+            group.addAnimation(animation)
+
+        if group.animationCount() > 0:
+            group.start(QAbstractAnimation.DeletionPolicy.DeleteWhenStopped)
+
+        layout.activate()
+
+    # --- Logo 可見性控制 ---
+    def _update_logo_controls_visibility(self, show: bool, animate: bool = True):
+        w = self.watermarkInterface
+        base_widgets = [w.logo_source_combo, w.logo_size_label, w.logo_size_slider]
+        for widget in base_widgets:
+            self._animate_widget_visibility(widget, show, animate)
+
+        if show:
+            self._update_logo_source_visibility(animate)
+        else:
+            self._animate_layout_visibility(w.control_by_logo_source_app, False, animate)
+            self._animate_layout_visibility(w.control_by_logo_source_my, False, animate)
+
+    def _update_logo_source_visibility(self, animate: bool = True):
+        w = self.watermarkInterface
+        source = w.logo_source_combo.currentData()
+        self._animate_layout_visibility(w.control_by_logo_source_app, source == "select_from_library", animate)
+        self._animate_layout_visibility(w.control_by_logo_source_my, source == "my_custom_logo", animate)
+
+    # --- 文字可見性控制 ---
+    def _update_text_controls_visibility(self, show: bool, animate: bool = True):
+        w = self.watermarkInterface
+        base_widgets = [
+            w.text_source_combo, w.title_label_3, w.font_combo,
+            w.font_color_label, w.font_color_button, w.font_size_label, w.font_size_slider
+        ]
+        for widget in base_widgets:
+            self._animate_widget_visibility(widget, show, animate)
+
+        if show:
+            self._update_text_source_visibility(animate)
+            self._update_font_source_visibility(animate)
+        else:
+            self._animate_layout_visibility(w.control_by_text_source_auto, False, animate)
+            self._animate_layout_visibility(w.control_by_text_source_my, False, animate)
+            self._animate_layout_visibility(w.control_by_font_system, False, animate)
+            self._animate_layout_visibility(w.control_by_font_my, False, animate)
+
+    def _update_text_source_visibility(self, animate: bool = True):
+        w = self.watermarkInterface
+        source = w.text_source_combo.currentData()
+
+        # 先全關再打開對應 layout
+        self._animate_layout_visibility(w.control_by_text_source_auto, False, animate)
+        self._animate_layout_visibility(w.control_by_text_source_my, False, animate)
+
+        if source == "exif":
+            self._animate_layout_visibility(w.control_by_text_source_auto, True, animate)
+        elif source == "custom":
+            self._animate_layout_visibility(w.control_by_text_source_my, True, animate)
+
+    def _update_font_source_visibility(self, animate: bool = True):
+        w = self.watermarkInterface
+        source = w.font_combo.currentData()
+        self._animate_layout_visibility(w.control_by_font_system, source == "system", animate)
+        self._animate_layout_visibility(w.control_by_font_my, source == "my_custom", animate)
+
+    # --- 相框可見性控制 ---
+    def _update_frame_controls_visibility(self, show: bool, animate: bool = True):
+        f = self.frameInterface
+        base_widgets = [
+            f.frame_shadow_switch, f.photo_shadow_switch, f.frame_radius_label,
+            f.frame_radius_slider, f.photo_radius_label, f.photo_radius_slider,
+            f.padding_top_label, f.padding_top_slider, f.padding_sides_label,
+            f.padding_sides_slider, f.padding_bottom_label, f.padding_bottom_slider,
+            f.frame_style_label, f.frame_style_combo
+        ]
+        for widget in base_widgets:
+            self._animate_widget_visibility(widget, show, animate)
+
+        # 對 Spacer 的特殊處理
+        layout = f.control_by_frame_enabled
+        if layout.count() > 0:
+            spacer_item = layout.itemAt(layout.count() - 1)
+            if spacer_item and spacer_item.spacerItem():
+                spacer_item.spacerItem().changeSize(
+                    20, 40 if show else 0,
+                    QSizePolicy.Policy.Minimum,
+                    QSizePolicy.Policy.Expanding
+                )
+                layout.activate()
+
+        if show:
+            self._update_frame_style_visibility(animate)
+        else:
+            self._animate_layout_visibility(f.control_by_frame_style_solid_color, False, animate)
+            self._animate_layout_visibility(f.control_by_frame_style_blur_extend, False, animate)
+
+    def _update_frame_style_visibility(self, animate: bool = True):
+        f = self.frameInterface
+        style = f.frame_style_combo.currentData()
+
+        # 先全部隱藏，再顯示正確的 layout，避免切換動畫未完成造成 layout 空白或重疊
+        self._animate_layout_visibility(f.control_by_frame_style_solid_color, False, animate)
+        self._animate_layout_visibility(f.control_by_frame_style_blur_extend, False, animate)
+
+        if style == "solid_color":
+            self._animate_layout_visibility(f.control_by_frame_style_solid_color, True, animate)
+        elif style == "blur_extend":
+            self._animate_layout_visibility(f.control_by_frame_style_blur_extend, True, animate)

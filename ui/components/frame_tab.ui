@@ -25,144 +25,159 @@
     </widget>
    </item>
    <item>
-    <widget class="SwitchButton" name="frame_shadow_switch">
-     <property name="text">
-      <string>相框懸浮陰影</string>
-     </property>
-    </widget>
-   </item>
-   <item>
-    <widget class="SwitchButton" name="photo_shadow_switch">
-     <property name="text">
-      <string>相片懸浮陰影</string>
-     </property>
-    </widget>
-   </item>
-   <item>
-    <widget class="BodyLabel" name="frame_radius_label">
-     <property name="text">
-      <string>相框圓角</string>
-     </property>
-    </widget>
-   </item>
-   <item>
-    <widget class="Slider" name="frame_radius_slider">
-     <property name="orientation">
-      <enum>Qt::Orientation::Horizontal</enum>
-     </property>
-    </widget>
-   </item>
-   <item>
-    <widget class="BodyLabel" name="photo_radius_label">
-     <property name="text">
-      <string>相片圓角</string>
-     </property>
-    </widget>
-   </item>
-   <item>
-    <widget class="Slider" name="photo_radius_slider">
-     <property name="orientation">
-      <enum>Qt::Orientation::Horizontal</enum>
-     </property>
-    </widget>
-   </item>
-   <item>
-    <widget class="BodyLabel" name="padding_top_label">
-     <property name="text">
-      <string>相框上邊距</string>
-     </property>
-    </widget>
-   </item>
-   <item>
-    <widget class="Slider" name="padding_top_slider">
-     <property name="maximum">
-      <number>120</number>
-     </property>
-     <property name="orientation">
-      <enum>Qt::Orientation::Horizontal</enum>
-     </property>
-    </widget>
-   </item>
-   <item>
-    <widget class="BodyLabel" name="padding_sides_label">
-     <property name="text">
-      <string>相框左右邊距</string>
-     </property>
-    </widget>
-   </item>
-   <item>
-    <widget class="Slider" name="padding_sides_slider">
-     <property name="maximum">
-      <number>120</number>
-     </property>
-     <property name="orientation">
-      <enum>Qt::Orientation::Horizontal</enum>
-     </property>
-    </widget>
-   </item>
-   <item>
-    <widget class="BodyLabel" name="padding_bottom_label">
-     <property name="text">
-      <string>相框下邊距</string>
-     </property>
-    </widget>
-   </item>
-   <item>
-    <widget class="Slider" name="padding_bottom_slider">
-     <property name="maximum">
-      <number>120</number>
-     </property>
-     <property name="orientation">
-      <enum>Qt::Orientation::Horizontal</enum>
-     </property>
-    </widget>
-   </item>
-   <item>
-    <widget class="BodyLabel" name="frame_style_label">
-     <property name="text">
-      <string>相框樣式</string>
-     </property>
-    </widget>
-   </item>
-   <item>
-    <widget class="ComboBox" name="frame_style_combo"/>
-   </item>
-   <item>
-    <widget class="BodyLabel" name="frame_blur_label">
-     <property name="text">
-      <string>相框模糊程度</string>
-     </property>
-    </widget>
-   </item>
-   <item>
-    <widget class="Slider" name="frame_blur_slider">
-     <property name="orientation">
-      <enum>Qt::Orientation::Horizontal</enum>
-     </property>
-    </widget>
-   </item>
-   <item>
-    <widget class="BodyLabel" name="frame_color_label">
-     <property name="text">
-      <string>相框顏色</string>
-     </property>
-    </widget>
-   </item>
-   <item>
-    <widget class="ColorButton" name="frame_color_button"/>
-   </item>
-   <item>
-    <spacer name="verticalSpacer">
-     <property name="orientation">
-      <enum>Qt::Orientation::Vertical</enum>
-     </property>
-     <property name="sizeHint" stdset="0">
-      <size>
-       <width>20</width>
-       <height>40</height>
-      </size>
-     </property>
-    </spacer>
+    <layout class="QVBoxLayout" name="control_by_frame_enabled">
+     <item>
+      <widget class="SwitchButton" name="frame_shadow_switch">
+       <property name="text">
+        <string>相框懸浮陰影</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="SwitchButton" name="photo_shadow_switch">
+       <property name="text">
+        <string>相片懸浮陰影</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="BodyLabel" name="frame_radius_label">
+       <property name="text">
+        <string>相框圓角</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="Slider" name="frame_radius_slider">
+       <property name="orientation">
+        <enum>Qt::Orientation::Horizontal</enum>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="BodyLabel" name="photo_radius_label">
+       <property name="text">
+        <string>相片圓角</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="Slider" name="photo_radius_slider">
+       <property name="orientation">
+        <enum>Qt::Orientation::Horizontal</enum>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="BodyLabel" name="padding_top_label">
+       <property name="text">
+        <string>相框上邊距</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="Slider" name="padding_top_slider">
+       <property name="maximum">
+        <number>200</number>
+       </property>
+       <property name="orientation">
+        <enum>Qt::Orientation::Horizontal</enum>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="BodyLabel" name="padding_sides_label">
+       <property name="text">
+        <string>相框左右邊距</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="Slider" name="padding_sides_slider">
+       <property name="maximum">
+        <number>200</number>
+       </property>
+       <property name="orientation">
+        <enum>Qt::Orientation::Horizontal</enum>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="BodyLabel" name="padding_bottom_label">
+       <property name="text">
+        <string>相框下邊距</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="Slider" name="padding_bottom_slider">
+       <property name="maximum">
+        <number>200</number>
+       </property>
+       <property name="orientation">
+        <enum>Qt::Orientation::Horizontal</enum>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="BodyLabel" name="frame_style_label">
+       <property name="text">
+        <string>相框樣式</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="ComboBox" name="frame_style_combo"/>
+     </item>
+     <item>
+      <layout class="QVBoxLayout" name="control_by_frame_style_solid_color">
+       <item>
+        <widget class="BodyLabel" name="frame_color_label">
+         <property name="text">
+          <string>相框顏色</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="ColorButton" name="frame_color_button"/>
+       </item>
+      </layout>
+     </item>
+     <item>
+      <layout class="QVBoxLayout" name="control_by_frame_style_blur_extend">
+       <item>
+        <widget class="BodyLabel" name="frame_blur_label">
+         <property name="text">
+          <string>相框模糊程度</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="Slider" name="frame_blur_slider">
+         <property name="maximum">
+          <number>49</number>
+         </property>
+         <property name="orientation">
+          <enum>Qt::Orientation::Horizontal</enum>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </item>
+     <item>
+      <spacer name="verticalSpacer">
+       <property name="orientation">
+        <enum>Qt::Orientation::Vertical</enum>
+       </property>
+       <property name="sizeHint" stdset="0">
+        <size>
+         <width>20</width>
+         <height>40</height>
+        </size>
+       </property>
+      </spacer>
+     </item>
+    </layout>
    </item>
   </layout>
  </widget>

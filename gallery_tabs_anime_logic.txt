@@ -1,0 +1,27 @@
+
+現在上傳的分別是我兩個子tab頁面（watermark_tab 與 frame_tab），以及對應使用的tabs頁面(gallery_tabs)
+我現在需要設計一個平滑過度的顯示與隱藏的效果，控制邏輯如下：
+
+(1) watermark_tab.ui
+當 logo_enabled_switch 是 true 的時候 顯示 control_by_logo_enabled 也顯示 logo_source_combo 否則隱藏
+當 logo_source_combo 是
+auto_detect -> 隱藏 control_by_logo_source_auto
+select_from_library  -> 顯示 control_by_logo_source_app 隱藏 control_by_logo_source_my
+my_custom_logo -> 隱藏control_by_logo_source_app 顯示 control_by_logo_source_my
+當 text_enabled_switch 是 true 的時候 顯示 control_by_text_enabled 也顯示 text_source_combo 否則隱藏
+當 text_source_combo 是
+exif -> 顯示 control_by_text_source_auto 隱藏 control_by_text_source_my
+custom -> 隱藏 control_by_text_source_auto 顯示 control_by_text_source_my
+當 font_combo 是
+system -> 顯示 control_by_font_system 隱藏 control_by_font_my
+my_custom -> 隱藏 control_by_font_system 顯示 control_by_font_my
+
+(2) frame_tab.ui
+當 frame_enabled_switch 是 true 的時候 顯示 control_by_frame_enabled 否則隱藏
+當 frame_style_combo 是
+blur_extend -> 顯示 control_by_frame_style_blur_extend 隱藏 control_by_frame_style_solid_color
+solid_color -> 隱藏 control_by_frame_style_blur_extend 顯示 control_by_frame_style_solid_color
+
+這部份邏輯
+1. 不要更改方法名 switch 開關一律是 checkedChanged,  combo 一律是 currentIndexChanged
+2. 注意渲染邏輯正確性，我不確定layout 能不能直接設置可不可視 如果不行，是不是要遍例所有的子組件設置的邏輯，e.g. 當 logo_enabled_switch 是 true 時 應該要顯示 logo_source_combo，因為有 logo_source_combo 才能去控制 control_by_logo_source_auto control_by_logo_source_app control_by_logo_source_my，渲染邏輯如果能寫出一個通用的就最好，不行的話就針對以上多個情況各自寫

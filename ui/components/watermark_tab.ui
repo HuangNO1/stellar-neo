@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>280</width>
-    <height>1034</height>
+    <height>1080</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -32,42 +32,58 @@
     </widget>
    </item>
    <item>
-    <widget class="ComboBox" name="logo_source_combo">
-     <property name="text">
-      <string>怎麼選取logo</string>
-     </property>
-    </widget>
-   </item>
-   <item>
-    <widget class="ComboBox" name="logo_source_app_combo">
-     <property name="text">
-      <string>選取應用logo</string>
-     </property>
-    </widget>
-   </item>
-   <item>
-    <widget class="ComboBox" name="logo_source_my_custom_combo">
-     <property name="text">
-      <string>選取我自己的LOGO</string>
-     </property>
-    </widget>
-   </item>
-   <item>
-    <widget class="BodyLabel" name="logo_size_label">
-     <property name="text">
-      <string>Logo 大小</string>
-     </property>
-    </widget>
-   </item>
-   <item>
-    <widget class="Slider" name="logo_size_slider">
-     <property name="maximum">
-      <number>120</number>
-     </property>
-     <property name="orientation">
-      <enum>Qt::Orientation::Horizontal</enum>
-     </property>
-    </widget>
+    <layout class="QVBoxLayout" name="control_by_logo_enabled">
+     <item>
+      <widget class="ComboBox" name="logo_source_combo">
+       <property name="text">
+        <string>怎麼選取logo</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <layout class="QVBoxLayout" name="control_by_logo_source_auto">
+       <item>
+        <layout class="QVBoxLayout" name="control_by_logo_source_app">
+         <item>
+          <widget class="ComboBox" name="logo_source_app_combo">
+           <property name="text">
+            <string>選取應用logo</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </item>
+       <item>
+        <layout class="QVBoxLayout" name="control_by_logo_source_my">
+         <item>
+          <widget class="ComboBox" name="logo_source_my_custom_combo">
+           <property name="text">
+            <string>選取我自己的LOGO</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </item>
+      </layout>
+     </item>
+     <item>
+      <widget class="BodyLabel" name="logo_size_label">
+       <property name="text">
+        <string>Logo 大小</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="Slider" name="logo_size_slider">
+       <property name="maximum">
+        <number>200</number>
+       </property>
+       <property name="orientation">
+        <enum>Qt::Orientation::Horizontal</enum>
+       </property>
+      </widget>
+     </item>
+    </layout>
    </item>
    <item>
     <widget class="Line" name="line">
@@ -91,119 +107,146 @@
     </widget>
    </item>
    <item>
-    <widget class="ComboBox" name="text_source_combo">
-     <property name="text">
-      <string>文字選項（相機資訊、自定義）</string>
-     </property>
-    </widget>
-   </item>
-   <item>
-    <widget class="LineEdit" name="text_custom_input">
-     <property name="placeholderText">
-      <string>請輸入自訂文字</string>
-     </property>
-    </widget>
-   </item>
-   <item>
-    <widget class="BodyLabel" name="exif_options_label">
-     <property name="text">
-      <string>選擇要顯示的參數</string>
-     </property>
-    </widget>
-   </item>
-   <item>
-    <layout class="QGridLayout" name="exif_grid_layout">
-     <item row="0" column="0">
-      <widget class="CheckBox" name="exif_model_check">
+    <layout class="QVBoxLayout" name="control_by_text_enabled">
+     <item>
+      <widget class="ComboBox" name="text_source_combo">
        <property name="text">
-        <string>型號</string>
+        <string>文字選項（相機資訊、自定義）</string>
        </property>
       </widget>
      </item>
-     <item row="0" column="1">
-      <widget class="CheckBox" name="exif_focal_length_check">
+     <item>
+      <layout class="QVBoxLayout" name="control_by_text_source_auto">
+       <item>
+        <widget class="BodyLabel" name="exif_options_label">
+         <property name="text">
+          <string>選擇要顯示的參數</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <layout class="QGridLayout" name="exif_grid_layout">
+         <item row="0" column="0">
+          <widget class="CheckBox" name="exif_model_check">
+           <property name="text">
+            <string>型號</string>
+           </property>
+          </widget>
+         </item>
+         <item row="0" column="1">
+          <widget class="CheckBox" name="exif_focal_length_check">
+           <property name="text">
+            <string>焦距</string>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="0">
+          <widget class="CheckBox" name="exif_aperture_check">
+           <property name="text">
+            <string>光圈</string>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="1">
+          <widget class="CheckBox" name="exif_shutter_check">
+           <property name="text">
+            <string>快門</string>
+           </property>
+          </widget>
+         </item>
+         <item row="2" column="0">
+          <widget class="CheckBox" name="exif_iso_check">
+           <property name="text">
+            <string>ISO</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </item>
+      </layout>
+     </item>
+     <item>
+      <layout class="QVBoxLayout" name="control_by_text_source_my">
+       <item>
+        <widget class="LineEdit" name="text_custom_input">
+         <property name="placeholderText">
+          <string>請輸入自訂文字</string>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </item>
+     <item>
+      <widget class="BodyLabel" name="title_label_3">
        <property name="text">
-        <string>焦距</string>
+        <string>通用樣式</string>
        </property>
       </widget>
      </item>
-     <item row="1" column="0">
-      <widget class="CheckBox" name="exif_aperture_check">
+     <item>
+      <widget class="ComboBox" name="font_combo">
+       <property name="toolTip">
+        <string>選擇字體</string>
+       </property>
        <property name="text">
-        <string>光圈</string>
+        <string>選取字體</string>
        </property>
       </widget>
      </item>
-     <item row="1" column="1">
-      <widget class="CheckBox" name="exif_shutter_check">
+     <item>
+      <layout class="QVBoxLayout" name="control_by_font_system">
+       <item>
+        <widget class="ComboBox" name="font_system_combo">
+         <property name="text">
+          <string>選取系統字體</string>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </item>
+     <item>
+      <layout class="QVBoxLayout" name="control_by_font_my">
+       <item>
+        <widget class="ComboBox" name="font_my_custom_combo">
+         <property name="text">
+          <string>選取我自己的字體</string>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </item>
+     <item>
+      <widget class="BodyLabel" name="font_color_label">
        <property name="text">
-        <string>快門</string>
+        <string>字體顏色</string>
        </property>
       </widget>
      </item>
-     <item row="2" column="0">
-      <widget class="CheckBox" name="exif_iso_check">
+     <item>
+      <widget class="ColorButton" name="font_color_button">
        <property name="text">
-        <string>ISO</string>
+        <string/>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="BodyLabel" name="font_size_label">
+       <property name="text">
+        <string>文字大小</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="Slider" name="font_size_slider">
+       <property name="maximum">
+        <number>120</number>
+       </property>
+       <property name="orientation">
+        <enum>Qt::Orientation::Horizontal</enum>
        </property>
       </widget>
      </item>
     </layout>
-   </item>
-   <item>
-    <widget class="BodyLabel" name="title_label_3">
-     <property name="text">
-      <string>通用樣式</string>
-     </property>
-    </widget>
-   </item>
-   <item>
-    <widget class="ComboBox" name="font_combo">
-     <property name="toolTip">
-      <string>選擇字體</string>
-     </property>
-     <property name="text">
-      <string>選取字體</string>
-     </property>
-    </widget>
-   </item>
-   <item>
-    <widget class="ComboBox" name="font_system_combo">
-     <property name="text">
-      <string>選取系統字體</string>
-     </property>
-    </widget>
-   </item>
-   <item>
-    <widget class="ComboBox" name="font_my_custom_combo">
-     <property name="text">
-      <string>選取我自己的字體</string>
-     </property>
-    </widget>
-   </item>
-   <item>
-    <widget class="ColorButton" name="font_color_button">
-     <property name="text">
-      <string/>
-     </property>
-    </widget>
-   </item>
-   <item>
-    <widget class="BodyLabel" name="font_size_label">
-     <property name="text">
-      <string>文字大小</string>
-     </property>
-    </widget>
-   </item>
-   <item>
-    <widget class="Slider" name="font_size_slider">
-     <property name="maximum">
-      <number>120</number>
-     </property>
-     <property name="orientation">
-      <enum>Qt::Orientation::Horizontal</enum>
-     </property>
-    </widget>
    </item>
    <item>
     <widget class="Line" name="line_2">
