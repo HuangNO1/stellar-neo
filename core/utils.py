@@ -23,7 +23,7 @@ def wrap_scroll(widget: QWidget) -> tuple[SingleDirectionScrollArea, QWidget]:
     scroll.setWidgetResizable(True)
     scroll.enableTransparentBackground()
     scroll.setStyleSheet("QScrollArea{background: transparent; border: none}")
-    # 必须给内部的视图也加上透明背景样式
+    # 必須給內部的視圖也加上透明背景樣式
     widget.setStyleSheet("QWidget{background: transparent}")
     scroll.setWidget(widget)
     return scroll, widget

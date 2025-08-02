@@ -11,7 +11,7 @@ class AboutView(QWidget):
         self.tr = translator.get
         # 設定滾動區域
         self.ScrollArea.setStyleSheet("QScrollArea{background: transparent; border: none}")
-        # 必须给内部的视图也加上透明背景样式
+        # 必須給內部的視圖也加上透明背景樣式
         self.scrollWidget.setStyleSheet("QWidget{background: transparent}")
 
         self.init_all_ui()
