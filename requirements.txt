@@ -1,6 +1,7 @@
 darkdetect==0.8.0
 ExifRead==3.3.2
 piexif==1.1.3
+pillow==11.3.0
 PyQt6==6.9.1
 PyQt6-Fluent-Widgets==1.8.4
 PyQt6-Frameless-Window==0.7.3
