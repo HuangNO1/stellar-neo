@@ -100,7 +100,7 @@ class MainWindow(FluentWindow):
         tr = self.translator.get
         """建立並新增所有子頁面到導覽列"""
         # 實例化子頁面，並傳入需要的管理器
-        self.gallery_view = GalleryView(self.asset_manager, self.translator, self)
+        self.gallery_view = GalleryView(self.asset_manager, self.settings, self.translator, self)
         self.logo_view = LogoView(self.asset_manager, self.translator, self)
         self.font_view = FontView(self.asset_manager, self.translator, self)
         self.about_view = AboutView(self.translator, self)

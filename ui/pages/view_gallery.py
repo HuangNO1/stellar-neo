@@ -33,11 +33,11 @@ class GalleryView(QWidget):
     }
 
     # TODO 如果文件名過長 需要考慮
-    def __init__(self, asset_manager: AssetManager, translator: Translator, parent=None):
+    def __init__(self, asset_manager: AssetManager, settings: SettingsManager, translator: Translator, parent=None):
         super().__init__(parent)
         uic.loadUi("ui/components/gallery.ui", self)
 
-        self.settings_manager = SettingsManager()
+        self.settings_manager = settings
         self.asset_manager = asset_manager
         # --- 國際化核心 ---
         self.translator = translator
@@ -122,7 +122,7 @@ class GalleryView(QWidget):
 
         # 加入右側的設定 Tabs
         # 將 translator 傳遞給子元件
-        self.tabs = GalleryTabs(self.asset_manager, self.translator, self)
+        self.tabs = GalleryTabs(self.asset_manager, self.settings_manager, self.translator, self)
         self.right_layout.addWidget(self.tabs)
 
         self._translate_ui()
@@ -613,7 +613,7 @@ class GalleryView(QWidget):
                     if logo_path: logo_pixmap = QPixmap(logo_path)
                 elif logo_source == 'my_custom_logo':
                     logo_key = w_settings.get('logo_source_my_custom', '')
-                    logo_path = next((p for p in self.asset_manager.get_user_logos() if Path(p).stem == logo_key), None)
+                    logo_path = next((p for p in self.asset_manager.get_user_logos() if self.asset_manager._create_key_from_name(Path(p).stem) == logo_key), None)
                     if logo_path: logo_pixmap = QPixmap(logo_path)
                 elif w_settings.get('logo_source') == 'custom_text':
                     logo_text = w_settings.get('logo_text_custom', 'Logo')
@@ -1170,7 +1170,7 @@ class GalleryView(QWidget):
                 if logo_path: logo_pixmap = QPixmap(logo_path)
             elif logo_source == 'my_custom_logo':
                 logo_key = w_settings.get('logo_source_my_custom', '')
-                logo_path = next((p for p in self.asset_manager.get_user_logos() if Path(p).stem == logo_key), None)
+                logo_path = next((p for p in self.asset_manager.get_user_logos() if self.asset_manager._create_key_from_name(Path(p).stem) == logo_key), None)
                 if logo_path: logo_pixmap = QPixmap(logo_path)
             elif w_settings.get('logo_source') == 'custom_text':
                 logo_text = w_settings.get('logo_text_custom', 'Logo')

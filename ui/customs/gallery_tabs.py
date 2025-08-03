@@ -23,9 +23,9 @@ class GalleryTabs(QWidget):
     settingsChanged = pyqtSignal(dict)  # 信號現在會攜帶一個包含變更的字典
 
     # 接收 translator
-    def __init__(self, asset_manager: AssetManager, translator: Translator, parent=None):
+    def __init__(self, asset_manager: AssetManager, settings: SettingsManager, translator: Translator, parent=None):
         super().__init__(parent)
-        self.settings_manager = SettingsManager()
+        self.settings_manager = settings
         self.translator = translator
         self.tr = self.translator.get
         self.asset_manager = asset_manager
@@ -134,7 +134,7 @@ class GalleryTabs(QWidget):
         f.frame_blur_label.setText(self.tr("frame_blur", "Frame Blur"))
         f.frame_color_label.setText(self.tr("frame_color", "Frame Color"))
 
-    def _populate_combo(self, combo, place_holder_text: str, key_prefix: str, options: list):
+    def _populate_combo(self, combo, place_holder_text: str, key_prefix: str, options: list, max_len = 20):
         # TODO 有一些字體或logo文件名過長
         """ 使用 key-value 填充 ComboBox """
         combo.setPlaceholderText(place_holder_text)
@@ -146,7 +146,13 @@ class GalleryTabs(QWidget):
             return
         for option_key in options:
             display_text = self.tr(f"{key_prefix}_{option_key}", option_key.replace("_", " ").title())
-            combo.addItem(display_text, userData=option_key)
+
+            # 如果文字過長，則進行截斷
+            if len(display_text) > max_len:
+                truncated_text = display_text[:max_len] + "..."
+                combo.addItem(truncated_text, userData=option_key)
+            else:
+                combo.addItem(display_text, userData=option_key)
 
     def _populate_all_options(self):
         """ 初始化 ComboBox 的選項 """
