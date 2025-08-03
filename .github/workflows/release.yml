@@ -12,88 +12,15 @@ on:
 
 # 工作流程執行的任務
 jobs:
-  # 'build' 任務：在不同作業系統上打包應用程式
-  build:
-    # 使用策略矩陣，在三個主要作業系統上執行
-    strategy:
-      matrix:
-        os: [ubuntu-latest, macos-latest, windows-latest]
-
-    # 指定運行的虛擬機環境
-    runs-on: ${{ matrix.os }}
-
-    steps:
-      # 步驟 1: 簽出 (Checkout) 您的專案程式碼
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      # 步驟 2: 設定 Python 環境
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.11' # 建議鎖定一個 Python 版本以確保一致性
-
-      # 步驟 3: 安裝依賴套件
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install -r requirements.txt
-          pip install pyinstaller
-
-      # 步驟 4: (僅限 Linux) 安裝 Qt 相關的系統依賴
-      # 這對於在無頭 (headless) 環境中運行 PyQt 非常重要
-      - name: Install Linux dependencies
-        if: runner.os == 'Linux'
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y libgl1 libegl1 libxcb-cursor0 libxkbcommon-x11-0 libxcb-icccm4 libxcb-image0 libxcb-keysyms1 libxcb-render-util0 libxcb-xinerama0
-
-      # 步驟 5: 使用 PyInstaller 進行打包
-      - name: Build with PyInstaller
-        run: pyinstaller StellarNeo.spec
-
-      # 步驟 6: 準備要上傳的檔案 (壓縮)
-      - name: Prepare artifact for release
-        # 根據不同作業系統使用不同的壓縮方式
-        shell: bash
-        run: |
-          # 獲取版本號 (從標籤名稱)
-          VERSION=${{ github.ref_name }}
-          
-          # 設定輸出目錄和檔案名稱
-          if [ "${{ runner.os }}" == "Windows" ]; then
-            ARTIFACT_NAME="StellarNeo-${VERSION}-windows-x64"
-            7z a -tzip "${ARTIFACT_NAME}.zip" "./dist/StellarNeo/*"
-            echo "ASSET=${ARTIFACT_NAME}.zip" >> $GITHUB_ENV
-          elif [ "${{ runner.os }}" == "macOS" ]; then
-            ARTIFACT_NAME="StellarNeo-${VERSION}-macos-x64"
-            tar -czf "${ARTIFACT_NAME}.tar.gz" -C "./dist" "StellarNeo"
-            echo "ASSET=${ARTIFACT_NAME}.tar.gz" >> $GITHUB_ENV
-          else # Linux
-            ARTIFACT_NAME="StellarNeo-${VERSION}-linux-x64"
-            tar -czf "${ARTIFACT_NAME}.tar.gz" -C "./dist" "StellarNeo"
-            echo "ASSET=${ARTIFACT_NAME}.tar.gz" >> $GITHUB_ENV
-          fi
-
-      # 步驟 7: 上傳打包好的檔案作為工作流程產物 (Artifact)
-      # 這一步會將打包檔案附加到 Release 中
-      - name: Upload Release Asset
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ needs.create_release.outputs.upload_url }}
-          asset_path: ./${{ env.ASSET }}
-          asset_name: ${{ env.ASSET }}
-          asset_content_type: application/octet-stream
-
   # 'create_release' 任務：建立一個 GitHub Release
+  # 這個任務會先執行，因為 build 任務需要它
   create_release:
-    # 在所有 build 任務開始之前運行
     runs-on: ubuntu-latest
-    # 將 upload_url 輸出給其他任務使用
     outputs:
       upload_url: ${{ steps.create_release.outputs.upload_url }}
+    # 修正 1: 增加 'permissions' 以授予建立 Release 的權限
+    permissions:
+      contents: write
     steps:
       - name: Create Release
         id: create_release
@@ -108,3 +35,78 @@ jobs:
             See the commit history for details.
           draft: false
           prerelease: false
+
+  # 'build' 任務：在不同作業系統上打包應用程式
+  build:
+    # 修正 2: 聲明此任務需要等待 'create_release' 任務完成
+    needs: create_release
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      # 步驟 1: 簽出 (Checkout) 您的專案程式碼
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # 步驟 2: 設定 Python 環境
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      # 步驟 3: 安裝依賴套件
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install pyinstaller
+
+      # 步驟 4: (僅限 Linux) 安裝 Qt 相關的系統依賴
+      # 修正 3: 更新適用於新版 Ubuntu 的依賴套件
+      - name: Install Linux dependencies
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libgl1 libegl1 libxcb-cursor0 libxkbcommon-x11-0 libxcb-icccm4 libxcb-image0 libxcb-keysyms1 libxcb-render-util0 libxcb-xinerama0
+
+      # 步驟 5: 使用 PyInstaller 進行打包
+      - name: Build with PyInstaller
+        run: pyinstaller StellarNeo.spec
+
+      # 步驟 6: 準備要上傳的檔案 (壓縮)
+      - name: Prepare artifact for release
+        shell: bash
+        run: |
+          # 獲取版本號 (從標籤名稱)
+          VERSION=${{ github.ref_name }}
+          
+          # 設定輸出目錄和檔案名稱
+          if [ "${{ runner.os }}" == "Windows" ]; then
+            ARTIFACT_NAME="StellarNeo-${VERSION}-windows-x64"
+            7z a -tzip "${ARTIFACT_NAME}.zip" "./dist/StellarNeo/*"
+            echo "ASSET=${ARTIFACT_NAME}.zip" >> $GITHUB_ENV
+          elif [ "${{ runner.os }}" == "macOS" ]; then
+            ARTIFACT_NAME="StellarNeo-${VERSION}-macos-x64"
+            # On macOS, the default 'tar' from PyInstaller is inside the .app bundle
+            # We need to make sure we are packaging the .app directory itself
+            mv dist/StellarNeo.app dist/StellarNeo
+            tar -czf "${ARTIFACT_NAME}.tar.gz" -C "./dist" "StellarNeo"
+            echo "ASSET=${ARTIFACT_NAME}.tar.gz" >> $GITHUB_ENV
+          else # Linux
+            ARTIFACT_NAME="StellarNeo-${VERSION}-linux-x64"
+            tar -czf "${ARTIFACT_NAME}.tar.gz" -C "./dist" "StellarNeo"
+            echo "ASSET=${ARTIFACT_NAME}.tar.gz" >> $GITHUB_ENV
+          fi
+
+      # 步驟 7: 上傳打包好的檔案作為工作流程產物 (Artifact)
+      - name: Upload Release Asset
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ needs.create_release.outputs.upload_url }}
+          asset_path: ./${{ env.ASSET }}
+          asset_name: ${{ env.ASSET }}
+          asset_content_type: application/octet-stream
