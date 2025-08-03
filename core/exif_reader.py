@@ -301,7 +301,7 @@ def get_exif_data(image_path: str) -> dict:
 
     # --- 引擎 1: piexif (處理標準 JPEG/TIFF 的 EXIF) ---
     final_data.update(_read_exif_with_pillow_backend(image_path))
-    print(f"[DEBUG] final_data: {final_data}")
+    # print(f"[DEBUG] final_data: {final_data}")
 
     # --- 引擎 2: 手動 XMP 解析 (處理後製軟體輸出的元數據) ---
     xmp_bytes = _extract_xmp_from_file(image_path)

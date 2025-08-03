@@ -1,18 +1,18 @@
 import os
 from pathlib import Path
 
-from PIL import Image, ImageFilter, PngImagePlugin
-from PIL.ImageQt import ImageQt, fromqimage
+from PIL import Image, ImageFilter
+from PIL.ImageQt import ImageQt
 from PyQt6 import uic
-from PyQt6.QtCore import Qt, QSize, QRectF, QTimer, pyqtSignal, QObject, QThread
+from PyQt6.QtCore import Qt, QSize, QRectF, QTimer
 from PyQt6.QtGui import QPixmap, QPainter, QColor, QFont, QPainterPath, QBrush, QFontMetrics, QPen
 from PyQt6.QtWidgets import QWidget, QFileDialog, QListWidgetItem, QGraphicsDropShadowEffect, QGraphicsScene, \
-    QGraphicsView, QGraphicsPathItem, QGraphicsPixmapItem, QGraphicsSimpleTextItem, QApplication
+    QGraphicsView, QGraphicsPathItem, QGraphicsPixmapItem, QGraphicsSimpleTextItem
 from qfluentwidgets import MessageBox, Flyout
 
 from core.asset_manager import AssetManager
-from core.exif_reader import get_exif_data, reconstruct_exif_dict
-from core.export_worker import ExportWorker
+from core.exif_reader import get_exif_data
+from core.export_worker import ExportManager
 from core.logo_mapping import get_logo_path
 from core.settings_manager import SettingsManager
 from core.translator import Translator
@@ -20,7 +20,6 @@ from ui.customs.custom_icon import MyFluentIcon
 from ui.customs.export_message import ExportMessageBox
 from ui.customs.gallery_item_widget import GalleryItemWidget
 from ui.customs.gallery_tabs import GalleryTabs
-
 
 
 class GalleryView(QWidget):
@@ -45,13 +44,12 @@ class GalleryView(QWidget):
         self.tr = self.translator.get
 
         self.image_items = {}
-        self.original_pil_img = None  # 新增此屬性
+        self.original_pil_img = None
         self.current_image_path = None
         self.original_pixmap = None
         self._is_selecting_all = False
         # 新增：用於管理背景執行緒的屬性
-        self.export_thread = None
-        self.export_worker = None
+        self.export_manager = None
 
         # 新增一個用於防抖的計時器
         self.resize_timer = QTimer(self)
@@ -353,8 +351,8 @@ class GalleryView(QWidget):
             self._update_select_all_checkbox_state()
 
     def _on_export_button_clicked(self):
-        # 如果上一個導出任務還在執行，則不進行任何操作
-        if self.export_thread and self.export_thread.isRunning():
+        # 檢查是否有任務正在進行
+        if self.export_manager:
             return
 
         selected_paths = [
@@ -381,6 +379,10 @@ class GalleryView(QWidget):
             return
         self.settings_manager.set('last_export_dir', output_dir)
 
+        if not selected_paths or not output_dir:
+            # 處理用戶取消或未選擇的情況
+            return
+
         # --- UI 設定 ---
         # 禁用導出按鈕，防止重複點擊
         self.export_button.setEnabled(False)
@@ -389,71 +391,59 @@ class GalleryView(QWidget):
         self.export_dialog = ExportMessageBox(self.translator, self.window(), total=len(selected_paths))
         self.export_dialog.show()
 
-        # --- 執行緒設定 ---
-        self.export_thread = QThread()
+        # --- 使用 ExportManager ---
         all_settings = self.tabs._get_current_settings()
-
-        # 建立 Worker，並傳入它需要的一切，包括渲染函數本身
-        self.export_worker = ExportWorker(
+        self.export_manager = ExportManager(
             selected_paths,
             output_dir,
             all_settings,
-            self._render_image_for_export  # 將方法作為物件傳遞
+            self._render_image_for_export
         )
-        self.export_worker.moveToThread(self.export_thread)
 
-        # --- 連接信號和槽 ---
-        # 1. 當執行緒啟動時，運行 worker 的主任務
-        self.export_thread.started.connect(self.export_worker.run_export)
-
-        # 2. 當 worker 發送 'finished' 信號時，準備清理
-        self.export_worker.finished.connect(self._on_export_finished)
-
-        # 3. 連接 worker 的進度信號到對話框的更新槽
-        #    由於信號參數比槽多，我們使用 lambda 來適配
-        self.export_worker.progress.connect(
+        # --- 連接信號 ---
+        manager_signals = self.export_manager.signals
+        manager_signals.progress.connect(
             lambda i, total, msg: self.export_dialog.setCurrentProgress(i, msg)
         )
+        manager_signals.error.connect(self._on_export_error)
+        manager_signals.finished.connect(self._on_export_finished)
+        self.export_dialog.cancelExport.connect(self.export_manager.cancel)
 
-        # 4. 連接 worker 的錯誤信號到處理槽
-        self.export_worker.error.connect(self._on_export_error)
-
-        # 5. 連接對話框的取消按鈕到 worker 的取消槽
-        self.export_dialog.cancelExport.connect(self.export_worker.cancel)
-
-        # 啟動執行緒
-        self.export_thread.start()
+        # 啟動任務分發（此方法立即返回）
+        self.export_manager.start()
 
     def _on_export_finished(self):
         """處理導出成功或被取消後的清理工作。"""
-        if not self.export_worker._is_cancelled:
+        if self.export_manager and not self.export_manager.is_cancelled():
             self.export_dialog.setExportCompleted()
             QTimer.singleShot(1500, self.export_dialog.close)
         else:
+            # 如果是取消的，立即關閉對話框
             self.export_dialog.close()
 
-        self._cleanup_export_thread()
+        self._cleanup_export()  # <--- 注意：呼叫新的清理方法
 
-    def _on_export_error(self, error_message):
+    def _on_export_error(self, error_message: str, file_path: str):
         """處理導出過程中發生的錯誤。"""
-        print(f"Export error: {error_message}")
-        self.export_dialog.setExportError(error_message)
-        QTimer.singleShot(4000, self.export_dialog.close)
+        # 在多執行緒中，可能有多個錯誤，這裡只顯示第一個
+        # 你也可以設計一個列表來顯示所有錯誤
+        if self.export_dialog.isVisible():
+            filename = os.path.basename(file_path)
+            full_msg = f"Error on {filename}:\n{error_message}"
+            print(full_msg)
+            self.export_dialog.setExportError(full_msg)
+            # 讓錯誤訊息停留久一點，但最終還是會在 finished 信號後被清理
 
-        self._cleanup_export_thread()
-
-    def _cleanup_export_thread(self):
-        """安全地停止並清理執行緒和 worker。"""
-        if self.export_thread and self.export_thread.isRunning():
-            self.export_thread.quit()
-            self.export_thread.wait()  # 等待執行緒完全終止
-
-        self.export_thread = None
-        self.export_worker = None
+    def _cleanup_export(self):
+        """清理 ExportManager 並重設UI狀態。"""
+        if self.export_manager:
+            # ExportManager 在主執行緒中，不需要像 QThread 那樣複雜的清理
+            # Python 的垃圾回收機制會處理它
+            self.export_manager = None
 
         # 重新啟用導出按鈕
         self.export_button.setEnabled(True)
-        print("Export thread cleaned up.")
+        print("Export tasks finished and manager cleaned up.")
 
     def _render_image_for_export(self, image_path: str, all_settings: dict) -> QPixmap:
         """
