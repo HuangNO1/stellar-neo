@@ -88,7 +88,7 @@ class FontView(QWidget):
             self,
             self.tr("select_font_dialog", "Select Font(s)"),
             "",
-            f"{self.tr("font_files", "Font Files")} (*.ttf *.otf *.woff *.woff2)")
+            f"{self.tr('font_files', 'Font Files')} (*.ttf *.otf *.woff *.woff2)")
         if files:
             for file_path in files:
                 self.asset_manager.add_font(file_path)

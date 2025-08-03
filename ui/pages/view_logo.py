@@ -97,7 +97,7 @@ class LogoView(QWidget):
             self,
             self.tr("select_logo_dialog", "Select Logo(s)"),
             "",
-            f"{self.tr("image_files", "Image Files")} (*.png *.jpg *.jpeg *.svg)")
+            f"{self.tr('image_files', 'Image Files')} (*.png *.jpg *.jpeg *.svg)")
         if files:
             for file_path in files:
                 self.asset_manager.add_logo(file_path)

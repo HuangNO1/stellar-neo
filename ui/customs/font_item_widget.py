@@ -25,7 +25,7 @@ class FontItemWidget(QWidget):
 
         display_text = family
         if self.is_deletable:
-            display_text += f" ( {self.tr("user_upload", "User Upload")} ) "
+            display_text += f" ( {self.tr('user_upload', 'User Upload')} ) "
 
         self.font_label = ElidedLabel(display_text, self)
         self.font_label.setFont(QFont(family, 12))
