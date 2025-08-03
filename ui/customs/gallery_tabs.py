@@ -135,7 +135,6 @@ class GalleryTabs(QWidget):
         f.frame_color_label.setText(self.tr("frame_color", "Frame Color"))
 
     def _populate_combo(self, combo, place_holder_text: str, key_prefix: str, options: list, max_len = 20):
-        # TODO 有一些字體或logo文件名過長
         """ 使用 key-value 填充 ComboBox """
         combo.setPlaceholderText(place_holder_text)
         if len(options) < 1:

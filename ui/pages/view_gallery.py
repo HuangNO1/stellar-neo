@@ -1,8 +1,8 @@
 import os
 from pathlib import Path
 
-from PIL import Image, ImageFilter
-from PIL.ImageQt import ImageQt
+from PIL import Image, ImageFilter, PngImagePlugin
+from PIL.ImageQt import ImageQt, fromqimage
 from PyQt6 import uic
 from PyQt6.QtCore import Qt, QSize, QRectF, QTimer
 from PyQt6.QtGui import QPixmap, QPainter, QColor, QFont, QPainterPath, QBrush, QFontMetrics, QPen
@@ -11,7 +11,7 @@ from PyQt6.QtWidgets import QWidget, QFileDialog, QListWidgetItem, QGraphicsDrop
 from qfluentwidgets import MessageBox, Flyout
 
 from core.asset_manager import AssetManager
-from core.exif_reader import get_exif_data
+from core.exif_reader import get_exif_data, reconstruct_exif_dict
 from core.logo_mapping import get_logo_path
 from core.settings_manager import SettingsManager
 from core.translator import Translator
@@ -19,6 +19,7 @@ from ui.customs.custom_icon import MyFluentIcon
 from ui.customs.export_message import ExportMessageBox
 from ui.customs.gallery_item_widget import GalleryItemWidget
 from ui.customs.gallery_tabs import GalleryTabs
+import piexif
 
 
 class GalleryView(QWidget):
@@ -32,7 +33,6 @@ class GalleryView(QWidget):
         ]
     }
 
-    # TODO 如果文件名過長 需要考慮
     def __init__(self, asset_manager: AssetManager, settings: SettingsManager, translator: Translator, parent=None):
         super().__init__(parent)
         uic.loadUi("ui/components/gallery.ui", self)
@@ -134,7 +134,7 @@ class GalleryView(QWidget):
         self.select_all_checkbox.setText(self.tr("gallery_select_all", "Select All"))
         self.clear_selected_button.setText(self.tr("gallery_clear_selected", "Clear Selected"))
         self.export_button.setText(self.tr("gallery_export_button", "Export Selected Images"))
-        # TODO 加上導出功能
+
         self._clear_preview()  # 清除時會設定預設文字
         self._update_select_all_checkbox_state()  # 更新 UI 狀態
 
@@ -351,7 +351,8 @@ class GalleryView(QWidget):
     def _on_export_button_clicked(self):
         """
         批量導出選中的圖片。
-        此方法會獲取當前設定，應用到所有選中的圖片上，並將它們保存到用戶指定的目錄中。
+        此方法會獲取當前設定，應用到所有選中的圖片上，並將它們保存到用戶指定的目錄中，
+        同時會將原始的 EXIF 中繼資料寫入新生成的圖片中。
         """
         # 1. 獲取所有選中的圖片路徑
         selected_paths = []
@@ -412,20 +413,41 @@ class GalleryView(QWidget):
 
             try:
                 # 核心：使用離屏渲染方法生成最終圖片
+                # 【核心步驟 1】呼叫渲染函式，接收渲染後的圖片和原始EXIF位元組
                 final_pixmap = self._render_image_for_export(path, all_settings)
 
-                if final_pixmap:
-                    base_name = os.path.basename(path)
-                    name, ext = os.path.splitext(base_name)
-                    # 您未來可以在此處提供更多導出選項 (格式、品質、命名規則等)
-                    output_filename = f"{name}_framed{ext}"
-                    output_path = os.path.join(output_dir, output_filename)
-
-                    # 保存 QPixmap 到文件，可以指定品質 (JPEG)
-                    if not final_pixmap.save(output_path, quality=95):
-                        raise IOError(f"Failed to save {output_path}")
-                else:
+                if not final_pixmap:
                     print(f"Warning: Rendering failed for {path}, skipping.")
+                    continue  # 使用 continue 跳過此次迴圈
+
+                # 【核心步驟 2】獲取 EXIF 結構化字典
+                flat_exif = get_exif_data(path)
+                exif_dict_for_writing = reconstruct_exif_dict(flat_exif)
+                print(f"[DEBUG] exif_dict_for_writing: {exif_dict_for_writing}")
+
+                # 【核心步驟 3】準備輸出路徑和 Pillow Image
+                base_name = os.path.basename(path)
+                name, _ = os.path.splitext(base_name)
+                output_filename = f"{name}_framed.png"
+                output_path = os.path.join(output_dir, output_filename)
+
+                qimage_to_save = final_pixmap.toImage()
+                pil_image_to_save = fromqimage(qimage_to_save).convert("RGBA")
+
+                # 【核心步驟 4】使用 Pillow 的 save 方法，直接傳入 exif 字典
+                save_args = {
+                    'compress_level': 6
+                }
+                if exif_dict_for_writing:
+                    # 使用 piexif.dump() 將其正確轉換為位元組流
+                    try:
+                        exif_bytes = piexif.dump(exif_dict_for_writing)
+                        save_args['exif'] = exif_bytes
+                        print(f"成功為 {os.path.basename(path)} 重建並準備寫入 EXIF。")
+                    except Exception as dump_error:
+                        print(f"無法將EXIF字典轉換為位元組: {dump_error}")
+
+                pil_image_to_save.save(output_path, **save_args)
 
             except Exception as e:
                 print(f"Error exporting {path}: {e}")
@@ -613,7 +635,8 @@ class GalleryView(QWidget):
                     if logo_path: logo_pixmap = QPixmap(logo_path)
                 elif logo_source == 'my_custom_logo':
                     logo_key = w_settings.get('logo_source_my_custom', '')
-                    logo_path = next((p for p in self.asset_manager.get_user_logos() if self.asset_manager._create_key_from_name(Path(p).stem) == logo_key), None)
+                    logo_path = next((p for p in self.asset_manager.get_user_logos() if
+                                      self.asset_manager._create_key_from_name(Path(p).stem) == logo_key), None)
                     if logo_path: logo_pixmap = QPixmap(logo_path)
                 elif w_settings.get('logo_source') == 'custom_text':
                     logo_text = w_settings.get('logo_text_custom', 'Logo')
@@ -1170,7 +1193,8 @@ class GalleryView(QWidget):
                 if logo_path: logo_pixmap = QPixmap(logo_path)
             elif logo_source == 'my_custom_logo':
                 logo_key = w_settings.get('logo_source_my_custom', '')
-                logo_path = next((p for p in self.asset_manager.get_user_logos() if self.asset_manager._create_key_from_name(Path(p).stem) == logo_key), None)
+                logo_path = next((p for p in self.asset_manager.get_user_logos() if
+                                  self.asset_manager._create_key_from_name(Path(p).stem) == logo_key), None)
                 if logo_path: logo_pixmap = QPixmap(logo_path)
             elif w_settings.get('logo_source') == 'custom_text':
                 logo_text = w_settings.get('logo_text_custom', 'Logo')
