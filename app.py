@@ -1,8 +1,8 @@
 # app.py (重構後的主框架)
 import os
 
-from PyQt6.QtCore import QSize, QEventLoop, QTimer
-from PyQt6.QtGui import QIcon
+from PyQt6.QtCore import QSize, QEventLoop, QTimer, QByteArray
+from PyQt6.QtGui import QIcon, QScreen
 from qfluentwidgets import (FluentWindow, FluentIcon,
                             setTheme, SystemThemeListener, SplashScreen,
                             NavigationItemPosition)
@@ -34,7 +34,8 @@ class MainWindow(FluentWindow):
         # --- 2. 啟動介面邏輯 ---
         self.splashScreen = SplashScreen(QIcon('assets/icons/logo.png'), self)
         self.splashScreen.setIconSize(QSize(300, 300))
-        self.show()
+        # ‼️ 注意：這裡的 self.show() 應該在 init_window 之後調用，以確保窗口位置正確
+        # self.show() # <--- 暫時註解或移動這行
 
         # --- 3. 載入初始設定 ---
         self._load_initial_settings()
@@ -43,6 +44,9 @@ class MainWindow(FluentWindow):
         self.init_window()
         # 注意：FluentWindow 會自動建立 self.navigationInterface
         self.init_navigation()
+
+        # --- 將 self.show() 移動到這裡 ---
+        self.show()  # 在所有設定完成後再顯示視窗
 
         # --- 5. 模擬載入並關閉啟動介面 ---
         self.createSubInterface()
@@ -58,11 +62,39 @@ class MainWindow(FluentWindow):
         if theme_name == "System":
             self.themeListener.start()
 
+    def _center_on_screen(self):
+        """將視窗移動到主螢幕的中央。"""
+        center_point = QScreen.availableGeometry(self.screen()).center()
+        frame_geometry = self.frameGeometry()
+        frame_geometry.moveCenter(center_point)
+        self.move(frame_geometry.topLeft())
+
     def init_window(self):
-        """設定主視窗屬性"""
-        self.resize(1500, 800)
+        """設定主視窗屬性，並恢復上次的狀態或使其居中。"""
         self.setWindowIcon(QIcon("assets/icons/logo.png"))
         self.setWindowTitle("Stellar NEO")
+
+        # 讀取上次儲存的視窗幾何資訊和狀態
+        geometry_b64 = self.settings.get("window_geometry")
+        window_state = self.settings.get("window_state")
+
+        # 步驟 1: 優先恢復視窗大小。
+        # 如果有儲存的幾何資訊，則恢復它。這會設定好視窗的大小。
+        if geometry_b64:
+            self.restoreGeometry(QByteArray.fromBase64(geometry_b64.encode('utf-8')))
+        else:
+            # 如果是首次啟動，沒有任何幾何資訊，則設定一個預設大小。
+            self.resize(1500, 800)
+
+        # 步驟 2: 接著，根據儲存的狀態決定是最大化、全螢幕，還是居中。
+        if window_state == "maximized":
+            self.showMaximized()
+        elif window_state == "fullscreen":
+            self.showFullScreen()
+        else:
+            # 如果狀態是 "normal" 或未設定，則將視窗居中。
+            # 這會覆蓋掉 restoreGeometry 設定的位置，但保留其設定的大小。
+            self._center_on_screen()
 
     def init_navigation(self):
         tr = self.translator.get
@@ -101,9 +133,25 @@ class MainWindow(FluentWindow):
         QTimer.singleShot(1000, loop.quit)
         loop.exec()
 
+
     def closeEvent(self, e):
-        """關閉應用程式時，確保監聽器執行緒被終止"""
+        """關閉應用程式時，儲存視窗狀態並確保監聽器執行緒被終止"""
+        # 儲存視窗大小與位置
+        geometry = self.saveGeometry()
+        self.settings.set("window_geometry", geometry.toBase64().data().decode('utf-8'))
+
+        # 手動判斷並儲存視窗狀態
+        state = "normal"
+        if self.isMaximized():
+            state = "maximized"
+        elif self.isFullScreen():
+            state = "fullscreen"
+        self.settings.set("window_state", state)
+
+        # 處理現有的 themeListener 邏輯
         if self.themeListener.isRunning():
             self.themeListener.quit()
             self.themeListener.wait()
+
         super().closeEvent(e)
+

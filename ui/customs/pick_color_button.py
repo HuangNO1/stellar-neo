@@ -1,4 +1,3 @@
-# ColorButton.py
 from PyQt6.QtCore import pyqtSignal
 from PyQt6.QtGui import QColor
 from qfluentwidgets import ColorDialog, PushButton

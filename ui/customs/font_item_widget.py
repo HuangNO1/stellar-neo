@@ -1,14 +1,13 @@
 from PyQt6.QtCore import Qt, pyqtSignal
 from PyQt6.QtGui import QFont
 from PyQt6.QtWidgets import QWidget, QHBoxLayout
-from qfluentwidgets import CheckBox, BodyLabel
+from qfluentwidgets import CheckBox
 
 from core.translator import Translator
 from ui.customs.ElidedLabel import ElidedLabel
 
 
 class FontItemWidget(QWidget):
-    # TODO 如果文件名過長 需要考慮
     """用於顯示在字體列表中的自訂項目"""
     selection_changed = pyqtSignal(bool)
 

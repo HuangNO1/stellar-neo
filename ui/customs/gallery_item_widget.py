@@ -1,8 +1,8 @@
 import os
 
-from PyQt6.QtCore import Qt, pyqtSignal, QSize
-from PyQt6.QtWidgets import QWidget, QHBoxLayout, QLabel
-from qfluentwidgets import CheckBox, BodyLabel, ToolButton, FluentIcon, IconWidget
+from PyQt6.QtCore import Qt, pyqtSignal
+from PyQt6.QtWidgets import QWidget, QHBoxLayout
+from qfluentwidgets import CheckBox, ToolButton, FluentIcon, IconWidget
 
 from core.translator import Translator
 from ui.customs.ElidedLabel import ElidedLabel

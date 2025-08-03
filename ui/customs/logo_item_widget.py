@@ -1,10 +1,9 @@
 import os
-from pathlib import Path
 
 from PyQt6.QtCore import QSize, Qt, pyqtSignal
 from PyQt6.QtGui import QIcon
 from PyQt6.QtWidgets import QWidget, QHBoxLayout, QLabel
-from qfluentwidgets import CheckBox, BodyLabel
+from qfluentwidgets import CheckBox
 
 from ui.customs.ElidedLabel import ElidedLabel
 
