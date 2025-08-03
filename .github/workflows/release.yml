@@ -73,7 +73,8 @@ jobs:
           else # macOS 和 Linux
             if [ "${{ runner.os }}" == "macOS" ]; then
               ARTIFACT_NAME="StellarNeo-${VERSION}-macos-x64"
-              tar -czf "${ARTIFACT_NAME}.tar.gz" -C "./dist" "StellarNeo.app"
+              # [修正] 假設 macOS 產生的是標準執行檔，而非 .app 包
+              tar -czf "${ARTIFACT_NAME}.tar.gz" -C "./dist" "StellarNeo"
             else
               ARTIFACT_NAME="StellarNeo-${VERSION}-linux-x64"
               tar -czf "${ARTIFACT_NAME}.tar.gz" -C "./dist" "StellarNeo"
@@ -88,4 +89,4 @@ jobs:
           # 將步驟 6 準備好的壓縮檔路徑傳入
           files: ${{ env.ASSET_PATH }}
           # 自動產生發行說明
-          generate_release_notes: true
+          generate_release_notes: true # 正確的參數名稱是 generate_release_notes
