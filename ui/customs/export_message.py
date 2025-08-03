@@ -43,7 +43,7 @@ class ExportMessageBox(MessageBoxBase):
 
     def setExportError(self, error):
         self.progressBar.error()
-        self.titleLabel.setText(f'{self.tr('export_error', 'Export Error')}: {error}')
+        self.titleLabel.setText(f"{self.tr('export_error', 'Export Error')}: {error}")
         self.exportError.emit()
 
     def setExportCompleted(self):
