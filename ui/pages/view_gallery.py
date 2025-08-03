@@ -4,7 +4,7 @@ from pathlib import Path
 from PIL import Image, ImageFilter, PngImagePlugin
 from PIL.ImageQt import ImageQt, fromqimage
 from PyQt6 import uic
-from PyQt6.QtCore import Qt, QSize, QRectF, QTimer
+from PyQt6.QtCore import Qt, QSize, QRectF, QTimer, pyqtSignal, QObject, QThread
 from PyQt6.QtGui import QPixmap, QPainter, QColor, QFont, QPainterPath, QBrush, QFontMetrics, QPen
 from PyQt6.QtWidgets import QWidget, QFileDialog, QListWidgetItem, QGraphicsDropShadowEffect, QGraphicsScene, \
     QGraphicsView, QGraphicsPathItem, QGraphicsPixmapItem, QGraphicsSimpleTextItem, QApplication
@@ -12,6 +12,7 @@ from qfluentwidgets import MessageBox, Flyout
 
 from core.asset_manager import AssetManager
 from core.exif_reader import get_exif_data, reconstruct_exif_dict
+from core.export_worker import ExportWorker
 from core.logo_mapping import get_logo_path
 from core.settings_manager import SettingsManager
 from core.translator import Translator
@@ -19,7 +20,7 @@ from ui.customs.custom_icon import MyFluentIcon
 from ui.customs.export_message import ExportMessageBox
 from ui.customs.gallery_item_widget import GalleryItemWidget
 from ui.customs.gallery_tabs import GalleryTabs
-import piexif
+
 
 
 class GalleryView(QWidget):
@@ -48,6 +49,9 @@ class GalleryView(QWidget):
         self.current_image_path = None
         self.original_pixmap = None
         self._is_selecting_all = False
+        # 新增：用於管理背景執行緒的屬性
+        self.export_thread = None
+        self.export_worker = None
 
         # 新增一個用於防抖的計時器
         self.resize_timer = QTimer(self)
@@ -349,118 +353,107 @@ class GalleryView(QWidget):
             self._update_select_all_checkbox_state()
 
     def _on_export_button_clicked(self):
-        """
-        批量導出選中的圖片。
-        此方法會獲取當前設定，應用到所有選中的圖片上，並將它們保存到用戶指定的目錄中，
-        同時會將原始的 EXIF 中繼資料寫入新生成的圖片中。
-        """
-        # 1. 獲取所有選中的圖片路徑
-        selected_paths = []
-        for i in range(self.image_list.count()):
-            item_widget = self.image_list.itemWidget(self.image_list.item(i))
-            if item_widget and item_widget.is_checked():
-                path = self.image_list.item(i).data(Qt.ItemDataRole.UserRole)
-                selected_paths.append(path)
+        # 如果上一個導出任務還在執行，則不進行任何操作
+        if self.export_thread and self.export_thread.isRunning():
+            return
 
-        # 2. 檢查是否有選中的圖片，若無則提示
+        selected_paths = [
+            self.image_list.item(i).data(Qt.ItemDataRole.UserRole)
+            for i in range(self.image_list.count())
+            if self.image_list.itemWidget(self.image_list.item(i)).is_checked()
+        ]
+
         if not selected_paths:
             Flyout.create(
                 icon=MyFluentIcon.WARNING,
                 title=self.tr('export_no_selection_title', 'No Images Selected'),
                 content=self.tr('export_no_selection_content', 'Please select images to export.'),
-                target=self.export_button,
-                parent=self.window(),
-                isClosable=True
+                target=self.export_button, parent=self.window(), isClosable=True
             )
             return
 
-        # 3. 獲取導出目錄
         last_dir = self.settings_manager.get('last_export_dir', os.path.expanduser("~"))
         output_dir = QFileDialog.getExistingDirectory(
-            self,
-            self.tr("gallery_export_dialog_title", "Select Export Directory"),
-            last_dir
+            self, self.tr("gallery_export_dialog_title", "Select Export Directory"), last_dir
         )
 
         if not output_dir:
-            return  # 用戶取消操作
-
+            return
         self.settings_manager.set('last_export_dir', output_dir)
 
-        # 4. 準備進度條對話框
-        total_count = len(selected_paths)
-        export_dialog = ExportMessageBox(self.translator, self.window(), total=total_count)
+        # --- UI 設定 ---
+        # 禁用導出按鈕，防止重複點擊
+        self.export_button.setEnabled(False)
 
-        self.is_export_cancelled = False
+        # 建立並顯示進度對話框
+        self.export_dialog = ExportMessageBox(self.translator, self.window(), total=len(selected_paths))
+        self.export_dialog.show()
 
-        def on_cancel():
-            self.is_export_cancelled = True
-
-        export_dialog.cancelExport.connect(on_cancel)
-        export_dialog.show()
-
-        # 5. 獲取當前所有設定
+        # --- 執行緒設定 ---
+        self.export_thread = QThread()
         all_settings = self.tabs._get_current_settings()
 
-        # 6. 循環處理並導出每張圖片
-        for i, path in enumerate(selected_paths):
-            QApplication.processEvents()  # 處理UI事件，讓UI保持響應，特別是“取消”按鈕
-            if self.is_export_cancelled:
-                break
+        # 建立 Worker，並傳入它需要的一切，包括渲染函數本身
+        self.export_worker = ExportWorker(
+            selected_paths,
+            output_dir,
+            all_settings,
+            self._render_image_for_export  # 將方法作為物件傳遞
+        )
+        self.export_worker.moveToThread(self.export_thread)
 
-            # 更新進度條顯示的文字
-            export_dialog.setCurrentProgress(i, f"{i} / {total_count} - {os.path.basename(path)}")
+        # --- 連接信號和槽 ---
+        # 1. 當執行緒啟動時，運行 worker 的主任務
+        self.export_thread.started.connect(self.export_worker.run_export)
 
-            try:
-                # 核心：使用離屏渲染方法生成最終圖片
-                # 【核心步驟 1】呼叫渲染函式，接收渲染後的圖片和原始EXIF位元組
-                final_pixmap = self._render_image_for_export(path, all_settings)
+        # 2. 當 worker 發送 'finished' 信號時，準備清理
+        self.export_worker.finished.connect(self._on_export_finished)
 
-                if not final_pixmap:
-                    print(f"Warning: Rendering failed for {path}, skipping.")
-                    continue  # 使用 continue 跳過此次迴圈
+        # 3. 連接 worker 的進度信號到對話框的更新槽
+        #    由於信號參數比槽多，我們使用 lambda 來適配
+        self.export_worker.progress.connect(
+            lambda i, total, msg: self.export_dialog.setCurrentProgress(i, msg)
+        )
 
-                # 【核心步驟 2】獲取 EXIF 結構化字典
-                flat_exif = get_exif_data(path)
-                exif_dict_for_writing = reconstruct_exif_dict(flat_exif)
-                print(f"[DEBUG] exif_dict_for_writing: {exif_dict_for_writing}")
+        # 4. 連接 worker 的錯誤信號到處理槽
+        self.export_worker.error.connect(self._on_export_error)
 
-                # 【核心步驟 3】準備輸出路徑和 Pillow Image
-                base_name = os.path.basename(path)
-                name, _ = os.path.splitext(base_name)
-                output_filename = f"{name}_framed.png"
-                output_path = os.path.join(output_dir, output_filename)
+        # 5. 連接對話框的取消按鈕到 worker 的取消槽
+        self.export_dialog.cancelExport.connect(self.export_worker.cancel)
 
-                qimage_to_save = final_pixmap.toImage()
-                pil_image_to_save = fromqimage(qimage_to_save).convert("RGBA")
+        # 啟動執行緒
+        self.export_thread.start()
 
-                # 【核心步驟 4】使用 Pillow 的 save 方法，直接傳入 exif 字典
-                save_args = {
-                    'compress_level': 6
-                }
-                if exif_dict_for_writing:
-                    # 使用 piexif.dump() 將其正確轉換為位元組流
-                    try:
-                        exif_bytes = piexif.dump(exif_dict_for_writing)
-                        save_args['exif'] = exif_bytes
-                        print(f"成功為 {os.path.basename(path)} 重建並準備寫入 EXIF。")
-                    except Exception as dump_error:
-                        print(f"無法將EXIF字典轉換為位元組: {dump_error}")
-
-                pil_image_to_save.save(output_path, **save_args)
-
-            except Exception as e:
-                print(f"Error exporting {path}: {e}")
-                export_dialog.setExportError(str(e))
-                QTimer.singleShot(4000, export_dialog.close)  # 顯示錯誤4秒後關閉
-                return  # 出錯後終止導出
-
-        # 7. 導出結束
-        if not self.is_export_cancelled:
-            export_dialog.setExportCompleted()
-            QTimer.singleShot(1500, export_dialog.close)  # 顯示完成1.5秒後關閉
+    def _on_export_finished(self):
+        """處理導出成功或被取消後的清理工作。"""
+        if not self.export_worker._is_cancelled:
+            self.export_dialog.setExportCompleted()
+            QTimer.singleShot(1500, self.export_dialog.close)
         else:
-            export_dialog.close()
+            self.export_dialog.close()
+
+        self._cleanup_export_thread()
+
+    def _on_export_error(self, error_message):
+        """處理導出過程中發生的錯誤。"""
+        print(f"Export error: {error_message}")
+        self.export_dialog.setExportError(error_message)
+        QTimer.singleShot(4000, self.export_dialog.close)
+
+        self._cleanup_export_thread()
+
+    def _cleanup_export_thread(self):
+        """安全地停止並清理執行緒和 worker。"""
+        if self.export_thread and self.export_thread.isRunning():
+            self.export_thread.quit()
+            self.export_thread.wait()  # 等待執行緒完全終止
+
+        self.export_thread = None
+        self.export_worker = None
+
+        # 重新啟用導出按鈕
+        self.export_button.setEnabled(True)
+        print("Export thread cleaned up.")
 
     def _render_image_for_export(self, image_path: str, all_settings: dict) -> QPixmap:
         """

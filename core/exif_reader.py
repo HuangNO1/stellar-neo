@@ -324,5 +324,5 @@ def get_exif_data(image_path: str) -> dict:
         except Exception:
             pass
 
-    print(f"Multi-engine EXIF Reader found: {final_data}")
+    # print(f"[DEBUG] Multi-engine EXIF Reader found: {final_data}")
     return final_data

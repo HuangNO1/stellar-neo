@@ -1,8 +1,6 @@
-from PyQt6.QtCore import Qt, QSize
-from PyQt6.QtGui import QPixmap, QPainter, QImage
-from PyQt6.QtSvg import QSvgRenderer
 from PyQt6.QtWidgets import QWidget
 from qfluentwidgets import SingleDirectionScrollArea
+
 
 def valid_setting_str(setting: any) -> bool:
     if isinstance(setting, str) and len(setting) > 0:
