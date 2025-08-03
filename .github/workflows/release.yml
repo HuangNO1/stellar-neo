@@ -12,45 +12,18 @@ on:
 
 # 工作流程執行的任務
 jobs:
-  # 任務一：先建立一個 GitHub Release 草稿，以獲取上傳 URL
-  create_release:
-    name: Create Release Draft
-    runs-on: ubuntu-latest
-    # 輸出 release_id 和 upload_url 給後續任務使用
-    outputs:
-      release_id: ${{ steps.create_release.outputs.id }}
-      upload_url: ${{ steps.create_release.outputs.upload_url }}
-
-    # 為此任務明確申請寫入內容的權限
-    permissions:
-      contents: write
-
-    steps:
-      - name: Create Release Draft
-        id: create_release
-        uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          # 使用 github.ref_name 來取得乾淨的標籤名稱 (例如 "v1.0.1")
-          tag_name: ${{ github.ref_name }}
-          release_name: Release ${{ github.ref_name }}
-          body: |
-            New release of StellarNeo.
-            See the commit history for details.
-          # 關鍵：先建立為草稿，等所有檔案上傳完畢後再發布
-          draft: true
-          prerelease: false
-
-  # 任務二：在不同作業系統上打包應用程式，並上傳到 Release
-  build:
-    name: Build on ${{ matrix.os }}
-    # 聲明此任務需要等待 'create_release' 任務完成
-    needs: create_release
+  # 將所有步驟合併為一個任務
+  build_and_release:
+    name: Build and Release on ${{ matrix.os }}
+    # 使用策略矩陣，在三個主要作業系統上執行
     strategy:
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
     runs-on: ${{ matrix.os }}
+
+    # 為此任務申請寫入內容的權限，以便建立 Release
+    permissions:
+      contents: write
 
     steps:
       # 步驟 1: 簽出 (Checkout) 您的專案程式碼
@@ -85,54 +58,32 @@ jobs:
       - name: Prepare artifact for release
         shell: bash
         run: |
+          # 獲取版本號 (從標籤名稱)
           VERSION=${{ github.ref_name }}
           
+          # 根據不同作業系統設定輸出檔案名稱和壓縮方式
           if [ "${{ runner.os }}" == "Windows" ]; then
             ARTIFACT_NAME="StellarNeo-${VERSION}-windows-x64"
             7z a -tzip "${ARTIFACT_NAME}.zip" "./dist/StellarNeo/*"
-            echo "ASSET=${ARTIFACT_NAME}.zip" >> $GITHUB_ENV
-          elif [ "${{ runner.os }}" == "macOS" ]; then
-            # 在 macOS 上，PyInstaller 會產生一個 .app 的資料夾
-            ARTIFACT_NAME="StellarNeo-${VERSION}-macos-x64"
-            tar -czf "${ARTIFACT_NAME}.tar.gz" -C "./dist" "StellarNeo.app"
-            echo "ASSET=${ARTIFACT_NAME}.tar.gz" >> $GITHUB_ENV
-          else # Linux
-            ARTIFACT_NAME="StellarNeo-${VERSION}-linux-x64"
-            tar -czf "${ARTIFACT_NAME}.tar.gz" -C "./dist" "StellarNeo"
-            echo "ASSET=${ARTIFACT_NAME}.tar.gz" >> $GITHUB_ENV
+            echo "ASSET_PATH=${ARTIFACT_NAME}.zip" >> $GITHUB_ENV
+          else # macOS 和 Linux
+            # macOS 的輸出是 .app 資料夾，Linux 是可執行檔資料夾
+            # 我們將它們都壓縮成 .tar.gz
+            if [ "${{ runner.os }}" == "macOS" ]; then
+              ARTIFACT_NAME="StellarNeo-${VERSION}-macos-x64"
+              tar -czf "${ARTIFACT_NAME}.tar.gz" -C "./dist" "StellarNeo.app"
+            else
+              ARTIFACT_NAME="StellarNeo-${VERSION}-linux-x64"
+              tar -czf "${ARTIFACT_NAME}.tar.gz" -C "./dist" "StellarNeo"
+            fi
+            echo "ASSET_PATH=${ARTIFACT_NAME}.tar.gz" >> $GITHUB_ENV
           fi
 
-      # 步驟 7: 上傳打包好的檔案到 Release 草稿
-      - name: Upload Release Asset
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      # 步驟 7: 使用 softprops/action-gh-release 建立並發布 Release
+      - name: Release
+        uses: softprops/action-gh-release@v1
         with:
-          # 從 'create_release' 任務獲取上傳 URL
-          upload_url: ${{ needs.create_release.outputs.upload_url }}
-          asset_path: ./${{ env.ASSET }}
-          asset_name: ${{ env.ASSET }}
-          asset_content_type: application/octet-stream
-
-  # 任務三：在所有 build 完成後，正式發布 Release
-  publish_release:
-    name: Publish Release
-    # 聲明此任務需要等待所有 build 任務完成
-    needs: [create_release, build]
-    runs-on: ubuntu-latest
-    # 再次申請寫入權限
-    permissions:
-      contents: write
-    steps:
-      - name: Publish the release
-        uses: actions/github-script@v6
-        with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          script: |
-            await github.rest.repos.updateRelease({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              release_id: ${{ needs.create_release.outputs.release_id }},
-              draft: false,
-              prerelease: false
-            });
+          # 將步驟 6 準備好的壓縮檔路徑傳入
+          files: ${{ env.ASSET_PATH }}
+          # 自動產生發行說明
+          generate_release_notes: true
