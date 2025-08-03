@@ -3,22 +3,27 @@ name: Build and Release StellarNeo
 
 # 工作流程觸發條件
 on:
-  # 允許手動從 Actions 頁面觸發 (用於測試，但發布應透過標籤)
+  # 允許手動從 Actions 頁面觸發
   workflow_dispatch:
-  # 當建立一個符合 'v*.*.*' 格式的標籤時觸發 (主要發布方式)
+  # 當建立一個符合 'v*.*.*' 格式的標籤時觸發
   push:
     tags:
       - 'v*.*.*'
 
 # 工作流程執行的任務
 jobs:
-  # 任務一：先建立一個 GitHub Release
+  # 任務一：先建立一個 GitHub Release 草稿，以獲取上傳 URL
   create_release:
+    name: Create Release Draft
     runs-on: ubuntu-latest
+    # 輸出 upload_url 給後續的 build 任務使用
     outputs:
       upload_url: ${{ steps.create_release.outputs.upload_url }}
+
+    # 核心修正：為此任務明確申請寫入內容的權限
     permissions:
       contents: write
+
     steps:
       - name: Create Release
         id: create_release
@@ -32,11 +37,13 @@ jobs:
           body: |
             New release of StellarNeo.
             See the commit history for details.
-          draft: false
+          # 先建立為草稿，等所有檔案上傳完畢後再手動發布
+          draft: true
           prerelease: false
 
   # 任務二：在不同作業系統上打包應用程式，並上傳到 Release
   build:
+    name: Build on ${{ matrix.os }}
     # 聲明此任務需要等待 'create_release' 任務完成
     needs: create_release
     strategy:
@@ -67,7 +74,7 @@ jobs:
         if: runner.os == 'Linux'
         run: |
           sudo apt-get update
-          sudo apt-get install -y libgl1 libegl1 libxcb-cursor0 libxkbcommon-x11-0 libxcb-icccm4 libxcb-image0 libxcb-keysyms1 libxcb-render-util0 libxcb-xinerama0
+          sudo apt-get install -y libgl1-mesa-glx libegl1-mesa libxkbcommon-x11-0 libxcb-icccm4 libxcb-image0 libxcb-keysyms1 libxcb-render-util0 libxcb-xinerama0
 
       # 步驟 5: 使用 PyInstaller 進行打包
       - name: Build with PyInstaller
@@ -84,6 +91,7 @@ jobs:
             7z a -tzip "${ARTIFACT_NAME}.zip" "./dist/StellarNeo/*"
             echo "ASSET=${ARTIFACT_NAME}.zip" >> $GITHUB_ENV
           elif [ "${{ runner.os }}" == "macOS" ]; then
+            # 在 macOS 上，PyInstaller 會產生一個 .app 的資料夾
             ARTIFACT_NAME="StellarNeo-${VERSION}-macos-x64"
             tar -czf "${ARTIFACT_NAME}.tar.gz" -C "./dist" "StellarNeo.app"
             echo "ASSET=${ARTIFACT_NAME}.tar.gz" >> $GITHUB_ENV
