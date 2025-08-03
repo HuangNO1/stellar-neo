@@ -20,14 +20,6 @@ datas = [
     ('app.py', 'app.py')
 ]
 
-# --- 針對 macOS 添加平台插件 ---
-# 這是解決打包後在 macOS 上無法啟動的關鍵
-if sys.platform == 'darwin':
-    from PyInstaller.utils.hooks import get_qt_plugins_paths
-    # 將 'cocoa' 平台插件複製到打包目錄的 'PyQt6/Qt6/plugins/platforms'
-    # 這能確保應用程式在 macOS 上能找到視窗系統
-    datas.append((get_qt_plugins_paths('PyQt6', 'platforms')[0], 'PyQt6/Qt6/plugins/platforms'))
-
 
 a = Analysis(
     ['main.py'],  # 應用程式的主要進入點

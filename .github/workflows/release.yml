@@ -42,6 +42,10 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
           pip install pyinstaller
+          
+          # 新增：印出 PyInstaller 版本以供偵錯
+          echo "PyInstaller version:"
+          pip show pyinstaller
 
       # 步驟 4: (僅限 Linux) 安裝 Qt 相關的系統依賴
       - name: Install Linux dependencies
@@ -67,8 +71,6 @@ jobs:
             7z a -tzip "${ARTIFACT_NAME}.zip" "./dist/StellarNeo/*"
             echo "ASSET_PATH=${ARTIFACT_NAME}.zip" >> $GITHUB_ENV
           else # macOS 和 Linux
-            # macOS 的輸出是 .app 資料夾，Linux 是可執行檔資料夾
-            # 我們將它們都壓縮成 .tar.gz
             if [ "${{ runner.os }}" == "macOS" ]; then
               ARTIFACT_NAME="StellarNeo-${VERSION}-macos-x64"
               tar -czf "${ARTIFACT_NAME}.tar.gz" -C "./dist" "StellarNeo.app"
