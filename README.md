@@ -2,7 +2,7 @@
 
 <div align="right">
 
-繁體中文 | 简体中文
+[繁體中文](README_zh-TW.md) | [简体中文](README_zh-CN.md)
 
 </div>
 
@@ -45,98 +45,100 @@ This image should display the overall layout: image list, preview area, and cont
 </p>
 🚀 Key Features
 
-    Intelligent EXIF Recognition: Automatically reads camera model, lens, ISO, aperture, and other parameters upon import, and intelligently matches the corresponding brand logo.
+Intelligent EXIF Recognition: Automatically reads camera model, lens, ISO, aperture, and other parameters upon import, and intelligently matches the corresponding brand logo.
 
-    Powerful Watermark System:
+- Powerful Watermark System:
 
-        Logo Watermark: Supports auto-detection, selection from a built-in brand library, or uploading and managing your own logos.
+  - Logo Watermark: Supports auto-detection, selection from a built-in brand library, or uploading and managing your own logos.
 
-        Text Watermark: Display camera parameters or custom text with full control over font, size, and color.
+  - Text Watermark: Display camera parameters or custom text with full control over font, size, and color.
 
-        High Customization: Freely adjust the relative position of the logo and text (vertical, horizontal) and precisely place the watermark in nine positions within the frame or on the photo.
+  - High Customization: Freely adjust the relative position of the logo and text (vertical, horizontal) and precisely place the watermark in nine positions within the frame or on the photo.
 
-    Flexible Frame Editing:
+- Flexible Frame Editing:
 
-        Versatile Frame Styles: Choose between a solid color background or a blurred extension of the photo content.
+  - Versatile Frame Styles: Choose between a solid color background or a blurred extension of the photo content.
 
-        Fine-tuned Padding Control: Independently adjust the top, bottom, and side padding of the frame to create the perfect proportions.
+  - Fine-tuned Padding Control: Independently adjust the top, bottom, and side padding of the frame to create the perfect proportions.
 
-        Visual Enhancements: Add rounded corners and shadows to both the photo and the frame for a polished look.
+  - Visual Enhancements: Add rounded corners and shadows to both the photo and the frame for a polished look.
 
-    Efficient Batch Processing:
+- Efficient Batch Processing:
 
-        Supports batch import of images via drag-and-drop or a button click.
+  - Supports batch import of images via drag-and-drop or a button click.
 
-        One-click "Select All / Deselect All" for easy list management.
+  - One-click "Select All / Deselect All" for easy list management.
 
-        A clear progress bar is displayed during export, with status indicators for completed items.
+  - A clear progress bar is displayed during export, with status indicators for completed items.
 
-    Personalized Asset Libraries:
+- Personalized Asset Libraries:
 
-        Built-in managers for logos and fonts, allowing you to upload, preview, and use your own assets.
+  - Built-in managers for logos and fonts, allowing you to upload, preview, and use your own assets.
 
-    Modern User Interface:
+- Modern User Interface:
 
-        A clean and beautiful interface inspired by VS Code.
+  - A clean and beautiful interface inspired by VS Code.
 
-        Supports three theme modes: Light, Dark, and System.
+  - Supports three theme modes: Light, Dark, and System.
 
-        Multi-language support (Traditional Chinese, Simplified Chinese, English, etc.).
+  - Multi-language support (Traditional Chinese, Simplified Chinese, English, etc.).
 
-        Adjustable layout to fit various screen sizes.
+  - Adjustable layout to fit various screen sizes.
 
 <!--
 TODO: Place a GIF demonstrating core features.
 For example: dragging and dropping images, adjusting watermarks, switching frame styles.
 -->
+<!--
+<p align="center">
+<img src="preview/features_demo_en.gif" alt="Feature Demo" width="80%"/>
 
-[//]: # (<p align="center">)
-
-[//]: # (<img src="preview/features_demo_en.gif" alt="Feature Demo" width="80%"/>)
-
-[//]: # (</p>)
+</p>
+-->
 🛠️ Installation & Usage
 
-    Clone the repository:
+```bash
+# Clone the repository:
 
-    git clone https://github.com/HuangNO1/Stellar-Neo.git
-    cd Stellar-Neo
+git clone https://github.com/HuangNO1/Stellar-Neo.git
+cd Stellar-Neo
 
-    Install dependencies:
-    It's recommended to use a virtual environment.
+# Install dependencies:
+# It's recommended to use a virtual environment.
 
-    # Create a virtual environment (optional)
-    python -m venv venv
-    source venv/bin/activate  # For Windows: venv\Scripts\activate
+# Create a virtual environment (optional)
+python -m venv venv
+source venv/bin/activate  # For Windows: venv\Scripts\activate
 
-    # Install requirements
-    pip install -r requirements.txt
+# Install requirements
+pip install -r requirements.txt
 
-    Run the application:
+# Run the application:
 
-    python main.py  # Assuming your entry script is main.py
+python main.py
+```
 
 📦 Tech Stack
 
-    UI Framework: PyQt6
+- UI Framework: PyQt6
 
-    UI Components: PyQt-Fluent-Widgets
+- UI Components: PyQt-Fluent-Widgets
 
-    EXIF Parsing: ExifRead / piexif
+- EXIF Parsing: ExifRead / piexif
 
 👤 About the Author
 
 Moon Cancer
 
-    Let's go to the pier and grab some fries. Ciallo～(∠・ω< )⌒☆
+Let's go to the pier and grab some fries. Ciallo～(∠・ω< )⌒☆
 
-    GitHub: @HuangNO1
+- GitHub: [HuangNO1](https://github.com/HuangNO1)
 
-    Blog: Rem Blog
+- Blog: [Rem Blog](https://huangno1.github.io/)
 
 🙏 Acknowledgements
 
-    Application Logo Source: "私" by ｻｻﾞﾅﾐ。
+- Application Logo Source: [「私」](https://www.pixiv.net/artworks/117867484) by [ｻｻﾞﾅﾐ。](https://www.pixiv.net/users/16252763).
 
 📜 Disclaimer
 
