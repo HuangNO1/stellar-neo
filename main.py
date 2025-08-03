@@ -8,7 +8,7 @@ from PyQt6.QtWidgets import QApplication
 
 from app import MainWindow
 from core.env_patch import patch_qt_platform
-from core.utils import resource_path
+from core.utils import resource_path_str
 
 
 def setup_application(app: QApplication):
@@ -18,7 +18,7 @@ def setup_application(app: QApplication):
     current_dir = Path(__file__).parent
 
     # --- 1. 設定全域應用程式字體 ---
-    font_path = resource_path("assets/fonts/font.ttf")
+    font_path = resource_path_str("assets/fonts/font.ttf")
     if os.path.exists(font_path):
         font_id = QFontDatabase.addApplicationFont(str(font_path))
         if font_id != -1:
@@ -36,7 +36,7 @@ def setup_application(app: QApplication):
         print(f"警告：預設字體檔案未找到：{font_path}")
 
     # --- 2. 載入並套用 QSS 樣式表 ---
-    qss_file_path = resource_path("assets/style/splitter.qss")
+    qss_file_path = resource_path_str("assets/style/splitter.qss")
     try:
         with open(qss_file_path, "r", encoding="utf-8") as f:
             splitter_style = f.read()

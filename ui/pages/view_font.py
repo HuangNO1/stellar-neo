@@ -7,7 +7,7 @@ from qfluentwidgets import MessageBox
 
 from core.asset_manager import AssetManager
 from core.translator import Translator
-from core.utils import resource_path
+from core.utils import resource_path_str
 from ui.customs.font_item_widget import FontItemWidget
 
 
@@ -18,7 +18,7 @@ class FontView(QWidget):
         self.translator = translator
         self.tr = self.translator.get
 
-        uic.loadUi(resource_path("ui/components/font_manager.ui"), self)
+        uic.loadUi(resource_path_str("ui/components/font_manager.ui"), self)
 
         self.asset_manager = asset_manager
         self._is_selecting_all = False

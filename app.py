@@ -12,7 +12,7 @@ from core.asset_manager import AssetManager  # 導入資源管理器
 from core.config import THEMES
 from core.settings_manager import SettingsManager
 from core.translator import Translator
-from core.utils import resource_path
+from core.utils import resource_path_str
 from ui.customs.custom_icon import MyFluentIcon
 from ui.pages.view_font import FontView  # 導入字體頁面
 from ui.pages.view_gallery import GalleryView
@@ -33,7 +33,7 @@ class MainWindow(FluentWindow):
         self.themeListener = SystemThemeListener(self)
 
         # --- 2. 啟動介面邏輯 ---
-        self.logo = QIcon(resource_path('assets/icons/logo.png'))
+        self.logo = QIcon(resource_path_str('assets/icons/logo.png'))
         self.splashScreen = SplashScreen(self.logo, self)
         self.splashScreen.setIconSize(QSize(300, 300))
         # ‼️ 注意：這裡的 self.show() 應該在 init_window 之後調用，以確保窗口位置正確
@@ -56,7 +56,7 @@ class MainWindow(FluentWindow):
     def _load_initial_settings(self):
         """在建立任何UI之前載入設定"""
         lang_code = self.settings.get("language", "en")
-        i18n_path = resource_path("i18n")
+        i18n_path = resource_path_str("i18n")
         self.translator.load(lang_code, i18n_path)
 
         theme_name = self.settings.get("theme", "System")
@@ -102,6 +102,7 @@ class MainWindow(FluentWindow):
         tr = self.translator.get
         """建立並新增所有子頁面到導覽列"""
         # 實例化子頁面，並傳入需要的管理器
+        print(f" ==== setting {self.settings.get("language")} ====")
         self.gallery_view = GalleryView(self.asset_manager, self.settings, self.translator, self)
         self.logo_view = LogoView(self.asset_manager, self.translator, self)
         self.font_view = FontView(self.asset_manager, self.translator, self)

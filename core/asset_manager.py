@@ -7,7 +7,7 @@ from pathlib import Path
 
 from PyQt6.QtGui import QFontDatabase
 
-from core.utils import resource_path
+from core.utils import resource_path_str
 
 
 class AssetManager:
@@ -27,7 +27,7 @@ class AssetManager:
         # --- 應用程式預設資源路徑 ---
         # 假設在應用程式執行檔同級有一個名為 assets 的資料夾
         # 這是唯讀的，用於存放內建資源
-        self.default_assets_dir = resource_path("assets")
+        self.default_assets_dir = resource_path_str("assets")
         self.default_logos_dir = os.path.join(self.default_assets_dir, "logos")
 
         # 用來追蹤使用者上傳的字體路徑及其對應的家族名稱
