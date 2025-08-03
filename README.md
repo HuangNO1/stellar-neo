@@ -22,7 +22,7 @@ A modern, elegant, and powerful photo framing and watermarking tool.
 <p>
 <a href="https://www.python.org/"><img alt="Python" src="https://img.shields.io/badge/Python-3.8%2B-blue?style=for-the-badge&logo=python"></a>
 <a href="https://riverbankcomputing.com/software/pyqt/"><img alt="PyQt6" src="https://img.shields.io/badge/UI-PyQt6-brightgreen?style=for-the-badge&logo=qt"></a>
-<a href="https://www.google.com/search?q=LICENSE"><img alt="License" src="https://img.shields.io/github/license/HuangNO1/stellar-neo?style=for-the-badge&color=orange"></a>
+<a href="LICENSE"><img alt="License" src="https://img.shields.io/github/license/HuangNO1/stellar-neo?style=for-the-badge&color=orange"></a>
 <br/>
 <img alt="Release" src="https://img.shields.io/github/v/release/HuangNO1/stellar-neo?style=for-the-badge&color=blueviolet">
 <img alt="Downloads" src="https://img.shields.io/github/downloads/HuangNO1/stellar-neo/total?style=for-the-badge&color=skyblue">
@@ -143,6 +143,7 @@ Let's go to the pier and grab some fries. Ciallo～(∠・ω< )⌒☆
 📜 Disclaimer
 
 All brand logos involved in this application are for academic and demonstration purposes only. Commercial use is strictly prohibited.
+
 📄 License
 
 This project is licensed under the MIT License.
