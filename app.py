@@ -32,7 +32,7 @@ class MainWindow(FluentWindow):
         self.themeListener = SystemThemeListener(self)
 
         # --- 2. 啟動介面邏輯 ---
-        self.splashScreen = SplashScreen(QIcon('assets/icons/avatar.png'), self)
+        self.splashScreen = SplashScreen(QIcon('assets/icons/logo.png'), self)
         self.splashScreen.setIconSize(QSize(300, 300))
         self.show()
 
@@ -61,7 +61,7 @@ class MainWindow(FluentWindow):
     def init_window(self):
         """設定主視窗屬性"""
         self.resize(1500, 800)
-        self.setWindowIcon(QIcon("assets/icons/avatar.png"))
+        self.setWindowIcon(QIcon("assets/icons/logo.png"))
         self.setWindowTitle("Stellar NEO")
 
     def init_navigation(self):

@@ -4,6 +4,7 @@ from PyQt6.QtWidgets import QWidget, QHBoxLayout
 from qfluentwidgets import CheckBox, BodyLabel
 
 from core.translator import Translator
+from ui.customs.ElidedLabel import ElidedLabel
 
 
 class FontItemWidget(QWidget):
@@ -27,7 +28,7 @@ class FontItemWidget(QWidget):
         if self.is_deletable:
             display_text += f" ( {self.tr("user_upload", "User Upload")} ) "
 
-        self.font_label = BodyLabel(display_text, self)
+        self.font_label = ElidedLabel(display_text, self)
         self.font_label.setFont(QFont(family, 12))
 
         layout = QHBoxLayout(self)

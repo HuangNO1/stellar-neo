@@ -18,7 +18,7 @@ class AboutView(QWidget):
 
     def init_all_ui(self):
         # logo
-        self.logoLabel.setImage("assets/icons/avatar.png")
+        self.logoLabel.setImage("assets/icons/logo.png")
         self.logoLabel.scaledToHeight(64)
         self.githubButton.setUrl("https://github.com/HuangNO1/stellar-neo")
         self.blogButton.setUrl("https://huangno1.github.io/")

@@ -33,7 +33,7 @@ A modern, elegant, and powerful photo framing and watermarking tool.
 
 Have you ever been frustrated by the lack of satisfactory watermarking applications, especially when they fail to read the precious EXIF data from photos edited with tools like LRC or Luminar Neo? This frustration was the driving force behind the creation of Stellar Neo.
 
-Stellar Neo is a desktop application meticulously crafted for photographers and creators. Our primary goal is to provide a truly "out-of-the-box," detail-oriented, and completely free solution for photo framing and watermarking.
+Stellar Neo is a desktop application meticulously crafted for photographers and creators. My primary goal is to provide a truly "out-of-the-box," detail-oriented, and completely free solution for photo framing and watermarking.
 
 <!--
 TODO: Place a screenshot of the main application interface.

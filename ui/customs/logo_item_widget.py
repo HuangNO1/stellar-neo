@@ -1,9 +1,12 @@
+import os
 from pathlib import Path
 
 from PyQt6.QtCore import QSize, Qt, pyqtSignal
 from PyQt6.QtGui import QIcon
 from PyQt6.QtWidgets import QWidget, QHBoxLayout, QLabel
 from qfluentwidgets import CheckBox, BodyLabel
+
+from ui.customs.ElidedLabel import ElidedLabel
 
 
 # --- 新增：自訂 Logo 項目元件 ---
@@ -18,7 +21,7 @@ class LogoItemWidget(QWidget):
         self.checkbox = CheckBox(self)
         self.icon_label = QLabel(self)
         self.icon_label.setPixmap(icon.pixmap(QSize(32, 32)))
-        self.filename_label = BodyLabel(Path(path).name, self)
+        self.filename_label = ElidedLabel(os.path.basename(path), self)
 
         layout = QHBoxLayout(self)
         layout.setContentsMargins(5, 5, 5, 5)

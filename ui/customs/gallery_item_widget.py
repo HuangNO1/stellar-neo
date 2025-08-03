@@ -5,6 +5,7 @@ from PyQt6.QtWidgets import QWidget, QHBoxLayout, QLabel
 from qfluentwidgets import CheckBox, BodyLabel, ToolButton, FluentIcon, IconWidget
 
 from core.translator import Translator
+from ui.customs.ElidedLabel import ElidedLabel
 from ui.customs.custom_icon import MyFluentIcon
 
 
@@ -20,7 +21,7 @@ class GalleryItemWidget(QWidget):
         self.tr = self.translator.get
 
         self.checkbox = CheckBox(self)
-        self.filename_label = BodyLabel(os.path.basename(path), self)
+        self.filename_label = ElidedLabel(os.path.basename(path), self)
         self.filename_label.setMinimumWidth(100)
         self.warning_icon_widget = IconWidget(MyFluentIcon.WARNING, parent=self)
         self.warning_icon_widget.setFixedSize(16, 16)
