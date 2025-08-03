@@ -744,15 +744,29 @@ class GalleryView(QWidget):
             # 6. 計算內部相對位置並更新物件
             logo_x_rel, logo_y_rel, text_x_rel, text_y_rel = 0, 0, 0, 0
             if layout == 'logo_top':
-                # 計算水平居中對齊的偏移量
-                logo_x_rel = (total_w - logo_w) / 2
-                text_x_rel = (total_w - text_w) / 2
+                # --- 修正點 ---
+                if 'left' in align:
+                    logo_x_rel = 0
+                    text_x_rel = 0
+                elif 'right' in align:
+                    logo_x_rel = total_w - logo_w
+                    text_x_rel = total_w - text_w
+                else:  # 預設或 'center' in align
+                    logo_x_rel = (total_w - logo_w) / 2
+                    text_x_rel = (total_w - text_w) / 2
+                # --- 修正結束 ---
                 logo_y_rel = 0
                 text_y_rel = logo_h + gap
             elif layout == 'logo_bottom':
-                # 計算水平居中對齊的偏移量
-                logo_x_rel = (total_w - logo_w) / 2
-                text_x_rel = (total_w - text_w) / 2
+                if 'left' in align:
+                    logo_x_rel = 0
+                    text_x_rel = 0
+                elif 'right' in align:
+                    logo_x_rel = total_w - logo_w
+                    text_x_rel = total_w - text_w
+                else:  # 預設或 'center' in align
+                    logo_x_rel = (total_w - logo_w) / 2
+                    text_x_rel = (total_w - text_w) / 2
                 text_y_rel = 0
                 logo_y_rel = text_h + gap
             else:  # logo_left or logo_right
@@ -1269,18 +1283,24 @@ class GalleryView(QWidget):
 
         # 6. 計算內部相對位置並更新物件
         logo_x_rel, logo_y_rel, text_x_rel, text_y_rel = 0, 0, 0, 0
-        if layout == 'logo_top':
-            # 計算水平居中對齊的偏移量
-            logo_x_rel = (total_w - logo_w) / 2
-            text_x_rel = (total_w - text_w) / 2
-            logo_y_rel = 0
-            text_y_rel = logo_h + gap
-        elif layout == 'logo_bottom':
-            # 計算水平居中對齊的偏移量
-            logo_x_rel = (total_w - logo_w) / 2
-            text_x_rel = (total_w - text_w) / 2
-            text_y_rel = 0
-            logo_y_rel = text_h + gap
+        if layout in ['logo_top', 'logo_bottom']:
+            # 根據 align 設定來決定內部的水平對齊方式
+            if 'left' in align:
+                logo_x_rel = 0
+                text_x_rel = 0
+            elif 'right' in align:
+                logo_x_rel = total_w - logo_w
+                text_x_rel = total_w - text_w
+            else:  # 預設或 'center' in align
+                logo_x_rel = (total_w - logo_w) / 2
+                text_x_rel = (total_w - text_w) / 2
+
+            if layout == 'logo_top':
+                logo_y_rel = 0
+                text_y_rel = logo_h + gap
+            else:  # logo_bottom
+                text_y_rel = 0
+                logo_y_rel = text_h + gap
         else:  # logo_left or logo_right
             logo_y_rel = (total_h - logo_h) / 2
             text_y_rel = (total_h - text_h) / 2

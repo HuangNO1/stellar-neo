@@ -8,7 +8,6 @@ from PyQt6.QtWidgets import QApplication
 from app import MainWindow
 from core.env_patch import patch_qt_platform
 
-# TODO 每次啟動應用怎麼記憶是不是全屏幕
 
 def setup_application(app: QApplication):
     """
