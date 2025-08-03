@@ -10,7 +10,7 @@ from qfluentwidgets.components.widgets.tab_view import TabCloseButtonDisplayMode
 from core.asset_manager import AssetManager
 from core.settings_manager import SettingsManager
 from core.translator import Translator
-from core.utils import wrap_scroll
+from core.utils import wrap_scroll, resource_path
 
 
 class GalleryTabs(QWidget):
@@ -47,8 +47,8 @@ class GalleryTabs(QWidget):
         main_layout.addWidget(self.stackedWidget)
 
         # 加上滾動區塊
-        self.watermarkScrollArea, self.watermarkInterface = wrap_scroll(uic.loadUi("ui/components/watermark_tab.ui"))
-        self.frameScrollArea, self.frameInterface = wrap_scroll(uic.loadUi("ui/components/frame_tab.ui"))
+        self.watermarkScrollArea, self.watermarkInterface = wrap_scroll(uic.loadUi(resource_path("ui/components/watermark_tab.ui")))
+        self.frameScrollArea, self.frameInterface = wrap_scroll(uic.loadUi(resource_path("ui/components/frame_tab.ui")))
 
         # 使用 translator 更新 Tab 標題
         self.addSubInterface(self.watermarkScrollArea, 'watermarkInterface',

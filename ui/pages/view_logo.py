@@ -8,6 +8,7 @@ from qfluentwidgets import MessageBox
 
 from core.asset_manager import AssetManager
 from core.translator import Translator
+from core.utils import resource_path
 from ui.customs.logo_item_widget import LogoItemWidget
 
 
@@ -18,7 +19,7 @@ class LogoView(QWidget):
         self.translator = translator
         self.tr = self.translator.get
 
-        uic.loadUi("ui/components/logo_manager.ui", self)
+        uic.loadUi(resource_path("ui/components/logo_manager.ui"), self)
 
         self.asset_manager = asset_manager
         self._is_selecting_all = False  # 防止信號循環的標誌

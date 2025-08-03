@@ -16,6 +16,7 @@ from core.export_worker import ExportManager
 from core.logo_mapping import get_logo_path
 from core.settings_manager import SettingsManager
 from core.translator import Translator
+from core.utils import resource_path
 from ui.customs.custom_icon import MyFluentIcon
 from ui.customs.export_message import ExportMessageBox
 from ui.customs.gallery_item_widget import GalleryItemWidget
@@ -35,7 +36,7 @@ class GalleryView(QWidget):
 
     def __init__(self, asset_manager: AssetManager, settings: SettingsManager, translator: Translator, parent=None):
         super().__init__(parent)
-        uic.loadUi("ui/components/gallery.ui", self)
+        uic.loadUi(resource_path("ui/components/gallery.ui"), self)
 
         self.settings_manager = settings
         self.asset_manager = asset_manager

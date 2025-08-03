@@ -2,12 +2,13 @@ from PyQt6.QtWidgets import QWidget
 from PyQt6 import uic
 
 from core.translator import Translator
+from core.utils import resource_path
 
 
 class AboutView(QWidget):
     def __init__(self, translator: Translator, parent=None):
         super().__init__(parent)
-        uic.loadUi("ui/components/about.ui", self)
+        uic.loadUi(resource_path("ui/components/about.ui"), self)
         self.tr = translator.get
         # 設定滾動區域
         self.ScrollArea.setStyleSheet("QScrollArea{background: transparent; border: none}")
@@ -18,7 +19,7 @@ class AboutView(QWidget):
 
     def init_all_ui(self):
         # logo
-        self.logoLabel.setImage("assets/icons/logo.png")
+        self.logoLabel.setImage(resource_path("assets/icons/logo.png"))
         self.logoLabel.scaledToHeight(64)
         self.githubButton.setUrl("https://github.com/HuangNO1/stellar-neo")
         self.blogButton.setUrl("https://huangno1.github.io/")

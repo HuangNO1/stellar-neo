@@ -7,6 +7,8 @@ from pathlib import Path
 
 from PyQt6.QtGui import QFontDatabase
 
+from core.utils import resource_path
+
 
 class AssetManager:
     """
@@ -25,10 +27,8 @@ class AssetManager:
         # --- 應用程式預設資源路徑 ---
         # 假設在應用程式執行檔同級有一個名為 assets 的資料夾
         # 這是唯讀的，用於存放內建資源
-        self.default_assets_dir = Path("assets")
-        self.default_logos_dir = self.default_assets_dir / "logos"
-        # 應用程式應確保此路徑存在，例如在安裝時建立
-        self.default_logos_dir.mkdir(parents=True, exist_ok=True)  # 確保路徑存在
+        self.default_assets_dir = resource_path("assets")
+        self.default_logos_dir = os.path.join(self.default_assets_dir, "logos")
 
         # 用來追蹤使用者上傳的字體路徑及其對應的家族名稱
         self.user_font_data = {}  # 格式: {font_path: [family1, family2], ...}
@@ -58,9 +58,9 @@ class AssetManager:
 
     def get_default_logos(self) -> list[str]:
         """【新】獲取所有應用程式預設的 Logo 路徑"""
-        if not self.default_logos_dir.exists():
+        if not os.path.exists(self.default_logos_dir):
             return []
-        return [str(f) for f in self.default_logos_dir.iterdir() if f.is_file()]
+        return [str(Path(self.default_logos_dir) / f) for f in os.listdir(self.default_logos_dir) if os.path.isfile(os.path.join(self.default_logos_dir, f))]
 
     def delete_logo(self, logo_path: str):
         """刪除指定的使用者 Logo"""

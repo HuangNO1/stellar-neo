@@ -18,7 +18,9 @@ a = Analysis(
         ('assets', 'assets'),          # 包含整個 assets 資料夾
         ('i18n', 'i18n'),              # 包含整個 i18n 資料夾
         ('template', 'template'),      # 包含整個 template 資料夾
-        ('ui/components', 'ui/components') # 包含所有的 .ui 檔案
+        ('ui', 'ui'), # 包含所有的 .ui 檔案
+        ('core', 'core'),
+        ('app.py', 'app.py')
     ],
 
     hiddenimports=[],

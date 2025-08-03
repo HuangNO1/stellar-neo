@@ -7,6 +7,7 @@ from qfluentwidgets import setTheme, SystemThemeListener, MessageBox
 from core.config import LANGUAGES, THEMES
 from core.settings_manager import SettingsManager
 from core.translator import Translator
+from core.utils import resource_path
 
 
 class SettingsView(QWidget):
@@ -19,7 +20,7 @@ class SettingsView(QWidget):
         self.translator = translator
         self.settings = settings
         self.themeListener = theme_listener
-        uic.loadUi("ui/components/settings.ui", self)
+        uic.loadUi(resource_path("ui/components/settings.ui"), self)
 
         self.reverse_lang_map = {v: k for k, v in LANGUAGES.items()}
         # --- 新增 ---

@@ -3,6 +3,8 @@ import json
 import shutil  # 導入 shutil 模組以進行檔案複製
 from pathlib import Path
 
+from core.utils import resource_path
+
 
 class SettingsManager:
     """
@@ -19,7 +21,7 @@ class SettingsManager:
         self.user_settings_path = base_dir / "settings.json"
 
         # 定義專案內的範本設定檔路徑
-        self.template_settings_path = Path("template/settings.json")
+        self.template_settings_path = resource_path("template/settings.json")
 
         # 初始化時載入設定檔
         self._data = {}

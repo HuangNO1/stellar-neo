@@ -12,6 +12,7 @@ from core.asset_manager import AssetManager  # 導入資源管理器
 from core.config import THEMES
 from core.settings_manager import SettingsManager
 from core.translator import Translator
+from core.utils import resource_path
 from ui.customs.custom_icon import MyFluentIcon
 from ui.pages.view_font import FontView  # 導入字體頁面
 from ui.pages.view_gallery import GalleryView
@@ -32,10 +33,10 @@ class MainWindow(FluentWindow):
         self.themeListener = SystemThemeListener(self)
 
         # --- 2. 啟動介面邏輯 ---
-        self.splashScreen = SplashScreen(QIcon('assets/icons/logo.png'), self)
+        self.logo = QIcon(resource_path('assets/icons/logo.png'))
+        self.splashScreen = SplashScreen(self.logo, self)
         self.splashScreen.setIconSize(QSize(300, 300))
         # ‼️ 注意：這裡的 self.show() 應該在 init_window 之後調用，以確保窗口位置正確
-        # self.show() # <--- 暫時註解或移動這行
 
         # --- 3. 載入初始設定 ---
         self._load_initial_settings()
@@ -55,7 +56,8 @@ class MainWindow(FluentWindow):
     def _load_initial_settings(self):
         """在建立任何UI之前載入設定"""
         lang_code = self.settings.get("language", "en")
-        self.translator.load(lang_code, os.path.abspath("i18n"))
+        i18n_path = resource_path("i18n")
+        self.translator.load(lang_code, i18n_path)
 
         theme_name = self.settings.get("theme", "System")
         setTheme(THEMES.get(theme_name, THEMES["System"]))
@@ -71,7 +73,7 @@ class MainWindow(FluentWindow):
 
     def init_window(self):
         """設定主視窗屬性，並恢復上次的狀態或使其居中。"""
-        self.setWindowIcon(QIcon("assets/icons/logo.png"))
+        self.setWindowIcon(self.logo)
         self.setWindowTitle("Stellar NEO")
 
         # 讀取上次儲存的視窗幾何資訊和狀態
@@ -130,7 +132,7 @@ class MainWindow(FluentWindow):
     def createSubInterface(self):
         """模擬耗時的初始化操作"""
         loop = QEventLoop(self)
-        QTimer.singleShot(1000, loop.quit)
+        QTimer.singleShot(1500, loop.quit)
         loop.exec()
 
 

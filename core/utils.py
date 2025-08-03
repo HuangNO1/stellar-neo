@@ -1,5 +1,19 @@
+import os
+import sys
+
 from PyQt6.QtWidgets import QWidget
 from qfluentwidgets import SingleDirectionScrollArea
+
+def resource_path(relative_path):
+    """ 取得資源檔案的絕對路徑 (打包前後皆可使用) """
+    try:
+        # PyInstaller 建立的暫存資料夾，並將路徑存在 _MEIPASS
+        base_path = sys._MEIPASS
+    except Exception:
+        # 在開發模式下，使用正常的相對路徑
+        base_path = os.path.abspath(".")
+
+    return os.path.join(base_path, relative_path)
 
 
 def valid_setting_str(setting: any) -> bool:
