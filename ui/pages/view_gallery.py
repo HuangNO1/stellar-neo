@@ -16,7 +16,7 @@ from core.export_worker import ExportManager
 from core.logo_mapping import get_logo_path
 from core.settings_manager import SettingsManager
 from core.translator import Translator
-from core.utils import resource_path_str
+from core.utils import resource_path_str, get_os_type
 from ui.customs.custom_icon import MyFluentIcon
 from ui.customs.export_message import ExportMessageBox
 from ui.customs.gallery_item_widget import GalleryItemWidget
@@ -376,13 +376,21 @@ class GalleryView(QWidget):
             self, self.tr("gallery_export_dialog_title", "Select Export Directory"), last_dir
         )
 
-        if not output_dir:
-            return
-        self.settings_manager.set('last_export_dir', output_dir)
-
         if not selected_paths or not output_dir:
             # 處理用戶取消或未選擇的情況
             return
+        self.settings_manager.set('last_export_dir', output_dir)
+
+        # 1. 判斷作業系統並選擇渲染函式
+        os_type = get_os_type()
+        render_function_to_use = None
+
+        if os_type == 'windows':
+            print("檢測到 Windows 系統，使用 PIL 渲染器進行導出。")
+            render_function_to_use = self._render_image_with_pil_for_export
+        else:
+            print(f"檢測到 {os_type} 系統，使用 Qt 渲染器進行導出。")
+            render_function_to_use = self._render_image_for_export
 
         # --- UI 設定 ---
         # 禁用導出按鈕，防止重複點擊
@@ -398,7 +406,7 @@ class GalleryView(QWidget):
             selected_paths,
             output_dir,
             all_settings,
-            self._render_image_for_export
+            render_function_to_use
         )
 
         # --- 連接信號 ---
@@ -821,6 +829,286 @@ class GalleryView(QWidget):
         painter.end()
 
         return output_pixmap
+
+    def _render_image_with_pil_for_export(self, image_path: str, all_settings: dict):
+        """
+        (最終版) 為導出功能，使用 Pillow 函式庫離屏渲染單張圖片。
+        此版本包含優化過的相片陰影，並新增了相框陰影的繪製邏輯。
+        """
+        try:
+            from PIL import Image, ImageDraw, ImageFont, ImageFilter
+            from pathlib import Path
+        except ImportError:
+            raise ImportError("Pillow 函式庫未安裝，無法使用 PIL 進行渲染。請執行 'pip install Pillow'")
+
+        # --- 0. 載入圖片與設定 ---
+        try:
+            with Image.open(image_path) as img:
+                pil_img = img.convert("RGBA").copy()
+        except Exception as e:
+            raise RuntimeError(f"無法使用 Pillow 載入圖片 {os.path.basename(image_path)}: {e}")
+
+        exif_data = self.image_items.get(image_path, {}).get('exif', {})
+        f_settings = all_settings.get('frame', {})
+        w_settings = all_settings.get('watermark', {})
+
+        # --- 1. 基於原始圖片尺寸計算內部佈局 ---
+        img_w, img_h = pil_img.size
+        base_padding = min(img_w, img_h) * 0.1
+        padding_top = int(base_padding * f_settings.get('padding_top', 10) / 100)
+        padding_sides = int(base_padding * f_settings.get('padding_sides', 10) / 100)
+        padding_bottom = int(base_padding * f_settings.get('padding_bottom', 10) / 100)
+
+        if not f_settings.get('enabled', True):
+            padding_top = padding_sides = padding_bottom = 0
+
+        frame_w = img_w + padding_sides * 2
+        frame_h = img_h + padding_top + padding_bottom
+        photo_pos = (padding_sides, padding_top)
+
+        # --- 2. 創建內部畫布 (inner_canvas)，用於繪製無外部陰影的所有內容 ---
+        inner_canvas = Image.new('RGBA', (frame_w, frame_h), (0, 0, 0, 0))
+        inner_draw = ImageDraw.Draw(inner_canvas)
+        frame_radius = f_settings.get('frame_radius', 5) / 100.0 * min(frame_w, frame_h) / 2
+
+        # (A) 繪製相框背景
+        frame_style = f_settings.get('style', 'solid_color')
+        if f_settings.get('enabled', True):
+            frame_bounds = [(0, 0), (frame_w, frame_h)]
+            if frame_style == 'solid_color':
+                color = f_settings.get('color', '#FFFFFFFF')
+                inner_draw.rounded_rectangle(frame_bounds, radius=frame_radius, fill=color)
+            elif frame_style == 'blur_extend':
+                scale = max(frame_w / img_w, frame_h / img_h)
+                resized = pil_img.resize((int(img_w * scale), int(img_h * scale)), Image.Resampling.LANCZOS)
+                left, top = (resized.width - frame_w) / 2, (resized.height - frame_h) / 2
+                cropped = resized.crop((left, top, left + frame_w, top + frame_h))
+                blur_radius = f_settings.get('blur_radius', 20)
+                if hasattr(self, 'last_preview_photo_size') and self.last_preview_photo_size.width() > 0:
+                    blur_radius *= (img_w / self.last_preview_photo_size.width())
+                blurred_bg = cropped.filter(
+                    ImageFilter.GaussianBlur(radius=blur_radius)) if blur_radius > 0 else cropped
+                mask = Image.new('L', (frame_w, frame_h), 0)
+                ImageDraw.Draw(mask).rounded_rectangle(frame_bounds, radius=frame_radius, fill=255)
+                inner_canvas.paste(blurred_bg, (0, 0), mask)
+
+        # (B) 計算照片圓角半徑
+        photo_radius = f_settings.get('photo_radius', 3) / 100.0 * min(img_w, img_h) / 2
+
+        # (C) 繪製照片陰影 (優化版)
+        if f_settings.get('enabled', True) and f_settings.get('photo_shadow', True):
+            # 1. 調整參數以獲得更柔和、更收斂的陰影
+            shadow_blur_radius = 30  # 大幅減少模糊半徑，讓陰影更貼近物體
+            shadow_offset = (8, 8)  # 減少偏移，使陰影看起來更像接觸陰影
+            shadow_padding = int(shadow_blur_radius * 1.5)  # 根據新的模糊半徑調整擴展空間
+            shadow_color = (0, 0, 0, 50)  # **關鍵**：大幅降低 Alpha 值，讓陰影更通透、邊界更柔和
+
+            # 2. 創建一個比照片大的臨時畫布來繪製陰影
+            shadow_canvas_size = (img_w + shadow_padding * 2, img_h + shadow_padding * 2)
+            shadow_canvas = Image.new('RGBA', shadow_canvas_size, (0, 0, 0, 0))
+
+            # 3. 在這個大畫布的中心繪製帶有圓角、未模糊的陰影形狀
+            shadow_draw = ImageDraw.Draw(shadow_canvas)
+            shadow_shape_bounds = [(shadow_padding, shadow_padding), (img_w + shadow_padding, img_h + shadow_padding)]
+            shadow_draw.rounded_rectangle(shadow_shape_bounds, radius=photo_radius, fill=shadow_color)
+
+            # 4. 對整個陰影畫布應用高斯模糊
+            blurred_shadow = shadow_canvas.filter(ImageFilter.GaussianBlur(radius=shadow_blur_radius))
+
+            # 5. 計算粘貼位置
+            paste_pos = (
+                photo_pos[0] + shadow_offset[0] - shadow_padding,
+                photo_pos[1] + shadow_offset[1] - shadow_padding
+            )
+
+            # 6. 將模糊後的陰影粘貼到內部畫布上
+            inner_canvas.paste(blurred_shadow, paste_pos, blurred_shadow)
+
+        # (D) 繪製照片本身
+        photo_mask = Image.new('L', (img_w, img_h), 0)
+        ImageDraw.Draw(photo_mask).rounded_rectangle([(0, 0), (img_w, img_h)], radius=photo_radius, fill=255)
+        inner_canvas.paste(pil_img, photo_pos, photo_mask)
+
+        # --- 3. 繪製浮水印 (邏輯無變化) ---
+        # ... (此處省略與上一版完全相同的浮水印繪製程式碼) ...
+        # ... (從 logo_enabled = ... 開始到 ... fill=font_color) 結束)
+        logo_enabled = w_settings.get('logo_enabled', False)
+        text_enabled = w_settings.get('text_enabled', True)
+        if logo_enabled or text_enabled:
+            # (A) 準備 Logo 資源
+            logo_img, logo_text = None, ""
+            if logo_enabled:
+                logo_source = w_settings.get('logo_source', 'auto_detect')
+                logo_path = None
+                if logo_source == 'auto_detect':
+                    logo_path = get_logo_path(exif_data.get('Make', ''), str(self.asset_manager.default_logos_dir))
+                elif logo_source == 'select_from_library':
+                    logo_key = w_settings.get('logo_source_app', '')
+                    logo_path = next((p for p in self.asset_manager.get_default_logos() if Path(p).stem == logo_key),
+                                     None)
+                elif logo_source == 'my_custom_logo':
+                    logo_key = w_settings.get('logo_source_my_custom', '')
+                    logo_path = next((p for p in self.asset_manager.get_user_logos() if
+                                      self.asset_manager._create_key_from_name(Path(p).stem) == logo_key), None)
+                elif logo_source == 'custom_text':
+                    logo_text = w_settings.get('logo_text_custom', 'Logo')
+                if logo_path and os.path.exists(logo_path): logo_img = Image.open(logo_path).convert("RGBA")
+            # (B) 準備文字資源
+            watermark_text = ""
+            if text_enabled:
+                text_source = w_settings.get('text_source', 'exif')
+                if text_source == 'exif':
+                    formatted_parts = []
+                    if w_settings.get('exif_options', {}).get('model'): formatted_parts.append(
+                        exif_data.get('Model', ''))
+                    if w_settings.get('exif_options', {}).get('focal_length'): formatted_parts.append(
+                        f"{exif_data.get('FocalLength', '')}mm")
+                    if w_settings.get('exif_options', {}).get('aperture'): formatted_parts.append(
+                        f"f/{exif_data.get('FNumber', '')}")
+                    if w_settings.get('exif_options', {}).get('shutter'): formatted_parts.append(
+                        f"{exif_data.get('ExposureTime', '')}s")
+                    if w_settings.get('exif_options', {}).get('iso'): formatted_parts.append(
+                        f"ISO {exif_data.get('ISO', '')}")
+                    watermark_text = "  ".join(filter(None, formatted_parts))
+                elif text_source == 'custom':
+                    watermark_text = w_settings.get('text_custom', '')
+            # (C) 準備字體
+            font_size_ratio = w_settings.get('font_size', 20) / 100.0
+            base_font_size = max(12, int(min(img_w, img_h) * 0.04))
+            font_size = int(base_font_size * font_size_ratio)
+            font_color = w_settings.get('font_color', '#FFFFFFFF')
+            font_path = None
+            font_source = w_settings.get('font_family', 'system')
+            if font_source == 'my_custom':
+                font_key = w_settings.get('font_my_custom', '')
+                for path, families in self.asset_manager.get_user_fonts().items():
+                    if self.asset_manager._create_key_from_name(Path(path).stem) == font_key:
+                        font_path = path;
+                        break
+            try:
+                watermark_font = ImageFont.truetype(font_path, font_size) if font_path else ImageFont.load_default(
+                    font_size)
+                logo_font = ImageFont.truetype(font_path,
+                                               int(font_size * 1.2)) if font_path else ImageFont.load_default(
+                    int(font_size * 1.2))
+            except IOError:
+                watermark_font = ImageFont.load_default(font_size)
+                logo_font = ImageFont.load_default(int(font_size * 1.2))
+            # (D) 計算元素尺寸
+            draw_temp = ImageDraw.Draw(Image.new('RGBA', (1, 1)))
+            text_bbox = draw_temp.textbbox((0, 0), watermark_text, font=watermark_font)
+            text_w, text_h = (text_bbox[2] - text_bbox[0], text_bbox[3] - text_bbox[1]) if watermark_text else (0, 0)
+            logo_w, logo_h = 0, 0
+            if logo_img:
+                logo_h_scaled = int((img_h * 0.1) * (w_settings.get('logo_size', 30) / 50.0))
+                if logo_h_scaled > 0:
+                    logo_img = logo_img.resize((int(logo_img.width * (logo_h_scaled / logo_img.height)), logo_h_scaled),
+                                               Image.Resampling.LANCZOS)
+                    logo_w, logo_h = logo_img.size
+            elif logo_text:
+                logo_bbox = draw_temp.textbbox((0, 0), logo_text, font=logo_font)
+                logo_w, logo_h = logo_bbox[2] - logo_bbox[0], logo_bbox[3] - logo_bbox[1]
+            gap = int(font_size * 0.3)
+            # (E) 計算整體佈局與位置
+            layout = w_settings.get('layout', 'logo_left')
+            total_w, total_h = 0, 0
+            has_both = (logo_w > 0 and logo_h > 0) and (text_w > 0 and text_h > 0)
+            if layout in ['logo_top', 'logo_bottom']:
+                total_w = max(logo_w, text_w)
+                total_h = (logo_h + text_h + gap) if has_both else (logo_h or text_h)
+            else:
+                total_w = (logo_w + text_w + gap) if has_both else (logo_w or text_w)
+                total_h = max(logo_h, text_h)
+            area = w_settings.get('area', 'in_photo')
+            if not f_settings.get('enabled', True): area = 'in_photo'
+            target_rect = (photo_pos[0], photo_pos[1], img_w, img_h) if area == 'in_photo' else (0, 0, frame_w, frame_h)
+            padding = int(font_size * 0.5)
+            align = w_settings.get('align', 'bottom_center')
+            x, y = 0, 0
+            if 'left' in align:
+                x = target_rect[0] + padding
+            elif 'center' in align:
+                x = target_rect[0] + (target_rect[2] - total_w) / 2
+            elif 'right' in align:
+                x = target_rect[0] + target_rect[2] - total_w - padding
+            if area == 'in_photo':
+                if 'top' in align:
+                    y = target_rect[1] + padding
+                elif 'middle' in align:
+                    y = target_rect[1] + (target_rect[3] - total_h) / 2
+                elif 'bottom' in align:
+                    y = target_rect[1] + target_rect[3] - total_h - padding
+            else:
+                if 'top' in align:
+                    y = (padding_top - total_h) / 2
+                elif 'bottom' in align:
+                    y = photo_pos[1] + img_h + (padding_bottom - total_h) / 2
+                else:
+                    y = target_rect[1] + (target_rect[3] - total_h) / 2
+            # (F) 計算內部相對位置並繪製
+            logo_x_rel, logo_y_rel, text_x_rel, text_y_rel = 0, 0, 0, 0
+            if layout in ['logo_top', 'logo_bottom']:
+                if 'left' in align:
+                    logo_x_rel, text_x_rel = 0, 0
+                elif 'right' in align:
+                    logo_x_rel, text_x_rel = total_w - logo_w, total_w - text_w
+                else:
+                    logo_x_rel, text_x_rel = (total_w - logo_w) / 2, (total_w - text_w) / 2
+                if layout == 'logo_top':
+                    logo_y_rel, text_y_rel = 0, logo_h + gap
+                else:
+                    text_y_rel, logo_y_rel = 0, text_h + gap
+            else:
+                logo_y_rel, text_y_rel = (total_h - logo_h) / 2, (total_h - text_h) / 2
+                if layout == 'logo_right':
+                    text_x_rel, logo_x_rel = 0, text_w + gap
+                else:
+                    logo_x_rel, text_x_rel = 0, logo_w + gap
+            final_logo_pos = (int(x + logo_x_rel), int(y + logo_y_rel))
+            final_text_pos = (int(x + text_x_rel), int(y + text_y_rel))
+            if logo_enabled:
+                if logo_img:
+                    inner_canvas.paste(logo_img, final_logo_pos, logo_img)
+                elif logo_text:
+                    inner_draw.text(final_logo_pos, logo_text, font=logo_font, fill=font_color)
+            if text_enabled and watermark_text:
+                inner_draw.text(final_text_pos, watermark_text, font=watermark_font, fill=font_color)
+
+        # --- 4. 新增：繪製相框外部陰影 ---
+        if f_settings.get('enabled', True) and f_settings.get('frame_shadow', False):
+            # 1. 定義外部陰影參數
+            frame_shadow_blur = 20
+            frame_shadow_padding = int(frame_shadow_blur * 1.5)
+            frame_shadow_color = (0, 0, 0, 80)
+
+            # 2. 創建最終畫布，尺寸要比內部畫布大，以容納陰影
+            final_canvas_size = (frame_w + frame_shadow_padding * 2, frame_h + frame_shadow_padding * 2)
+            final_canvas = Image.new("RGBA", final_canvas_size, (0, 0, 0, 0))
+
+            # 3. 創建一個臨時圖層，繪製未模糊的相框形狀
+            shadow_layer = Image.new("RGBA", final_canvas_size, (0, 0, 0, 0))
+            shadow_draw = ImageDraw.Draw(shadow_layer)
+            shadow_shape_bounds = [
+                (frame_shadow_padding, frame_shadow_padding),
+                (frame_w + frame_shadow_padding, frame_h + frame_shadow_padding)
+            ]
+            shadow_draw.rounded_rectangle(shadow_shape_bounds, radius=frame_radius, fill=frame_shadow_color)
+
+            # 4. 模糊這個圖層
+            blurred_frame_shadow = shadow_layer.filter(ImageFilter.GaussianBlur(radius=frame_shadow_blur))
+
+            # 5. 將模糊後的陰影貼到最終畫布上
+            final_canvas.paste(blurred_frame_shadow, (0, 0), blurred_frame_shadow)
+
+            # 6. 將我們之前完成的所有內容 (inner_canvas) 貼到陰影之上
+            inner_canvas_pos = (frame_shadow_padding, frame_shadow_padding)
+            final_canvas.paste(inner_canvas, inner_canvas_pos, inner_canvas)
+
+            # 7. 返回帶有外部陰影的最終畫布
+            return final_canvas
+        else:
+            # 如果不啟用相框陰影，直接返回內部畫布
+            return inner_canvas
 
     def _clear_preview(self):
         """清空預覽，隱藏所有物件並顯示提示文字"""

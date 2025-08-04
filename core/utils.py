@@ -1,4 +1,5 @@
 import os
+import platform
 import sys
 
 from PyQt6.QtWidgets import QWidget
@@ -98,3 +99,17 @@ def wrap_scroll(widget: QWidget) -> tuple[SingleDirectionScrollArea, QWidget]:
     widget.setStyleSheet("QWidget{background: transparent}")
     scroll.setWidget(widget)
     return scroll, widget
+
+def get_os_type():
+    """
+    判斷當前運行的作業系統。
+    返回 'windows', 'linux', 'darwin' (macOS), 或 'unknown'。
+    """
+    system = platform.system().lower()
+    if 'windows' in system:
+        return 'windows'
+    elif 'linux' in system:
+        return 'linux'
+    elif 'darwin' in system:
+        return 'darwin'
+    return 'unknown'

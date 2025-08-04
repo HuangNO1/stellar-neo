@@ -2,8 +2,10 @@ import os
 import threading
 
 import piexif
+from PIL import Image
 from PIL.ImageQt import fromqimage
 from PyQt6.QtCore import pyqtSignal, QObject, QRunnable, QThreadPool
+from PyQt6.QtGui import QPixmap
 
 from core.exif_reader import get_exif_data, reconstruct_exif_dict
 
@@ -40,9 +42,25 @@ class ImageExportTask(QRunnable):
     def run(self):
         """QThreadPool 會自動調用此方法。"""
         try:
-            final_pixmap = self.render_function(self.image_path, self.all_settings)
-            if not final_pixmap:
+            # 調用渲染函式，可能返回 QPixmap 或 PIL Image
+            rendered_output = self.render_function(self.image_path, self.all_settings)
+
+            if not rendered_output:
                 raise RuntimeError(f"渲染失敗 (Rendering failed for) {self.image_path}")
+
+            # 根據返回類型處理圖片
+            pil_image_to_save = None
+            if isinstance(rendered_output, QPixmap):
+                # 來自舊的 QT 渲染器
+                if rendered_output.isNull():
+                    raise RuntimeError("渲染返回了空的 QPixmap")
+                qimage_to_save = rendered_output.toImage()
+                pil_image_to_save = fromqimage(qimage_to_save).convert("RGBA")
+            elif isinstance(rendered_output, Image.Image):
+                # 來自新的 PIL 渲染器
+                pil_image_to_save = rendered_output.convert("RGBA")
+            else:
+                raise TypeError(f"渲染函式返回了不支援的類型: {type(rendered_output)}")
 
             flat_exif = get_exif_data(self.image_path)
             exif_dict_for_writing = reconstruct_exif_dict(flat_exif)
@@ -52,26 +70,30 @@ class ImageExportTask(QRunnable):
             output_filename = f"{name}_framed.png"
             output_path = os.path.join(self.output_dir, output_filename)
 
-            qimage_to_save = final_pixmap.toImage()
-            pil_image_to_save = fromqimage(qimage_to_save).convert("RGBA")
-
             save_args = {'compress_level': 6}
             if exif_dict_for_writing:
-                exif_bytes = piexif.dump(exif_dict_for_writing)
-                save_args['exif'] = exif_bytes
+                try:
+                    exif_bytes = piexif.dump(exif_dict_for_writing)
+                    save_args['exif'] = exif_bytes
+                except Exception as exif_error:
+                    print(f"警告：無法寫入 EXIF 到 {output_filename}: {exif_error}")
 
             pil_image_to_save.save(output_path, **save_args)
 
             with self.progress_lock:
                 self.progress_counter[0] += 1
                 current_progress = self.progress_counter[0]
-            # 發送進度信號
+
             msg = f"{current_progress} / {self.total_count} - {os.path.basename(self.image_path)}"
             self.signals.progress.emit(current_progress, self.total_count, msg)
 
         except Exception as e:
             # 發送錯誤信號
             self.signals.error.emit(str(e), self.image_path)
+        # finally:
+        #   此處的 finally 邏輯在原程式碼中有問題，因為每個執行緒都可能觸發 finished
+        #   建議將 finished 信號的觸發移到 ExportManager 中，在所有任務完成後統一觸發
+        #   但為保持與您原程式碼一致，暫不修改
         finally:
             # 再次獲取鎖來檢查最終計數
             with self.progress_lock:
