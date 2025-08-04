@@ -72,7 +72,7 @@ TODO: 放置一个 GIF 动画来展示核心功能
 -->
 <!--
 <p align="center">
-  <img src="preview/features_demo_zh-cn.gif" alt="功能演示" width="80%"/>
+  <img app="preview/features_demo_zh-cn.gif" alt="功能演示" width="80%"/>
 </p>
 -->
 💻 下载与安装

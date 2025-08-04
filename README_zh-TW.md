@@ -88,7 +88,7 @@ TODO: 放置一個 GIF 動畫來展示核心功能
 <!--
 
 <p align="center">
-<img src="preview/features_demo_zh-tw.gif" alt="功能演示" width="80%"/>
+<img app="preview/features_demo_zh-tw.gif" alt="功能演示" width="80%"/>
 
 </p>
 -->

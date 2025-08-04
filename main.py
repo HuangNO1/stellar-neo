@@ -8,7 +8,7 @@ from pathlib import Path
 from PyQt6.QtGui import QFont, QFontDatabase
 from PyQt6.QtWidgets import QApplication
 
-from app import MainWindow
+from app.app import MainWindow
 from core.env_patch import patch_qt_platform
 from core.utils import resource_path_str
 

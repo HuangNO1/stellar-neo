@@ -91,7 +91,7 @@ For example: dragging and dropping images, adjusting watermarks, switching frame
 -->
 <!--
 <p align="center">
-<img src="preview/features_demo_en.gif" alt="Feature Demo" width="80%"/>
+<img app="preview/features_demo_en.gif" alt="Feature Demo" width="80%"/>
 
 </p>
 -->
