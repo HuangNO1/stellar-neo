@@ -686,7 +686,10 @@ class GalleryView(QWidget):
             logo_text_rect = logo_fm.boundingRect(logo_text)
 
             if logo_pixmap and not logo_pixmap.isNull():
-                logo_h_scaled = int(font_size * 1.2 * (w_settings.get('logo_size', 30) / 50.0) * 0.95)
+                # 同樣，將 logo 高度的計算基準改為 photo_rect (原始照片尺寸) 的高度
+                base_logo_height = photo_rect.height() * 0.1  # 基礎大小為原始照片高度的 10%
+                logo_size_ratio = w_settings.get('logo_size', 30) / 50.0  # 獲取 UI 上的 logo 尺寸比例
+                logo_h_scaled = int(base_logo_height * logo_size_ratio)
                 logo_pixmap = logo_pixmap.scaledToHeight(logo_h_scaled, Qt.TransformationMode.SmoothTransformation)
 
             gap = int(font_size * 0.3)
@@ -710,7 +713,9 @@ class GalleryView(QWidget):
 
             # 5. 決定浮水印的錨點 (左上角)
             area = w_settings.get('area', 'in_photo')
-            align = w_settings.get('align', 'bottom_right')
+            align = w_settings.get('align', 'bottom_center')
+            if not align:
+                align = 'bottom_center'
             # 如果相框被禁用，則強制將區域設為 'in_photo'
             f_settings = self.tabs._get_current_settings().get('frame', {})
             if not f_settings.get('enabled', True):
@@ -1229,7 +1234,10 @@ class GalleryView(QWidget):
         logo_text_rect = logo_fm.boundingRect(logo_text)
 
         if logo_pixmap and not logo_pixmap.isNull():
-            logo_h_scaled = int(logo_font.pointSizeF() * 1.2 * (w_settings.get('logo_size', 30) / 50.0))
+            # 將 logo 高度的計算基準改為 photo_rect 的高度，並與 logo_size 設定關聯
+            base_logo_height = photo_rect.height() * 0.1  # 例如，基礎大小為照片高度的 10%
+            logo_size_ratio = w_settings.get('logo_size', 30) / 50.0  # 獲取 UI 上的 logo 尺寸比例
+            logo_h_scaled = int(base_logo_height * logo_size_ratio)
             logo_pixmap = logo_pixmap.scaledToHeight(logo_h_scaled, Qt.TransformationMode.SmoothTransformation)
 
         gap = int(font_size * 0.3)
@@ -1251,7 +1259,9 @@ class GalleryView(QWidget):
 
         # 5. 決定浮水印的錨點 (左上角)
         area = w_settings.get('area', 'in_photo')
-        align = w_settings.get('align', 'bottom_right')
+        align = w_settings.get('align', 'bottom_center')
+        if not align:
+            align = 'bottom_center'
         # 如果相框被禁用，則強制將區域設為 'in_photo'
         f_settings = self.tabs._get_current_settings().get('frame', {})
         if not f_settings.get('enabled', True):
