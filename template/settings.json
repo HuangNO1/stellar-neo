@@ -1,39 +1,47 @@
 {
-  "language": "zh_CN",
+  "language": "zh_TW",
   "theme": "Light",
   "gallery_settings": {
     "watermark": {
-      "logo_enabled": false,
-      "logo_source": "auto_detect",
-      "logo_text": "Logo",
-      "logo_size": 12,
+      "logo_enabled": true,
+      "logo_source": "select_from_library",
+      "logo_source_app": "hasselblad",
+      "logo_source_my_custom": "avatar_2345678sdfvuyfhwseoiu_h38wqe7cn8wiuncwiuvcbiweunvhwienviowncohwqimjuoxnw",
+      "logo_size": 105,
       "text_enabled": true,
       "text_source": "exif",
-      "text_custom": "My Photo",
+      "text_custom": "MY LOVE--",
       "exif_options": {
         "model": true,
-        "iso": false,
-        "aperture": false,
+        "focal_length": true,
+        "iso": true,
+        "aperture": true,
         "shutter": true
       },
-      "font_family": "",
-      "font_color": "#FFFFFF",
-      "font_size": 76,
-      "layout": "logo_top_text_bottom",
-      "area": null,
-      "align": null
+      "font_family": "system",
+      "font_system": "hack",
+      "font_my_custom": "noto__sans_tc",
+      "font_color": "#0d0003",
+      "font_size": 75,
+      "layout": "logo_top",
+      "area": "in_frame",
+      "align": "bottom_center"
     },
     "frame": {
       "enabled": true,
+      "frame_shadow": true,
       "photo_shadow": true,
-      "frame_radius": 23,
-      "photo_radius": 18,
-      "padding_top": 16,
-      "padding_sides": 10,
-      "padding_bottom": 10,
-      "style": "solid_color",
-      "blur_radius": 20,
-      "color": "#FFFFFF"
+      "frame_radius": 9,
+      "photo_radius": 6,
+      "padding_top": 27,
+      "padding_sides": 37,
+      "padding_bottom": 174,
+      "style": "blur_extend",
+      "blur_radius": 13,
+      "color": "#8feaff"
     }
-  }
+  },
+  "last_export_dir": "/home/rem/Pictures",
+  "window_geometry": "AdnQywADAAAAAADAAAAAgwAABesAAAPXAAAAwAAAAIMAAAXrAAAD1wAAAAAAAAAABqsAAADAAAAAgwAABesAAAPX",
+  "window_state": "normal"
 }
