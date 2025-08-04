@@ -888,6 +888,12 @@ class GalleryView(QWidget):
                     blur_radius *= (img_w / self.last_preview_photo_size.width())
                 blurred_bg = cropped.filter(
                     ImageFilter.GaussianBlur(radius=blur_radius)) if blur_radius > 0 else cropped
+                # 為了防止因浮點數計算導致的 1 像素誤差，在貼上之前，
+                # 強制將模糊後的背景圖層重設為與畫框完全相同的尺寸。
+                # 這是解決 "images do not match" 錯誤的關鍵。
+                if blurred_bg.size != (frame_w, frame_h):
+                    blurred_bg = blurred_bg.resize((frame_w, frame_h), Image.Resampling.LANCZOS)
+
                 mask = Image.new('L', (frame_w, frame_h), 0)
                 ImageDraw.Draw(mask).rounded_rectangle(frame_bounds, radius=frame_radius, fill=255)
                 inner_canvas.paste(blurred_bg, (0, 0), mask)

@@ -75,7 +75,17 @@ TODO: 放置一个 GIF 动画来展示核心功能
   <img src="preview/features_demo_zh-cn.gif" alt="功能演示" width="80%"/>
 </p>
 -->
-🛠️ 安装与运行
+💻 下载与安装
+
+对于普通用户，我们建议直接从以下位置下载最新发布的版本：
+
+➡️ [**点击此处前往 GitHub Releases 页面下载最新版**](https://github.com/HuangNO1/stellar-neo/releases)
+
+下载适用于您操作系统（Windows / macOS）的安装文件后，即可直接安装使用，无需手动配置 Python 环境。
+
+---
+
+🛠️ 从源码运行（开发者）
 
 ```bash
 # 克隆项目：

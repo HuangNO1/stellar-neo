@@ -92,7 +92,17 @@ TODO: 放置一個 GIF 動畫來展示核心功能
 
 </p>
 -->
-🛠️ 安裝與執行
+## 💻 下載與安裝
+
+對於普通使用者，我們建議直接從以下位置下載最新發行的版本：
+
+➡️ [**點此前往 GitHub Releases 頁面下載最新版本**](https://github.com/HuangNO1/stellar-neo/releases)
+
+下載符合您作業系統（Windows / macOS）的安裝檔後，即可直接安裝使用，無需自行配置 Python 環境。
+
+---
+
+🛠️ 從原始碼執行 (開發者)
 
 ```bash
 # 複製專案：

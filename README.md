@@ -95,7 +95,18 @@ For example: dragging and dropping images, adjusting watermarks, switching frame
 
 </p>
 -->
-🛠️ Installation & Usage
+
+💻 Download and Installation
+
+For general users, we recommend downloading the latest release directly from the following location:
+
+➡️ [**Click here to go to the GitHub Releases page and download the latest version**](https://github.com/HuangNO1/stellar-neo/releases)
+
+After downloading the installer for your operating system (Windows / macOS), you can install and use the application directly without the need to set up a Python environment.
+
+---
+
+🛠️ Run from Source (Developers)
 
 ```bash
 # Clone the repository:
