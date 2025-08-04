@@ -22,13 +22,13 @@ datas = [
 
 a = Analysis(
     ['main.py'],  # 應用程式的主要進入點
-    pathex=[],
+    pathex=[os.getcwd()],
     binaries=[],
     datas=datas, # 使用我們上面準備好的 datas 列表
 
     # --- 核心修正：明確加入 PyQt6.sip ---
     # 解決某些環境下 "ModuleNotFoundError: No module named 'PyQt6.sip'" 的問題
-    hiddenimports=['PyQt6.sip'],
+    hiddenimports=['PyQt6.sip', 'app'],
 
     hookspath=[],
     hooksconfig={},

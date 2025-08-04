@@ -1,8 +1,10 @@
 import os
 import sys
+
+sys.path.append(os.path.dirname(__file__))
+
 from pathlib import Path
 
-from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QFont, QFontDatabase
 from PyQt6.QtWidgets import QApplication
 
@@ -45,6 +47,7 @@ def setup_application(app: QApplication):
         print(f"警告: 樣式表檔案未找到: {qss_file_path}")
     except Exception as e:
         print(f"錯誤: 無法讀取樣式表檔案: {e}")
+
 
 def main():
     """
