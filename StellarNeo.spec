@@ -17,7 +17,7 @@ datas = [
     ('template', 'template'),
     ('ui', 'ui'),
     ('core', 'core'),
-    ('src', 'src')
+    ('app', 'app')
 ]
 
 
