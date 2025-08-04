@@ -16,8 +16,7 @@ datas = [
     ('i18n', 'i18n'),
     ('template', 'template'),
     ('ui', 'ui'),
-    ('core', 'core'),
-    ('app.py', 'app.py')
+    ('core', 'core')
 ]
 
 
