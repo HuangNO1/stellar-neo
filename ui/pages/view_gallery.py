@@ -80,6 +80,7 @@ class GalleryView(QWidget):
         self.image_preview_label.setResizeAnchor(QGraphicsView.ViewportAnchor.AnchorViewCenter)
         # 設定透明背景，讓 frame_shadow 生效
         self.image_preview_label.setStyleSheet("background: transparent; border: none;")
+        self.setStyleSheet("QWidget{background: transparent}")
 
         # --- 新增：場景中的圖形物件 (Graphics Items) ---
         # 我們將創建一次，然後只更新它們的屬性
